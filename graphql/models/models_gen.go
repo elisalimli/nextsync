@@ -5,6 +5,7 @@ package models
 import (
 	"time"
 
+	"github.com/99designs/gqlgen/graphql"
 	"github.com/elisalimli/go_graphql_template/validator"
 )
 
@@ -71,11 +72,10 @@ type SendOtpInput struct {
 	To string `json:"to"`
 }
 
-// `Time` is a simple type only containing the current time as
-// a unix epoch timestamp and a string timestamp.
-type SubTime struct {
-	UnixTime  int    `json:"unixTime"`
-	TimeStamp string `json:"timeStamp"`
+// The `UploadFile` type, represents the request for uploading a file with a certain payload.
+type UploadFile struct {
+	ID   int            `json:"id"`
+	File graphql.Upload `json:"file"`
 }
 
 type VerifyOtpInput struct {

@@ -13,6 +13,7 @@ import (
 	"github.com/elisalimli/go_graphql_template/domain"
 	"github.com/elisalimli/go_graphql_template/graphql"
 	"github.com/elisalimli/go_graphql_template/initializers"
+
 	customMiddleware "github.com/elisalimli/go_graphql_template/middleware"
 	"github.com/elisalimli/go_graphql_template/postgres"
 	"github.com/go-chi/chi"
@@ -28,6 +29,7 @@ func init() {
 const defaultPort = "4000"
 
 func main() {
+	var mb int64 = 1 << 20
 
 	port := os.Getenv("PORT")
 	if port == "" {
@@ -43,7 +45,7 @@ func main() {
 	}).Handler)
 	router.Use(middleware.RequestID)
 	router.Use(middleware.Logger)
-	router.Use(customMiddleware.AuthMiddleware(userRepo))
+	// router.Use(customMiddleware.AuthMiddleware(userRepo))
 	// for passing http writer, reader to context
 	router.Use(customMiddleware.ContextMiddleware)
 
@@ -51,7 +53,7 @@ func main() {
 
 	c := graphql.Config{Resolvers: &graphql.Resolver{Domain: d}}
 
-	srv := handler.NewDefaultServer(graphql.NewExecutableSchema(c))
+	srv := handler.New(graphql.NewExecutableSchema(c))
 	srv.AddTransport(
 		transport.SSE{}) // <---- This is the important
 
@@ -59,7 +61,10 @@ func main() {
 	srv.AddTransport(transport.Options{})
 	srv.AddTransport(transport.GET{})
 	srv.AddTransport(transport.POST{})
-	srv.AddTransport(transport.MultipartForm{})
+	srv.AddTransport(transport.MultipartForm{
+		MaxMemory:     32 * mb,
+		MaxUploadSize: 500 * mb,
+	})
 	srv.SetQueryCache(lru.New(1000))
 	srv.Use(extension.Introspection{})
 	srv.Use(extension.AutomaticPersistedQuery{

@@ -101,7 +101,11 @@ type File {
     content: String!
     contentType: String!
 }
-
+"The `UploadFile` type, represents the request for uploading a file with a certain payload."
+input UploadFile {
+    id: Int!
+    file: Upload!
+}
 type Mutation {
   register(input: RegisterInput!): AuthResponse!
   login(input: LoginInput!): AuthResponse!
@@ -109,7 +113,7 @@ type Mutation {
   sendOtp(input: SendOtpInput!): FormResponse!
   verifyOtp(input: VerifyOtpInput!): FormResponse!
 
-  singleUpload(file: Upload!): File!
+  multipleUpload(req: [UploadFile!]!): [File!]!
 
   # createMeetup(input: NewMeetup!): Meetup!
   # updateMeetup(id: ID!, input: UpdateMeetup!): Meetup!
@@ -118,24 +122,3 @@ type Mutation {
 
 
 
-
-"""
-`Time` is a simple type only containing the current time as
-a unix epoch timestamp and a string timestamp.
-"""
-type SubTime {
-  unixTime: Int!
-  timeStamp: String!
-}
-
-"""
-`Subscription` is where all the subscriptions your clients can
-request. You can use Schema Directives like normal to restrict
-access.
-"""
-type Subscription {
-  """
-  `currentTime` will return a stream of `Time` objects.
-  """
-  currentTime: SubTime!
-}

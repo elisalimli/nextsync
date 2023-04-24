@@ -2,7 +2,6 @@ package middleware
 
 import (
 	"context"
-	"fmt"
 	"net/http"
 	"os"
 	"strings"
@@ -20,7 +19,6 @@ func AuthMiddleware(repo postgres.UsersRepo) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			token, err := parseToken(r)
-			fmt.Println("fired", token, err)
 
 			if err != nil {
 				next.ServeHTTP(w, r)
