@@ -197,6 +197,8 @@ func (m *postResolver) Files(ctx context.Context, obj *models.Post) ([]string, e
 }
 
 func (m *mutationResolver) CreatePost(ctx context.Context, input models.CreatePostInput) (*models.CreatePostResponse, error) {
+	currentUserId, _ := ctx.Value(customMiddleware.CurrentUserIdKey).(string)
+	fmt.Println("current user id ", currentUserId)
 	var imageUrls []models.Post_File
 	if len(input.Files) == 0 {
 		return &models.CreatePostResponse{Ok: false, Errors: []*validator.FieldError{{Field: "general", Message: "Please provide at least a file."}}}, nil
@@ -210,6 +212,7 @@ func (m *mutationResolver) CreatePost(ctx context.Context, input models.CreatePo
 		Title:       input.Title,
 		Description: input.Description,
 		Files:       imageUrls,
+		UserID:      currentUserId,
 	}
 	fmt.Println(post)
 	err = m.Domain.PostsRepo.CreatePost(post)
@@ -221,45 +224,7 @@ func (m *mutationResolver) CreatePost(ctx context.Context, input models.CreatePo
 }
 
 func (r *queryResolver) Posts(ctx context.Context) ([]*models.Post, error) {
-
-	var posts []*models.Post
-
-	// rows, _ := r.Domain.PostsRepo.DB.Table("posts").Select("posts.*,json_agg(json_build_object('id', pf.id, 'post_id', pf.post_id, 'url', pf.url)) AS files").Joins("JOIN post_files pf ON pf.post_id = posts.id").Group("posts.id").Rows()
-	// for rows.Next() {
-
-	// 	rows.Scan(&posts)
-	// 	fmt.Println("rows", posts)
-	// }
-	// var postsWithFiles []models.Post
-	// r.Domain.PostsRepo.DB.Select("posts.*, post_files.*").
-	// 	Joins("JOIN post_files ON posts.id = post_files.post_id").
-	// 	Find(&postsWithFiles)
-	// fmt.Println("posts", postsWithFiles)
-	// for _, post := range postsWithFiles {
-	// 	fmt.Printf("Post: %s\n", post.Title)
-	// 	for _, file := range post.Files {
-	// 		fmt.Printf("File: %s\n", file.Url)
-	// 	}
-	// }
-
-	// fmt.Println("posts", posts[0])
-	// if err != nil {
-	// return nil, errors.New(domain.ErrSomethingWentWrong)
-	// }
-
-	r.Domain.PostsRepo.DB.Raw(`SELECT json_agg(json_build_object('ID', pf.id, 'PostId', pf.post_id, 'Url', pf.url)) AS "Files" FROM "posts" JOIN post_files pf ON pf.post_id = posts.id GROUP BY "posts"."id"`).Find(&posts)
-	// r.Domain.PostsRepo.DB.Preload("Files").Find(&posts)
-	// r.Domain.PostsRepo.DB.Joins("files").Find(&posts)
-	fmt.Println("posts", posts[0])
-
-	// rows, _ := r.Domain.PostsRepo.DB.Model(&models.Post{}).Select(`posts.id as "ID",json_agg(json_build_object('id', pf.id, 'post_id', pf.post_id, 'url', pf.url)) AS "Files"`).Joins("join post_files pf ON pf.post_id = posts.id ").Group("posts.id").Rows()
-	// defer rows.Close()
-	// for rows.Next() {
-	// 	var title models.Post
-	// 	rows.Scan(&title)
-	// 	fmt.Println("titlet", title)
-
-	// 	// do something
-	// }
-	return posts, nil
+	var result []*models.Post
+	r.Domain.PostsRepo.DB.Preload("Files").Joins("Creator").Find(&result)
+	return result, nil
 }

@@ -51,6 +51,7 @@ type Post {
   title: String!
   description: String!
   files: [String!]
+  creator: User!
   # meetups: [Meetup!]!
   createdAt: Time!
   updatedAt: Time!

@@ -13,12 +13,13 @@ import (
 )
 
 type User struct {
-	ID          string     `gorm:"type:uuid;default:uuid_generate_v4();primary_key"`
-	Username    string     `gorm:"type:varchar(100);uniqueIndex;not null"`
-	Email       string     `gorm:"type:varchar(100);uniqueIndex;not null"`
-	Password    string     `gorm:"type:varchar(100);not null;" json:"-"`
-	Verified    bool       `gorm:"default:false"`
-	PhoneNumber string     `gorm:"type:varchar(15);uniqueIndex;not null"`
+	ID          string `gorm:"type:uuid;default:uuid_generate_v4();primary_key"`
+	Username    string `gorm:"type:varchar(100);uniqueIndex;not null"`
+	Email       string `gorm:"type:varchar(100);uniqueIndex;not null"`
+	Password    string `gorm:"type:varchar(100);not null;" json:"-"`
+	Verified    bool   `gorm:"default:false"`
+	PhoneNumber string `gorm:"type:varchar(15);uniqueIndex;not null"`
+	Posts       []Post
 	CreatedAt   *time.Time `gorm:"not null;default:now()"`
 	UpdatedAt   *time.Time `gorm:"not null;default:now()"`
 }

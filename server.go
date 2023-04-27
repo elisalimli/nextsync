@@ -46,7 +46,7 @@ func main() {
 	}).Handler)
 	router.Use(middleware.RequestID)
 	router.Use(middleware.Logger)
-	// router.Use(customMiddleware.AuthMiddleware(userRepo))
+	router.Use(customMiddleware.AuthMiddleware(userRepo))
 	// for passing http writer, reader to context
 	router.Use(customMiddleware.ContextMiddleware)
 
