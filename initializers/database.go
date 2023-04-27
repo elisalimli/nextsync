@@ -25,7 +25,7 @@ func ConnectToDatabase() {
 	DB.Exec("CREATE EXTENSION IF NOT EXISTS \"uuid-ossp\"")
 	DB.Logger = logger.Default.LogMode(logger.Info)
 
-	DB.AutoMigrate(&models.User{})
+	DB.AutoMigrate(&models.User{}, &models.Post{}, &models.Post_File{})
 
 	log.Println("🚀 Connected Successfully to the Database")
 

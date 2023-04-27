@@ -12,9 +12,12 @@ model:
   filename: graphql/models/models_gen.go
   package: models
 
+
 models:
   User:
     model: github.com/elisalimli/go_graphql_template/graphql/models.User
+  Post:
+    model: github.com/elisalimli/go_graphql_template/graphql/models.Post
   FieldError:
     model: github.com/elisalimli/go_graphql_template/validator.FieldError
 

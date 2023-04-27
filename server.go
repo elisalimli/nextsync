@@ -36,6 +36,7 @@ func main() {
 		port = defaultPort
 	}
 	userRepo := postgres.UsersRepo{DB: initializers.DB, RedisClient: initializers.RedisClient}
+	postsRepo := postgres.PostsRepo{DB: initializers.DB}
 
 	router := chi.NewRouter()
 	router.Use(cors.New(cors.Options{
@@ -49,7 +50,7 @@ func main() {
 	// for passing http writer, reader to context
 	router.Use(customMiddleware.ContextMiddleware)
 
-	d := domain.NewDomain(userRepo)
+	d := domain.NewDomain(userRepo, postsRepo)
 
 	c := graphql.Config{Resolvers: &graphql.Resolver{Domain: d}}
 

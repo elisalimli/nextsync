@@ -3,7 +3,6 @@ package graphql
 import (
 	"bytes"
 	"context"
-	"errors"
 	"fmt"
 	"os"
 	"sort"
@@ -16,6 +15,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/s3"
 	"github.com/elisalimli/go_graphql_template/graphql/models"
 	customMiddleware "github.com/elisalimli/go_graphql_template/middleware"
+	"github.com/elisalimli/go_graphql_template/validator"
 )
 
 // func (r *mutationResolver) SingleUpload(ctx context.Context, file graphql.Upload) (*models.File, error) {
@@ -91,78 +91,13 @@ func uploadToS3(resp *s3.CreateMultipartUploadOutput, fileBytes []byte, partNum 
 	ch <- partUploadResult{}
 }
 
-// var accessKey = os.Getenv("S3_ACCESS_KEY")
-// var secretKey = os.Getenv("S3_SECRET_KEY")
+func uploadFiles(ctx context.Context, resp *[]models.Post_File, req []*models.UploadFile) error {
 
-// var s3Config = &aws.Config{
-// 	Credentials: credentials.NewStaticCredentials(accessKey, secretKey, ""),
-// 	Region:      aws.String("eu-central-1"),
-// }
-
-// func uploadFile(file graphql.Upload, fileName string) error {
-// 	newSession, err := session.NewSession(s3Config)
-// 	if err != nil {
-// 		fmt.Printf("error while creating a new session %v", err)
-// 	}
-// 	s3Client := s3.New(newSession)
-
-// 	stream, readErr := ioutil.ReadAll(file.File)
-// 	if readErr != nil {
-// 		fmt.Printf("error from file %v", readErr)
-// 	}
-
-// 	fileErr := ioutil.WriteFile(fileName, stream, 0644)
-// 	if fileErr != nil {
-// 		fmt.Printf("file err %v", fileErr)
-// 	}
-
-// 	fileD, openErr := os.Open(fileName)
-// 	if openErr != nil {
-// 		fmt.Printf("Error opening file: %v", openErr)
-// 	}
-
-// 	defer fileD.Close()
-
-// 	buffer := make([]byte, file.Size)
-
-// 	_, _ = fileD.Read(buffer)
-
-// 	fileBytes := bytes.NewReader(buffer)
-// 	fmt.Println("contenttype", fmt.Sprintf("myfiles/%v", fileName))
-// 	object := s3.PutObjectInput{
-// 		Bucket: aws.String("azepdfserver"),
-// 		Key:    aws.String(fmt.Sprintf("myfiles/%v", fileName)),
-// 		Body:   fileBytes,
-// 		ACL:    aws.String("public-read"),
-// 	}
-
-// 	if _, uploadErr := s3Client.PutObject(&object); uploadErr != nil {
-// 		return fmt.Errorf("error uploading file: %v", uploadErr)
-// 	}
-
-// 	_ = os.Remove(fileName)
-// 	return nil
-// }
-
-func (m *mutationResolver) MultipleUpload(ctx context.Context, req []*models.UploadFile) ([]*models.File, error) {
-	var resp []*models.File
-	if len(req) == 0 {
-		return nil, errors.New("empty list")
-	}
-	for i, file := range req {
+	for _, file := range req {
 
 		currentUserId := ctx.Value(customMiddleware.CurrentUserIdKey)
 		fileName := fmt.Sprintf("%v-%v", currentUserId, file.File.Filename)
-		// err := uploadFile(file, fileName)
-		// if err != nil {
-		// 	return nil, err
-		// }
 
-		// currentDirectory, _ := os.Getwd()
-		// file, _ := os.Open(currentDirectory + "/AWS/S3" + FILE)
-		// defer file.Close()
-
-		// stat, _ := file.Stat()
 		fileSize := file.File.Size
 
 		buffer := make([]byte, fileSize)
@@ -180,7 +115,7 @@ func (m *mutationResolver) MultipleUpload(ctx context.Context, req []*models.Upl
 
 		if err != nil {
 			fmt.Print(err)
-			return nil, err
+			return err
 		}
 
 		var start, currentSize int
@@ -218,7 +153,8 @@ func (m *mutationResolver) MultipleUpload(ctx context.Context, req []*models.Upl
 				})
 				if err != nil {
 					fmt.Print(err)
-					os.Exit(1)
+					return err
+					// os.Exit(1)
 				}
 			}
 			fmt.Printf("Uploading of part %v has been finished \n", *result.completedPart.PartNumber)
@@ -239,20 +175,91 @@ func (m *mutationResolver) MultipleUpload(ctx context.Context, req []*models.Upl
 				Parts: completedParts,
 			},
 		})
-		a := res.Location
-		resp = append(resp, &models.File{
-			ID:      i + 1,
-			Name:    fileName,
-			Content: *a,
-		})
 
 		if err != nil {
 			fmt.Print(err)
-			return nil, err
+			return err
 		} else {
+			*resp = append(*resp, models.Post_File{Url: *res.Location})
 			fmt.Println(res.String())
 		}
 	}
+	return nil
+}
 
-	return resp, nil
+func (m *postResolver) Files(ctx context.Context, obj *models.Post) ([]string, error) {
+	var urls []string
+
+	for _, f := range obj.Files {
+		urls = append(urls, f.Url)
+	}
+	return urls, nil
+}
+
+func (m *mutationResolver) CreatePost(ctx context.Context, input models.CreatePostInput) (*models.CreatePostResponse, error) {
+	var imageUrls []models.Post_File
+	if len(input.Files) == 0 {
+		return &models.CreatePostResponse{Ok: false, Errors: []*validator.FieldError{{Field: "general", Message: "Please provide at least a file."}}}, nil
+	}
+
+	err := uploadFiles(ctx, &imageUrls, input.Files)
+	if err != nil {
+		return nil, err
+	}
+	post := &models.Post{
+		Title:       input.Title,
+		Description: input.Description,
+		Files:       imageUrls,
+	}
+	fmt.Println(post)
+	err = m.Domain.PostsRepo.CreatePost(post)
+
+	if err != nil {
+		return nil, err
+	}
+	return &models.CreatePostResponse{Ok: true, Post: post}, nil
+}
+
+func (r *queryResolver) Posts(ctx context.Context) ([]*models.Post, error) {
+
+	var posts []*models.Post
+
+	// rows, _ := r.Domain.PostsRepo.DB.Table("posts").Select("posts.*,json_agg(json_build_object('id', pf.id, 'post_id', pf.post_id, 'url', pf.url)) AS files").Joins("JOIN post_files pf ON pf.post_id = posts.id").Group("posts.id").Rows()
+	// for rows.Next() {
+
+	// 	rows.Scan(&posts)
+	// 	fmt.Println("rows", posts)
+	// }
+	// var postsWithFiles []models.Post
+	// r.Domain.PostsRepo.DB.Select("posts.*, post_files.*").
+	// 	Joins("JOIN post_files ON posts.id = post_files.post_id").
+	// 	Find(&postsWithFiles)
+	// fmt.Println("posts", postsWithFiles)
+	// for _, post := range postsWithFiles {
+	// 	fmt.Printf("Post: %s\n", post.Title)
+	// 	for _, file := range post.Files {
+	// 		fmt.Printf("File: %s\n", file.Url)
+	// 	}
+	// }
+
+	// fmt.Println("posts", posts[0])
+	// if err != nil {
+	// return nil, errors.New(domain.ErrSomethingWentWrong)
+	// }
+
+	r.Domain.PostsRepo.DB.Raw(`SELECT json_agg(json_build_object('ID', pf.id, 'PostId', pf.post_id, 'Url', pf.url)) AS "Files" FROM "posts" JOIN post_files pf ON pf.post_id = posts.id GROUP BY "posts"."id"`).Find(&posts)
+	// r.Domain.PostsRepo.DB.Preload("Files").Find(&posts)
+	// r.Domain.PostsRepo.DB.Joins("files").Find(&posts)
+	fmt.Println("posts", posts[0])
+
+	// rows, _ := r.Domain.PostsRepo.DB.Model(&models.Post{}).Select(`posts.id as "ID",json_agg(json_build_object('id', pf.id, 'post_id', pf.post_id, 'url', pf.url)) AS "Files"`).Joins("join post_files pf ON pf.post_id = posts.id ").Group("posts.id").Rows()
+	// defer rows.Close()
+	// for rows.Next() {
+	// 	var title models.Post
+	// 	rows.Scan(&title)
+	// 	fmt.Println("titlet", title)
+
+	// 	// do something
+	// }
+	return posts, nil
 }
