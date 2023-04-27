@@ -16,6 +16,7 @@ import (
 	"github.com/elisalimli/go_graphql_template/graphql/models"
 	customMiddleware "github.com/elisalimli/go_graphql_template/middleware"
 	"github.com/elisalimli/go_graphql_template/validator"
+	"github.com/google/uuid"
 )
 
 // func (r *mutationResolver) SingleUpload(ctx context.Context, file graphql.Upload) (*models.File, error) {
@@ -96,7 +97,9 @@ func uploadFiles(ctx context.Context, resp *[]models.Post_File, req []*models.Up
 	for _, file := range req {
 
 		currentUserId := ctx.Value(customMiddleware.CurrentUserIdKey)
-		fileName := fmt.Sprintf("%v-%v", currentUserId, file.File.Filename)
+		id := uuid.New()
+
+		fileName := fmt.Sprintf("%v-%v-%v", id.String(), currentUserId, file.File.Filename)
 
 		fileSize := file.File.Size
 
