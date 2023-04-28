@@ -13,15 +13,15 @@ import (
 )
 
 type User struct {
-	ID          string `gorm:"type:uuid;default:uuid_generate_v4();primary_key"`
-	Username    string `gorm:"type:varchar(100);uniqueIndex;not null"`
-	Email       string `gorm:"type:varchar(100);uniqueIndex;not null"`
-	Password    string `gorm:"type:varchar(100);not null;" json:"-"`
-	Verified    bool   `gorm:"default:false"`
-	PhoneNumber string `gorm:"type:varchar(15);uniqueIndex;not null"`
-	Posts       []Post
-	CreatedAt   *time.Time `gorm:"not null;default:now()"`
-	UpdatedAt   *time.Time `gorm:"not null;default:now()"`
+	ID          string `bun:"type:uuid,default:uuid_generate_v4(),pk"`
+	Username    string
+	Email       string
+	Password    string `bun:"type:varchar(100),notnull" json:"-"`
+	Verified    bool
+	PhoneNumber string
+	CreatedAt   *time.Time
+	UpdatedAt   *time.Time
+	Posts       []*Post `bun:"rel:has-many"`
 }
 
 func (u *User) HashPassword(password string) error {

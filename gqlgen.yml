@@ -18,6 +18,10 @@ models:
     model: github.com/elisalimli/go_graphql_template/graphql/models.User
   Post:
     model: github.com/elisalimli/go_graphql_template/graphql/models.Post
+    fields:
+      creator:
+        resolver: true
+
   FieldError:
     model: github.com/elisalimli/go_graphql_template/validator.FieldError
 

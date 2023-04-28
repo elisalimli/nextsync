@@ -1,12 +1,15 @@
 package postgres
 
 import (
+	"context"
+	"fmt"
+
 	"github.com/elisalimli/go_graphql_template/graphql/models"
-	"gorm.io/gorm"
+	"github.com/uptrace/bun"
 )
 
 type PostsRepo struct {
-	DB *gorm.DB
+	DB *bun.DB
 }
 
 // func (u *PostsRepo) GetUserByField(field, value string) (*models.User, error) {
@@ -30,7 +33,9 @@ type PostsRepo struct {
 // 	return u.GetUserByField("username", username)
 // }
 
-func (p *PostsRepo) CreatePost(post *(models.Post)) error {
-	result := p.DB.Create(post)
-	return result.Error
+func (p *PostsRepo) CreatePost(ctx context.Context, post *models.Post) error {
+	res, err := p.DB.NewInsert().Model(post).Exec(ctx)
+
+	fmt.Println("create post", res, err)
+	return err
 }

@@ -1,38 +1,40 @@
 package postgres
 
 import (
+	"context"
+
 	"github.com/elisalimli/go_graphql_template/graphql/models"
 	"github.com/redis/go-redis/v9"
-	"gorm.io/gorm"
+	"github.com/uptrace/bun"
 )
 
 type UsersRepo struct {
-	DB          *gorm.DB
+	DB          *bun.DB
 	RedisClient *redis.Client
 }
 
-func (u *UsersRepo) GetUserByField(field, value string) (*models.User, error) {
+func (u *UsersRepo) GetUserByField(ctx context.Context, field, value string) (*models.User, error) {
 	var user models.User
-	err := u.DB.Where(field+" = ?", value).First(&user).Error
+	err := u.DB.NewSelect().Model(&user).Where("? = ?", bun.Ident(field), value).Scan(ctx)
 	if err != nil {
 		return nil, err
 	}
 	return &user, nil
 }
 
-func (u *UsersRepo) GetUserByID(id string) (*models.User, error) {
-	return u.GetUserByField("id", id)
+func (u *UsersRepo) GetUserByID(ctx context.Context, id string) (*models.User, error) {
+	return u.GetUserByField(ctx, "id", id)
 }
 
-func (u *UsersRepo) GetUserByEmail(email string) (*models.User, error) {
-	return u.GetUserByField("email", email)
+func (u *UsersRepo) GetUserByEmail(ctx context.Context, email string) (*models.User, error) {
+	return u.GetUserByField(ctx, "email", email)
 }
 
-func (u *UsersRepo) GetUserByUsername(username string) (*models.User, error) {
-	return u.GetUserByField("username", username)
+func (u *UsersRepo) GetUserByUsername(ctx context.Context, username string) (*models.User, error) {
+	return u.GetUserByField(ctx, "username", username)
 }
 
-func (u *UsersRepo) CreateUser(user *(models.User)) error {
-	result := u.DB.Create(user).Error
-	return result
+func (u *UsersRepo) CreateUser(ctx context.Context, user *(models.User)) error {
+	_, err := u.DB.NewInsert().Model(user).Exec(ctx)
+	return err
 }

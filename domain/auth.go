@@ -2,6 +2,7 @@ package domain
 
 import (
 	"context"
+	"database/sql"
 	"errors"
 	"fmt"
 	"log"
@@ -52,7 +53,7 @@ var client *twilio.RestClient = twilio.NewRestClientWithParams(twilio.ClientPara
 })
 
 func (d *Domain) Login(ctx context.Context, input models.LoginInput) (*models.AuthResponse, error) {
-	user, err := d.UsersRepo.GetUserByEmail(input.Email)
+	user, err := d.UsersRepo.GetUserByEmail(ctx, input.Email)
 	if err != nil {
 		return NewFieldError(validator.FieldError{Message: ErrBadCredentials, Field: "general"}), nil
 	}
@@ -80,12 +81,13 @@ func (d *Domain) Login(ctx context.Context, input models.LoginInput) (*models.Au
 }
 
 func (d *Domain) Register(ctx context.Context, input models.RegisterInput) (*models.AuthResponse, error) {
-	_, err := d.UsersRepo.GetUserByEmail(input.Email)
+	res, err := d.UsersRepo.GetUserByEmail(ctx, input.Email)
+	fmt.Println(res, err)
 	if err == nil {
 		return NewFieldError(validator.FieldError{Message: "Email already in used", Field: "email"}), nil
 	}
 
-	_, err = d.UsersRepo.GetUserByUsername(input.Username)
+	_, err = d.UsersRepo.GetUserByUsername(ctx, input.Username)
 	if err == nil {
 		return NewFieldError(validator.FieldError{Message: "Username already in used", Field: "username"}), nil
 	}
@@ -104,19 +106,25 @@ func (d *Domain) Register(ctx context.Context, input models.RegisterInput) (*mod
 
 	// TODO: create verification code
 
-	tx := d.UsersRepo.DB.Begin()
+	tx, err := d.UsersRepo.DB.BeginTx(ctx, &sql.TxOptions{})
+	if err != nil {
+		log.Printf("error while creating a new transaction: %v", err)
+		return nil, errors.New(ErrSomethingWentWrong)
+	}
 	defer func() {
 		if r := recover(); r != nil {
 			tx.Rollback()
 		}
 	}()
 
-	if err := tx.Create(user).Error; err != nil {
+	// TODO: Duplicate phone numbers
+
+	if _, err := tx.NewInsert().Model(user).Exec(ctx); err != nil {
 		log.Printf("error creating a user: %v", err)
 		return nil, err
 	}
 
-	if err := tx.Commit().Error; err != nil {
+	if err := tx.Commit(); err != nil {
 		log.Printf("error while commiting: %v", err)
 		return nil, err
 	}
@@ -162,7 +170,7 @@ func (d *Domain) RefreshToken(ctx context.Context) (*models.AuthResponse, error)
 		return &models.AuthResponse{Ok: false}, nil
 	}
 
-	user, err := d.UsersRepo.GetUserByID(userId.(string))
+	user, err := d.UsersRepo.GetUserByID(ctx, userId.(string))
 
 	if err != nil {
 		return &models.AuthResponse{Ok: false, Errors: []*validator.FieldError{{Message: "User not found", Field: "general"}}}, nil
@@ -219,7 +227,7 @@ func (d *Domain) VerifyOtp(ctx context.Context, input models.VerifyOtpInput) (*m
 			panic(err)
 		}
 
-		d.UsersRepo.DB.Model(&models.User{}).Where("phone_number = ?", input.To).Update("verified", true)
+		// d.UsersRepo.DB.Model(&models.User{}).Where("phone_number = ?", input.To).Update("verified", true)
 
 		return &models.FormResponse{Ok: true}, nil
 	} else {

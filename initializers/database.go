@@ -1,31 +1,53 @@
 package initializers
 
 import (
+	"database/sql"
 	"log"
 	"os"
 
-	"github.com/elisalimli/go_graphql_template/graphql/models"
-	"gorm.io/driver/postgres"
-	"gorm.io/gorm"
-	"gorm.io/gorm/logger"
+	"github.com/uptrace/bun"
+	"github.com/uptrace/bun/dialect/pgdialect"
+	"github.com/uptrace/bun/driver/pgdriver"
+	"github.com/uptrace/bun/extra/bundebug"
 )
 
-var DB *gorm.DB
+var DB *bun.DB
 
 func ConnectToDatabase() {
 	var err error
 	dsn := os.Getenv("POSTGRESQL_URL")
-	DB, err = gorm.Open(postgres.Open(dsn), &gorm.Config{})
+
+	// dsn := "unix://user:pass@dbname/var/run/postgresql/.s.PGSQL.5432"
+	sqldb := sql.OpenDB(pgdriver.NewConnector(pgdriver.WithDSN(dsn)))
+
+	DB = bun.NewDB(sqldb, pgdialect.New())
 
 	if err != nil {
 		log.Fatal("Failed to connect to the Database! \n", err.Error())
 		os.Exit(1)
 	}
 
-	DB.Exec("CREATE EXTENSION IF NOT EXISTS \"uuid-ossp\"")
-	DB.Logger = logger.Default.LogMode(logger.Info)
+	DB.AddQueryHook(bundebug.NewQueryHook(bundebug.WithVerbose(true)))
 
-	DB.AutoMigrate(&models.User{}, &models.Post{}, &models.Post_File{})
+	// logger := logrus.New()
+
+	// DB.AddQueryHook(logrusbun.NewQueryHook(logrusbun.QueryHookOptions{
+	// 	LogSlow:         time.Second,
+	// 	Logger:          logger,
+	// 	QueryLevel:      logrus.DebugLevel,
+	// 	ErrorLevel:      logrus.ErrorLevel,
+	// 	SlowLevel:       logrus.WarnLevel,
+	// 	MessageTemplate: "{{.Operation}}[{{.Duration}}]: {{.Query}}",
+	// 	ErrorTemplate:   "{{.Operation}}[{{.Duration}}]: {{.Query}}: {{.Error}}",
+	// }))
+	// bundebug.NewQueryHook(bundebug.WithVerbose(true))
+
+	// DB.AddQueryHook(logrusbun.NewQueryHook(logrusbun.QueryHookOptions{Logger: log}))
+
+	// DB.Exec("CREATE EXTENSION IF NOT EXISTS \"uuid-ossp\"")
+	// DB.Logger = logger.Default.LogMode(logger.Info)
+
+	// DB.AutoMigrate(&models.User{}, &models.Post{}, &models.Post_File{})
 
 	log.Println("🚀 Connected Successfully to the Database")
 

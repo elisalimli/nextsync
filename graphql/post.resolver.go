@@ -3,6 +3,7 @@ package graphql
 import (
 	"bytes"
 	"context"
+	"errors"
 	"fmt"
 	"os"
 	"sort"
@@ -13,6 +14,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/s3"
+	"github.com/elisalimli/go_graphql_template/domain"
 	"github.com/elisalimli/go_graphql_template/graphql/models"
 	customMiddleware "github.com/elisalimli/go_graphql_template/middleware"
 	"github.com/elisalimli/go_graphql_template/validator"
@@ -92,7 +94,7 @@ func uploadToS3(resp *s3.CreateMultipartUploadOutput, fileBytes []byte, partNum 
 	ch <- partUploadResult{}
 }
 
-func uploadFiles(ctx context.Context, resp *[]models.Post_File, req []*models.UploadFile) error {
+func uploadFiles(ctx context.Context, resp *[]models.PostFile, req []*models.UploadFile) error {
 
 	for _, file := range req {
 
@@ -183,7 +185,7 @@ func uploadFiles(ctx context.Context, resp *[]models.Post_File, req []*models.Up
 			fmt.Print(err)
 			return err
 		} else {
-			*resp = append(*resp, models.Post_File{Url: *res.Location})
+			*resp = append(*resp, models.PostFile{URL: *res.Location})
 			fmt.Println(res.String())
 		}
 	}
@@ -194,15 +196,26 @@ func (m *postResolver) Files(ctx context.Context, obj *models.Post) ([]string, e
 	var urls []string
 
 	for _, f := range obj.Files {
-		urls = append(urls, f.Url)
+		urls = append(urls, f.URL)
 	}
 	return urls, nil
+}
+
+func (m *postResolver) Creator(ctx context.Context, obj *models.Post) (*models.User, error) {
+
+	user, err := m.Domain.UsersRepo.GetUserByID(ctx, obj.UserID)
+	// TODO: add dataloader
+	if err != nil {
+		return nil, errors.New(domain.ErrSomethingWentWrong)
+	}
+	return user, nil
 }
 
 func (m *mutationResolver) CreatePost(ctx context.Context, input models.CreatePostInput) (*models.CreatePostResponse, error) {
 	currentUserId, _ := ctx.Value(customMiddleware.CurrentUserIdKey).(string)
 	fmt.Println("current user id ", currentUserId)
-	var imageUrls []models.Post_File
+	// TODO: check if user exists
+	var imageUrls []models.PostFile
 	if len(input.Files) == 0 {
 		return &models.CreatePostResponse{Ok: false, Errors: []*validator.FieldError{{Field: "general", Message: "Please provide at least a file."}}}, nil
 	}
@@ -218,7 +231,11 @@ func (m *mutationResolver) CreatePost(ctx context.Context, input models.CreatePo
 		UserID:      currentUserId,
 	}
 	fmt.Println(post)
-	err = m.Domain.PostsRepo.CreatePost(post)
+	err = m.Domain.PostsRepo.CreatePost(ctx, post)
+	for i := range imageUrls {
+		imageUrls[i].PostID = post.ID
+	}
+	err = m.Domain.PostsRepo.DB.NewInsert().Model(&imageUrls).Scan(ctx)
 
 	if err != nil {
 		return nil, err
@@ -227,7 +244,16 @@ func (m *mutationResolver) CreatePost(ctx context.Context, input models.CreatePo
 }
 
 func (r *queryResolver) Posts(ctx context.Context) ([]*models.Post, error) {
-	var result []*models.Post
-	r.Domain.PostsRepo.DB.Preload("Files").Joins("Creator").Find(&result)
-	return result, nil
+	// var result []*models.Post
+	posts := make([]*models.Post, 0)
+	rows, err := r.Domain.PostsRepo.DB.QueryContext(ctx, `SELECT p.* ,json_agg(json_build_object('id', pf.id, 'post_id', pf.post_id, 'url', pf.url)) AS "files" FROM "posts" p JOIN post_files pf ON pf.post_id = p.id GROUP BY p."id"`)
+	if err != nil {
+		panic(err)
+	}
+
+	err = r.Domain.PostsRepo.DB.ScanRows(ctx, rows, &posts)
+	if err != nil {
+		return nil, errors.New(domain.ErrSomethingWentWrong)
+	}
+	return posts, nil
 }
