@@ -50,13 +50,20 @@ type Post {
   id: String!
   title: String!
   description: String!
-  files: [String!]
+  files: [PostFile!]!
   creator: User!
   userId: String!
 
   # meetups: [Meetup!]!
   createdAt: Time!
   updatedAt: Time!
+}
+
+type PostFile {
+  id: String!
+  postId: String!
+  url: String!
+  contentType: String!
 }
 
 # type Meetup {

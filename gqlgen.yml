@@ -21,7 +21,8 @@ models:
     fields:
       creator:
         resolver: true
-
+  PostFile:
+    model: github.com/elisalimli/go_graphql_template/graphql/models.PostFile
   FieldError:
     model: github.com/elisalimli/go_graphql_template/validator.FieldError
 

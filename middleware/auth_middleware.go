@@ -81,7 +81,7 @@ func GetCurrentUserFromCTX(ctx context.Context) (*models.User, error) {
 	}
 
 	user, ok := ctx.Value(CurrentUserIdKey).(*models.User)
-	if !ok || user.ID == "" {
+	if !ok || user.Id == "" {
 		return nil, errNoUserInContext
 	}
 

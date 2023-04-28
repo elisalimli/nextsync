@@ -13,7 +13,7 @@ import (
 )
 
 type User struct {
-	ID          string `bun:"type:uuid,default:uuid_generate_v4(),pk"`
+	Id          string `bun:"type:uuid,default:uuid_generate_v4(),pk"`
 	Username    string
 	Email       string
 	Password    string `bun:"type:varchar(100),notnull" json:"-"`
@@ -41,7 +41,7 @@ func (u *User) GenAccessToken() (*AuthToken, error) {
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.StandardClaims{
 		ExpiresAt: expiredAt.Unix(),
-		Id:        u.ID,
+		Id:        u.Id,
 		IssuedAt:  time.Now().Unix(),
 		Issuer:    "go_graphql",
 	})
@@ -62,7 +62,7 @@ func (u *User) GenRefreshToken() (*AuthToken, error) {
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.StandardClaims{
 		ExpiresAt: expiredAt.Unix(),
-		Id:        u.ID,
+		Id:        u.Id,
 		IssuedAt:  time.Now().Unix(),
 		Issuer:    "go_graphql",
 	})

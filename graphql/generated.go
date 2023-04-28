@@ -97,10 +97,17 @@ type ComplexityRoot struct {
 		Creator     func(childComplexity int) int
 		Description func(childComplexity int) int
 		Files       func(childComplexity int) int
-		ID          func(childComplexity int) int
+		Id          func(childComplexity int) int
 		Title       func(childComplexity int) int
 		UpdatedAt   func(childComplexity int) int
-		UserID      func(childComplexity int) int
+		UserId      func(childComplexity int) int
+	}
+
+	PostFile struct {
+		ContentType func(childComplexity int) int
+		Id          func(childComplexity int) int
+		PostId      func(childComplexity int) int
+		URL         func(childComplexity int) int
 	}
 
 	Query struct {
@@ -112,7 +119,7 @@ type ComplexityRoot struct {
 	User struct {
 		CreatedAt   func(childComplexity int) int
 		Email       func(childComplexity int) int
-		ID          func(childComplexity int) int
+		Id          func(childComplexity int) int
 		PhoneNumber func(childComplexity int) int
 		UpdatedAt   func(childComplexity int) int
 		Username    func(childComplexity int) int
@@ -128,7 +135,6 @@ type MutationResolver interface {
 	CreatePost(ctx context.Context, input models.CreatePostInput) (*models.CreatePostResponse, error)
 }
 type PostResolver interface {
-	Files(ctx context.Context, obj *models.Post) ([]string, error)
 	Creator(ctx context.Context, obj *models.Post) (*models.User, error)
 }
 type QueryResolver interface {
@@ -367,11 +373,11 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		return e.complexity.Post.Files(childComplexity), true
 
 	case "Post.id":
-		if e.complexity.Post.ID == nil {
+		if e.complexity.Post.Id == nil {
 			break
 		}
 
-		return e.complexity.Post.ID(childComplexity), true
+		return e.complexity.Post.Id(childComplexity), true
 
 	case "Post.title":
 		if e.complexity.Post.Title == nil {
@@ -388,11 +394,39 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		return e.complexity.Post.UpdatedAt(childComplexity), true
 
 	case "Post.userId":
-		if e.complexity.Post.UserID == nil {
+		if e.complexity.Post.UserId == nil {
 			break
 		}
 
-		return e.complexity.Post.UserID(childComplexity), true
+		return e.complexity.Post.UserId(childComplexity), true
+
+	case "PostFile.contentType":
+		if e.complexity.PostFile.ContentType == nil {
+			break
+		}
+
+		return e.complexity.PostFile.ContentType(childComplexity), true
+
+	case "PostFile.id":
+		if e.complexity.PostFile.Id == nil {
+			break
+		}
+
+		return e.complexity.PostFile.Id(childComplexity), true
+
+	case "PostFile.postId":
+		if e.complexity.PostFile.PostId == nil {
+			break
+		}
+
+		return e.complexity.PostFile.PostId(childComplexity), true
+
+	case "PostFile.url":
+		if e.complexity.PostFile.URL == nil {
+			break
+		}
+
+		return e.complexity.PostFile.URL(childComplexity), true
 
 	case "Query.hello":
 		if e.complexity.Query.Hello == nil {
@@ -430,11 +464,11 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		return e.complexity.User.Email(childComplexity), true
 
 	case "User.id":
-		if e.complexity.User.ID == nil {
+		if e.complexity.User.Id == nil {
 			break
 		}
 
-		return e.complexity.User.ID(childComplexity), true
+		return e.complexity.User.Id(childComplexity), true
 
 	case "User.phoneNumber":
 		if e.complexity.User.PhoneNumber == nil {
@@ -1847,7 +1881,7 @@ func (ec *executionContext) _Post_id(ctx context.Context, field graphql.Collecte
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.ID, nil
+		return obj.Id, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -1979,28 +2013,41 @@ func (ec *executionContext) _Post_files(ctx context.Context, field graphql.Colle
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Post().Files(rctx, obj)
+		return obj.Files, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
 		return graphql.Null
 	}
 	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
 		return graphql.Null
 	}
-	res := resTmp.([]string)
+	res := resTmp.([]models.PostFile)
 	fc.Result = res
-	return ec.marshalOString2ᚕstringᚄ(ctx, field.Selections, res)
+	return ec.marshalNPostFile2ᚕgithubᚗcomᚋelisalimliᚋgo_graphql_templateᚋgraphqlᚋmodelsᚐPostFileᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Post_files(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "Post",
 		Field:      field,
-		IsMethod:   true,
-		IsResolver: true,
+		IsMethod:   false,
+		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type String does not have child fields")
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_PostFile_id(ctx, field)
+			case "postId":
+				return ec.fieldContext_PostFile_postId(ctx, field)
+			case "url":
+				return ec.fieldContext_PostFile_url(ctx, field)
+			case "contentType":
+				return ec.fieldContext_PostFile_contentType(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type PostFile", field.Name)
 		},
 	}
 	return fc, nil
@@ -2078,7 +2125,7 @@ func (ec *executionContext) _Post_userId(ctx context.Context, field graphql.Coll
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.UserID, nil
+		return obj.UserId, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -2191,6 +2238,182 @@ func (ec *executionContext) fieldContext_Post_updatedAt(ctx context.Context, fie
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type Time does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _PostFile_id(ctx context.Context, field graphql.CollectedField, obj *models.PostFile) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_PostFile_id(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Id, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_PostFile_id(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "PostFile",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _PostFile_postId(ctx context.Context, field graphql.CollectedField, obj *models.PostFile) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_PostFile_postId(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.PostId, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_PostFile_postId(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "PostFile",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _PostFile_url(ctx context.Context, field graphql.CollectedField, obj *models.PostFile) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_PostFile_url(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.URL, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_PostFile_url(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "PostFile",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _PostFile_contentType(ctx context.Context, field graphql.CollectedField, obj *models.PostFile) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_PostFile_contentType(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ContentType, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_PostFile_contentType(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "PostFile",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
 		},
 	}
 	return fc, nil
@@ -2503,7 +2726,7 @@ func (ec *executionContext) _User_id(ctx context.Context, field graphql.Collecte
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.ID, nil
+		return obj.Id, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -5156,22 +5379,12 @@ func (ec *executionContext) _Post(ctx context.Context, sel ast.SelectionSet, obj
 				atomic.AddUint32(&invalids, 1)
 			}
 		case "files":
-			field := field
 
-			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._Post_files(ctx, field, obj)
-				return res
+			out.Values[i] = ec._Post_files(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
 			}
-
-			out.Concurrently(i, func() graphql.Marshaler {
-				return innerFunc(ctx)
-
-			})
 		case "creator":
 			field := field
 
@@ -5212,6 +5425,55 @@ func (ec *executionContext) _Post(ctx context.Context, sel ast.SelectionSet, obj
 
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&invalids, 1)
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var postFileImplementors = []string{"PostFile"}
+
+func (ec *executionContext) _PostFile(ctx context.Context, sel ast.SelectionSet, obj *models.PostFile) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, postFileImplementors)
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("PostFile")
+		case "id":
+
+			out.Values[i] = ec._PostFile_id(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "postId":
+
+			out.Values[i] = ec._PostFile_postId(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "url":
+
+			out.Values[i] = ec._PostFile_url(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "contentType":
+
+			out.Values[i] = ec._PostFile_contentType(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
 			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
@@ -5852,6 +6114,54 @@ func (ec *executionContext) marshalNPost2ᚖgithubᚗcomᚋelisalimliᚋgo_graph
 	return ec._Post(ctx, sel, v)
 }
 
+func (ec *executionContext) marshalNPostFile2githubᚗcomᚋelisalimliᚋgo_graphql_templateᚋgraphqlᚋmodelsᚐPostFile(ctx context.Context, sel ast.SelectionSet, v models.PostFile) graphql.Marshaler {
+	return ec._PostFile(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNPostFile2ᚕgithubᚗcomᚋelisalimliᚋgo_graphql_templateᚋgraphqlᚋmodelsᚐPostFileᚄ(ctx context.Context, sel ast.SelectionSet, v []models.PostFile) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNPostFile2githubᚗcomᚋelisalimliᚋgo_graphql_templateᚋgraphqlᚋmodelsᚐPostFile(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
+}
+
 func (ec *executionContext) unmarshalNRegisterInput2githubᚗcomᚋelisalimliᚋgo_graphql_templateᚋgraphqlᚋmodelsᚐRegisterInput(ctx context.Context, v interface{}) (models.RegisterInput, error) {
 	res, err := ec.unmarshalInputRegisterInput(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
@@ -6352,44 +6662,6 @@ func (ec *executionContext) marshalOPost2ᚖgithubᚗcomᚋelisalimliᚋgo_graph
 		return graphql.Null
 	}
 	return ec._Post(ctx, sel, v)
-}
-
-func (ec *executionContext) unmarshalOString2ᚕstringᚄ(ctx context.Context, v interface{}) ([]string, error) {
-	if v == nil {
-		return nil, nil
-	}
-	var vSlice []interface{}
-	if v != nil {
-		vSlice = graphql.CoerceList(v)
-	}
-	var err error
-	res := make([]string, len(vSlice))
-	for i := range vSlice {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
-		res[i], err = ec.unmarshalNString2string(ctx, vSlice[i])
-		if err != nil {
-			return nil, err
-		}
-	}
-	return res, nil
-}
-
-func (ec *executionContext) marshalOString2ᚕstringᚄ(ctx context.Context, sel ast.SelectionSet, v []string) graphql.Marshaler {
-	if v == nil {
-		return graphql.Null
-	}
-	ret := make(graphql.Array, len(v))
-	for i := range v {
-		ret[i] = ec.marshalNString2string(ctx, sel, v[i])
-	}
-
-	for _, e := range ret {
-		if e == graphql.Null {
-			return graphql.Null
-		}
-	}
-
-	return ret
 }
 
 func (ec *executionContext) unmarshalOString2ᚖstring(ctx context.Context, v interface{}) (*string, error) {
