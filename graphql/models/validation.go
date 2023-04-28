@@ -59,3 +59,12 @@ func (l VerifyOtpInput) Validate() (bool, map[string]string) {
 
 	return v.IsValid(), v.Errors
 }
+
+func (l CreatePostInput) Validate() (bool, map[string]string) {
+	v := validator.New()
+
+	v.Required("title", l.Title)
+	// v.MinLength("lastName", l.LastName, 2)
+
+	return v.IsValid(), v.Errors
+}
