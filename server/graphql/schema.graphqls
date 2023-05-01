@@ -1,0 +1,165 @@
+"The `UploadFile, // b.txt` scalar type represents a multipart file upload."
+scalar Time
+
+# directive @auth on FIELD_DEFINITION
+
+type FieldError {
+  message: String!
+  field: String!
+}
+
+interface IFormResponse {
+  ok: Boolean!
+  errors: [FieldError]
+}
+
+type FormResponse {
+  ok: Boolean!
+  errors: [FieldError]
+}
+
+type AuthResponse implements IFormResponse {
+  ok: Boolean!
+  errors: [FieldError]
+  authToken: AuthToken
+  user: User
+}
+
+type CreatePostResponse implements IFormResponse {
+  ok: Boolean!
+  errors: [FieldError]
+  post: Post
+}
+
+type AuthToken {
+  token: String!
+  expiredAt: Time!
+}
+
+type User {
+  id: String!
+  username: String!
+  email: String!
+  phoneNumber: String!
+  verified: Boolean!
+  # meetups: [Meetup!]!
+  createdAt: Time!
+  updatedAt: Time!
+}
+
+type Post {
+  id: String!
+  title: String!
+  description: String!
+  files: [PostFile!]!
+  creator: User!
+  userId: String!
+
+  # meetups: [Meetup!]!
+  createdAt: Time!
+  updatedAt: Time!
+}
+
+type PostFile {
+  id: String!
+  postId: String!
+  url: String!
+  contentType: String!
+}
+
+# type Meetup {
+#   id: ID!
+#   name: String!
+#   description: String!
+#   user: User!
+# }
+
+input RegisterInput {
+  username: String!
+  email: String!
+  password: String!
+  confirmPassword: String!
+  firstName: String!
+  lastName: String!
+  phoneNumber: String!
+}
+
+input LoginInput {
+  email: String!
+  password: String!
+}
+
+input SendOtpInput {
+  to: String!
+}
+
+input VerifyOtpInput {
+  to: String!
+  code: String!
+}
+
+# input NewMeetup {
+#   name: String!
+#   description: String!
+# }
+
+# input UpdateMeetup {
+#   name: String
+#   description: String
+# }
+
+# input MeetupFilter {
+#   name: String
+# }
+
+type Query {
+  # meetups(filter: MeetupFilter, limit: Int = 10, offset: Int = 0): [Meetup!]!
+  users: [User!]!
+  posts: [Post!]!
+  me: User
+  hello: String! 
+}
+
+"The `Upload` scalar type represents a multipart file upload."
+scalar Upload
+
+"The `File` type, represents the response of uploading a file."
+type File {
+    id: Int!
+    name: String!
+    content: String!
+    contentType: String!
+}
+
+
+"The `UploadFile` type, represents the request for uploading a file with certain payload."
+input UploadFile {
+    id: Int!
+    file: Upload!
+}
+
+
+"The `UploadFile` type, represents the request for uploading a file with a certain payload."
+input CreatePostInput {
+    files: [UploadFile!]!
+    title: String!
+    description: String!
+}
+
+type Mutation {
+  register(input: RegisterInput!): AuthResponse!
+  login(input: LoginInput!): AuthResponse!
+  logout: Boolean!
+  refreshToken: AuthResponse!
+  sendOtp(input: SendOtpInput!): FormResponse!
+  verifyOtp(input: VerifyOtpInput!): FormResponse!
+
+  createPost(input: CreatePostInput!): CreatePostResponse!
+
+  # createMeetup(input: NewMeetup!): Meetup!
+  # updateMeetup(id: ID!, input: UpdateMeetup!): Meetup!
+  # deleteMeetup(id: ID!): Boolean!
+}
+
+
+
