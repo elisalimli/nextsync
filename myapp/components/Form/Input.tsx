@@ -16,7 +16,6 @@ const Input: React.FC<IInputProps> = ({ control, name, ...rest }) => {
     name,
   });
 
-  console.log(formState);
   return (
     <View>
       <TextInput
