@@ -89,6 +89,13 @@ input LoginInput {
   password: String!
 }
 
+input GoogleLoginOrSignUpInput {
+  token: String!
+  username: String
+  phoneNumber: String
+}
+
+
 input SendOtpInput {
   to: String!
 }
@@ -146,16 +153,19 @@ input CreatePostInput {
     description: String!
 }
 
+
 type Mutation {
   register(input: RegisterInput!): AuthResponse!
   login(input: LoginInput!): AuthResponse!
+  googleLoginOrSignUp(input:GoogleLoginOrSignUpInput!):AuthResponse!
   logout: Boolean!
   refreshToken: AuthResponse!
   sendOtp(input: SendOtpInput!): FormResponse!
-  verifyOtp(input: VerifyOtpInput!): FormResponse!
+  verifyOtp(input: VerifyOtpInput!): AuthResponse!
+  
+
 
   createPost(input: CreatePostInput!): CreatePostResponse!
-
   # createMeetup(input: NewMeetup!): Meetup!
   # updateMeetup(id: ID!, input: UpdateMeetup!): Meetup!
   # deleteMeetup(id: ID!): Boolean!

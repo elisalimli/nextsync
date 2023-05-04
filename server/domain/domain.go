@@ -7,6 +7,7 @@ import (
 )
 
 var (
+	GeneralErrorFieldCode = "root.serverError"
 	ErrBadCredentials     = ("email/password combination don't work")
 	ErrSomethingWentWrong = ("something went wrong")
 )

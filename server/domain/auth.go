@@ -55,12 +55,12 @@ var client *twilio.RestClient = twilio.NewRestClientWithParams(twilio.ClientPara
 func (d *Domain) Login(ctx context.Context, input models.LoginInput) (*models.AuthResponse, error) {
 	user, err := d.UsersRepo.GetUserByEmail(ctx, input.Email)
 	if err != nil {
-		return NewFieldError(validator.FieldError{Message: ErrBadCredentials, Field: "root.serverError"}), nil
+		return NewFieldError(validator.FieldError{Message: ErrBadCredentials, Field: GeneralErrorFieldCode}), nil
 	}
 
 	err = user.ComparePassword(input.Password)
 	if err != nil {
-		return NewFieldError(validator.FieldError{Message: ErrBadCredentials, Field: "root.serverError"}), nil
+		return NewFieldError(validator.FieldError{Message: ErrBadCredentials, Field: GeneralErrorFieldCode}), nil
 	}
 
 	accessToken, err := user.GenAccessToken()
@@ -94,9 +94,11 @@ func (d *Domain) Register(ctx context.Context, input models.RegisterInput) (*mod
 	}
 
 	user := &models.User{
-		Username:    input.Username,
-		Email:       input.Email,
-		PhoneNumber: input.PhoneNumber,
+		Username:       input.Username,
+		Email:          input.Email,
+		PhoneNumber:    input.PhoneNumber,
+		SocialLogin:    false,
+		SocialProvider: "Google",
 	}
 
 	err = user.HashPassword(input.Password)
@@ -161,7 +163,7 @@ func (d *Domain) RefreshToken(ctx context.Context) (*models.AuthResponse, error)
 	_, err := jwt.ParseWithClaims(refreshTokenCookie.Value, claims, func(token *jwt.Token) (interface{}, error) {
 		return []byte(os.Getenv("JWT_SECRET")), nil
 	})
-
+	fmt.Println("refresh token", claims["jti"], err)
 	if err != nil {
 
 		return &models.AuthResponse{Ok: false}, nil
@@ -176,13 +178,13 @@ func (d *Domain) RefreshToken(ctx context.Context) (*models.AuthResponse, error)
 	user, err := d.UsersRepo.GetUserByID(ctx, userId.(string))
 
 	if err != nil {
-		return &models.AuthResponse{Ok: false, Errors: []*validator.FieldError{{Message: "User not found", Field: "root.serverError"}}}, nil
+		return &models.AuthResponse{Ok: false, Errors: []*validator.FieldError{{Message: "User not found", Field: GeneralErrorFieldCode}}}, nil
 	}
 
 	fmt.Println("user verification", user)
 
 	if !user.Verified {
-		return &models.AuthResponse{Ok: false, Errors: []*validator.FieldError{{Message: "You need to verify your account.", Field: "root.serverError"}}}, nil
+		return &models.AuthResponse{Ok: false, Errors: []*validator.FieldError{{Message: "You need to verify your account.", Field: GeneralErrorFieldCode}}}, nil
 	}
 
 	newRefreshToken, err := user.GenRefreshToken()
@@ -215,7 +217,7 @@ func (d *Domain) SendOtp(ctx context.Context, input models.SendOtpInput) (*model
 
 }
 
-func (d *Domain) VerifyOtp(ctx context.Context, input models.VerifyOtpInput) (*models.FormResponse, error) {
+func (d *Domain) VerifyOtp(ctx context.Context, input models.VerifyOtpInput) (*models.AuthResponse, error) {
 	params := &openapi.CreateVerificationCheckParams{}
 	params.SetTo(input.To)
 	params.SetCode(input.Code)
@@ -231,11 +233,24 @@ func (d *Domain) VerifyOtp(ctx context.Context, input models.VerifyOtpInput) (*m
 		if err != nil {
 			panic(err)
 		}
+		user := models.User{}
+		d.UsersRepo.DB.NewUpdate().Model(&user).Where("phone_number = ?", input.To).Set("verified = ?", true).Returning("*").Exec(ctx)
 
-		d.UsersRepo.DB.NewUpdate().Model(&models.User{}).Where("phone_number = ?", input.To).Set("verified = ?", true).Exec(ctx)
-		return &models.FormResponse{Ok: true}, nil
+		fmt.Println("verify token", user)
+		newRefreshToken, err := user.GenRefreshToken()
+		if err != nil {
+			return nil, errors.New(ErrSomethingWentWrong)
+		}
+
+		newAccessToken, err := user.GenAccessToken()
+		if err != nil {
+			return nil, errors.New(ErrSomethingWentWrong)
+		}
+		user.SaveRefreshToken(ctx, newRefreshToken)
+		return &models.AuthResponse{Ok: true, AuthToken: newAccessToken}, nil
 	} else {
 		fmt.Println("Incorrect!")
-		return &models.FormResponse{Ok: false}, nil
+		return &models.AuthResponse{Ok: false}, nil
 	}
+
 }

@@ -6,15 +6,20 @@ package graphql
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
+	"io/ioutil"
+	"log"
 	"net/http"
 	"os"
 
 	"github.com/99designs/gqlgen/graphql"
 	myContext "github.com/elisalimli/go_graphql_template/context"
+	"github.com/elisalimli/go_graphql_template/domain"
 	"github.com/elisalimli/go_graphql_template/graphql/models"
 	customMiddleware "github.com/elisalimli/go_graphql_template/middleware"
+	"github.com/elisalimli/go_graphql_template/validator"
 
 	"github.com/vektah/gqlparser/v2/gqlerror"
 )
@@ -71,6 +76,84 @@ func (m *mutationResolver) Register(ctx context.Context, input models.RegisterIn
 	return m.Domain.Register(ctx, input)
 }
 
+type GoogleUserRes struct {
+	ID         string `json:"id"`
+	Email      string `json:"email"`
+	Name       string `json:"name"`
+	GivenName  string `json:"given_name"`
+	FamilyName string `json:"family_name"`
+}
+
+func (m *mutationResolver) GoogleLoginOrSignUp(ctx context.Context, input models.GoogleLoginOrSignUpInput) (*models.AuthResponse, error) {
+	endpoint := "https://www.googleapis.com/userinfo/v2/me"
+	fmt.Println("en", endpoint)
+	client := &http.Client{}
+	req, _ := http.NewRequest("GET", endpoint, nil)
+	header := "Bearer " + input.Token
+	req.Header.Set("Authorization", header)
+	res, googleErr := client.Do(req)
+	if googleErr != nil {
+		return &models.AuthResponse{Ok: false, Errors: []*validator.FieldError{{Message: domain.ErrSomethingWentWrong, Field: domain.GeneralErrorFieldCode}}}, nil
+	}
+
+	defer res.Body.Close()
+	body, bodyErr := ioutil.ReadAll(res.Body)
+	if bodyErr != nil {
+		log.Panic(bodyErr)
+		return &models.AuthResponse{Ok: false}, nil
+	}
+
+	var googleBody GoogleUserRes
+	json.Unmarshal(body, &googleBody)
+	fmt.Println(googleBody)
+	if googleBody.Email != "" {
+		user, _ := m.Domain.UsersRepo.GetUserByEmail(ctx, googleBody.Email)
+		fmt.Println("fetched user", user)
+
+		// userExists, userExistsErr := getAndHandleUserExists(&user, googleBody.Email)
+
+		// if userExistsErr != nil {
+		// utils.CreateInternalServerError(ctx)
+		// return
+		// }
+
+		if user.Email == "" {
+			fmt.Println("creating...", user)
+			newUser := models.User{Email: googleBody.Email, SocialLogin: true, SocialProvider: "Google", Username: *input.Username, PhoneNumber: *input.PhoneNumber}
+			// 	storage.DB.Create(&user)
+			res, err := m.Domain.UsersRepo.DB.NewInsert().Model(&newUser).Returning("*").Exec(ctx)
+			fmt.Println("create user res", res, err)
+			// 	returnUser(user, ctx)
+			// 	return
+			// }
+
+			return &models.AuthResponse{Ok: true, User: &newUser}, nil
+
+			// if user.SocialLogin == true && user.SocialProvider == "Google" {
+			// 	returnUser(user, ctx)
+			// 	return
+			// }
+
+			// utils.CreateEmailAlreadyRegistered(ctx)
+			// return
+		} else if user.Verified {
+			newRefreshToken, err := user.GenRefreshToken()
+			if err != nil {
+				return nil, errors.New(domain.ErrSomethingWentWrong)
+			}
+
+			newAccessToken, err := user.GenAccessToken()
+			if err != nil {
+				return nil, errors.New(domain.ErrSomethingWentWrong)
+			}
+			user.SaveRefreshToken(ctx, newRefreshToken)
+			return &models.AuthResponse{Ok: true, AuthToken: newAccessToken, User: user}, nil
+		}
+	}
+
+	return &models.AuthResponse{Ok: true}, nil
+
+}
 func (m *mutationResolver) RefreshToken(ctx context.Context) (*models.AuthResponse, error) {
 	return m.Domain.RefreshToken(ctx)
 }
@@ -97,10 +180,10 @@ func (m *mutationResolver) SendOtp(ctx context.Context, input models.SendOtpInpu
 	return m.Domain.SendOtp(ctx, input)
 }
 
-func (m *mutationResolver) VerifyOtp(ctx context.Context, input models.VerifyOtpInput) (*models.FormResponse, error) {
+func (m *mutationResolver) VerifyOtp(ctx context.Context, input models.VerifyOtpInput) (*models.AuthResponse, error) {
 	isValid, errors := validation(ctx, input)
 	if !isValid {
-		return &models.FormResponse{Ok: false, Errors: errors}, nil
+		return &models.AuthResponse{Ok: false, Errors: errors}, nil
 	}
 
 	return m.Domain.VerifyOtp(ctx, input)

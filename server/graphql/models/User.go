@@ -2,6 +2,7 @@ package models
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 	"os"
 	"time"
@@ -13,15 +14,17 @@ import (
 )
 
 type User struct {
-	Id          string `bun:"type:uuid,default:uuid_generate_v4(),pk"`
-	Username    string
-	Email       string
-	Password    string `bun:"type:varchar(100),notnull" json:"-"`
-	Verified    bool
-	PhoneNumber string
-	CreatedAt   *time.Time
-	UpdatedAt   *time.Time
-	Posts       []*Post `bun:"rel:has-many"`
+	Id             string `bun:"type:uuid,default:uuid_generate_v4(),pk"`
+	Username       string
+	Email          string
+	Password       string `bun:"type:varchar(100),notnull" json:"-"`
+	Verified       bool
+	SocialLogin    bool   `bun:"socialLogin"`
+	SocialProvider string `bun:"socialProvider"`
+	PhoneNumber    string
+	CreatedAt      *time.Time
+	UpdatedAt      *time.Time
+	Posts          []*Post `bun:"rel:has-many"`
 }
 
 func (u *User) HashPassword(password string) error {
@@ -61,6 +64,7 @@ func (u *User) GenAccessToken() (*AuthToken, error) {
 func (u *User) GenRefreshToken() (*AuthToken, error) {
 	expiredAt := time.Now().Add(time.Hour * 24 * 365) // 1 year
 
+	fmt.Println("gen token user id", u.Id)
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.StandardClaims{
 		ExpiresAt: expiredAt.Unix(),
 		Id:        u.Id,

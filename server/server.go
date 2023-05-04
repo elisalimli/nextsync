@@ -49,7 +49,7 @@ func main() {
 
 	router := chi.NewRouter()
 	router.Use(cors.New(cors.Options{
-		AllowedOrigins:   []string{"http://localhost:4000", "http://localhost:19000"},
+		AllowedOrigins:   []string{"http://localhost:4000"},
 		AllowCredentials: true,
 		Debug:            true,
 	}).Handler)
@@ -88,63 +88,3 @@ func main() {
 	log.Fatal(http.ListenAndServe(":"+port, router))
 
 }
-
-// func uploadProgress(w http.ResponseWriter, r *http.Request) {
-// 	mr, err := r.MultipartReader()
-// 	if err != nil {
-// 		fmt.Fprintln(w, err)
-// 		return
-// 	}
-
-// 	length := r.ContentLength
-// 	progress := float64(0)
-// 	lastProgressSent := float64(0)
-
-// 	// Set the response headers for Server-Sent Events
-// 	w.Header().Set("Content-Type", "text/event-stream")
-// 	w.Header().Set("Cache-Control", "no-cache")
-// 	w.Header().Set("Connection", "keep-alive")
-
-// 	// Send an initial progress update to the client
-// 	fmt.Fprintf(w, "data: %v\n\n", progress)
-
-// 	for {
-// 		var read int64
-// 		part, err := mr.NextPart()
-
-// 		if err == io.EOF {
-// 			fmt.Printf("\nDone!")
-// 			break
-// 		}
-
-// 		dst, err := os.OpenFile("a.pdf", os.O_WRONLY|os.O_CREATE, 0666)
-
-// 		if err != nil {
-// 			return
-// 		}
-
-// 		for {
-// 			buffer := make([]byte, 100000)
-// 			cBytes, err := part.Read(buffer)
-// 			if err == io.EOF {
-// 				fmt.Printf("\nLast buffer read!")
-// 				break
-// 			}
-
-// 			read += int64(cBytes)
-// 			if read > 0 {
-// 				newProgress := float64(read) / float64(length) * 100
-
-// 				// Send a progress update to the client if it's divisible by 20
-// 				if int(newProgress/5) > int(lastProgressSent/5) {
-// 					lastProgressSent = newProgress
-// 					fmt.Fprintf(w, "data: %v\n\n", newProgress)
-// 				}
-
-// 				dst.Write(buffer[0:cBytes])
-// 			} else {
-// 				break
-// 			}
-// 		}
-// 	}
-// }

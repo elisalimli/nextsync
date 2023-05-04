@@ -186,7 +186,7 @@ func (d *Domain) CreatePost(ctx context.Context, input models.CreatePostInput) (
 	// TODO: check if user exists
 	var imageUrls []models.PostFile
 	if len(input.Files) == 0 {
-		return &models.CreatePostResponse{Ok: false, Errors: []*validator.FieldError{{Field: "root.serverError", Message: "Please provide at least a file."}}}, nil
+		return &models.CreatePostResponse{Ok: false, Errors: []*validator.FieldError{{Field: GeneralErrorFieldCode, Message: "Please provide at least a file."}}}, nil
 	}
 
 	err := d.uploadFiles(ctx, &imageUrls, input.Files)
