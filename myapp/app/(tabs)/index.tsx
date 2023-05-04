@@ -28,7 +28,6 @@ export default function TabOneScreen() {
           if (data?.logout) {
             await clearAuthState();
           }
-          console.log("logout data", data);
         }}
       >
         <Text>Logout</Text>

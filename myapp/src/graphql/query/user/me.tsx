@@ -5,6 +5,7 @@ export const User_Fragment = graphql(/* GraphQL */ `
     id
     username
     email
+    verified
     phoneNumber
     createdAt
     updatedAt

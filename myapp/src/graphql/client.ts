@@ -44,7 +44,6 @@ const httpLink = createHttpLink({
 const authLink = setContext(async (_, { headers }) => {
   // get the authentication token from local storage if it exists
   const token = await getAuthAccessToken();
-  console.log("fired", token);
   // return the headers to the context so httpLink can read them
   return {
     headers: {
@@ -55,12 +54,9 @@ const authLink = setContext(async (_, { headers }) => {
 });
 const errorLink = onError(
   ({ graphQLErrors, networkError, operation, forward }) => {
-    const { cache } = operation.getContext();
-
     if (graphQLErrors) {
       for (let err of graphQLErrors) {
-        console.log("errors", err.extensions);
-        switch (err.extensions.code) {
+        switch (err?.extensions?.code) {
           case "UNAUTHENTICATED":
             return fromPromise(refreshAuth())
               .filter((value) => Boolean(value))
@@ -86,5 +82,5 @@ const errorLink = onError(
 export const client = new ApolloClient({
   link: ApolloLink.from([errorLink, authLink, httpLink]),
 
-  cache: new InMemoryCache(),
+  cache: new InMemoryCache({}),
 });

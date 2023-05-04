@@ -1,9 +1,4 @@
 import FontAwesome from "@expo/vector-icons/FontAwesome";
-import {
-  DarkTheme,
-  DefaultTheme,
-  ThemeProvider,
-} from "@react-navigation/native";
 import { useFonts } from "expo-font";
 import { SplashScreen, Stack, useRouter } from "expo-router";
 import React, { useEffect } from "react";
@@ -12,10 +7,8 @@ import { AuthProvider } from "../context/auth";
 
 export { ErrorBoundary } from "expo-router";
 
-import { Provider } from "urql";
-import { client } from "../src/graphql/client";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ApolloProvider } from "@apollo/client";
+import { client } from "../src/graphql/client";
 
 export const unstable_settings = {
   // Ensure that reloading on `/modal` keeps a back button present.
@@ -49,16 +42,16 @@ function RootLayoutNav() {
     <>
       {/* <Provider value={client}> */}
       <ApolloProvider client={client}>
-        <ThemeProvider
-          value={colorScheme === "dark" ? DarkTheme : DefaultTheme}
-        >
-          <AuthProvider>
-            <Stack>
-              <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-              <Stack.Screen name="modal" options={{ presentation: "modal" }} />
-            </Stack>
-          </AuthProvider>
-        </ThemeProvider>
+        {/* <ThemeProvider */}
+        {/* value={colorScheme === "dark" ? DarkTheme : DefaultTheme} */}
+        {/* > */}
+        <AuthProvider>
+          <Stack>
+            <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+            <Stack.Screen name="modal" options={{ presentation: "modal" }} />
+          </Stack>
+        </AuthProvider>
+        {/* </ThemeProvider> */}
       </ApolloProvider>
       {/* </Provider> */}
     </>

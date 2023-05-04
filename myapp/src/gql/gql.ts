@@ -13,11 +13,13 @@ import { TypedDocumentNode as DocumentNode } from '@graphql-typed-document-node/
  * Therefore it is highly recommended to use the babel or swc plugin for production.
  */
 const documents = {
+    "\n  mutation GoogleLoginOrSignUp($input: GoogleLoginOrSignUpInput!) {\n    googleLoginOrSignUp(input: $input) {\n      ok\n      errors {\n        message\n        field\n      }\n      user {\n        ...User_Fragment\n      }\n      authToken {\n        token\n        expiredAt\n      }\n    }\n  }\n": types.GoogleLoginOrSignUpDocument,
     "\n  mutation Login($input: LoginInput!) {\n    login(input: $input) {\n      ok\n      errors {\n        message\n        field\n      }\n      authToken {\n        token\n        expiredAt\n      }\n      user {\n        ...User_Fragment\n      }\n    }\n  }\n": types.LoginDocument,
     "\n  mutation Logout {\n    logout\n  }\n": types.LogoutDocument,
-    "\n  mutation RefreshToken {\n    refreshToken {\n      ok\n      errors {\n        message\n        field\n      }\n      authToken {\n        token\n        expiredAt\n      }\n    }\n  }\n": types.RefreshTokenDocument,
+    "\n  mutation SendOTP($input: SendOtpInput!) {\n    sendOtp(input: $input) {\n      ok\n      errors {\n        message\n        field\n      }\n    }\n  }\n": types.SendOtpDocument,
+    "\n  mutation VerifyOTP($input: VerifyOtpInput!) {\n    verifyOtp(input: $input) {\n      ok\n      errors {\n        message\n        field\n      }\n      authToken {\n        token\n        expiredAt\n      }\n    }\n  }\n": types.VerifyOtpDocument,
     "\n  query Hello {\n    hello\n  }\n": types.HelloDocument,
-    "\n  fragment User_Fragment on User {\n    id\n    username\n    email\n    phoneNumber\n    createdAt\n    updatedAt\n  }\n": types.User_FragmentFragmentDoc,
+    "\n  fragment User_Fragment on User {\n    id\n    username\n    email\n    verified\n    phoneNumber\n    createdAt\n    updatedAt\n  }\n": types.User_FragmentFragmentDoc,
     "\n  query Me {\n    me {\n      ...User_Fragment\n    }\n  }\n": types.MeDocument,
 };
 
@@ -38,6 +40,10 @@ export function graphql(source: string): unknown;
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
+export function graphql(source: "\n  mutation GoogleLoginOrSignUp($input: GoogleLoginOrSignUpInput!) {\n    googleLoginOrSignUp(input: $input) {\n      ok\n      errors {\n        message\n        field\n      }\n      user {\n        ...User_Fragment\n      }\n      authToken {\n        token\n        expiredAt\n      }\n    }\n  }\n"): (typeof documents)["\n  mutation GoogleLoginOrSignUp($input: GoogleLoginOrSignUpInput!) {\n    googleLoginOrSignUp(input: $input) {\n      ok\n      errors {\n        message\n        field\n      }\n      user {\n        ...User_Fragment\n      }\n      authToken {\n        token\n        expiredAt\n      }\n    }\n  }\n"];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
 export function graphql(source: "\n  mutation Login($input: LoginInput!) {\n    login(input: $input) {\n      ok\n      errors {\n        message\n        field\n      }\n      authToken {\n        token\n        expiredAt\n      }\n      user {\n        ...User_Fragment\n      }\n    }\n  }\n"): (typeof documents)["\n  mutation Login($input: LoginInput!) {\n    login(input: $input) {\n      ok\n      errors {\n        message\n        field\n      }\n      authToken {\n        token\n        expiredAt\n      }\n      user {\n        ...User_Fragment\n      }\n    }\n  }\n"];
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
@@ -46,7 +52,11 @@ export function graphql(source: "\n  mutation Logout {\n    logout\n  }\n"): (ty
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
-export function graphql(source: "\n  mutation RefreshToken {\n    refreshToken {\n      ok\n      errors {\n        message\n        field\n      }\n      authToken {\n        token\n        expiredAt\n      }\n    }\n  }\n"): (typeof documents)["\n  mutation RefreshToken {\n    refreshToken {\n      ok\n      errors {\n        message\n        field\n      }\n      authToken {\n        token\n        expiredAt\n      }\n    }\n  }\n"];
+export function graphql(source: "\n  mutation SendOTP($input: SendOtpInput!) {\n    sendOtp(input: $input) {\n      ok\n      errors {\n        message\n        field\n      }\n    }\n  }\n"): (typeof documents)["\n  mutation SendOTP($input: SendOtpInput!) {\n    sendOtp(input: $input) {\n      ok\n      errors {\n        message\n        field\n      }\n    }\n  }\n"];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "\n  mutation VerifyOTP($input: VerifyOtpInput!) {\n    verifyOtp(input: $input) {\n      ok\n      errors {\n        message\n        field\n      }\n      authToken {\n        token\n        expiredAt\n      }\n    }\n  }\n"): (typeof documents)["\n  mutation VerifyOTP($input: VerifyOtpInput!) {\n    verifyOtp(input: $input) {\n      ok\n      errors {\n        message\n        field\n      }\n      authToken {\n        token\n        expiredAt\n      }\n    }\n  }\n"];
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
@@ -54,7 +64,7 @@ export function graphql(source: "\n  query Hello {\n    hello\n  }\n"): (typeof 
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
-export function graphql(source: "\n  fragment User_Fragment on User {\n    id\n    username\n    email\n    phoneNumber\n    createdAt\n    updatedAt\n  }\n"): (typeof documents)["\n  fragment User_Fragment on User {\n    id\n    username\n    email\n    phoneNumber\n    createdAt\n    updatedAt\n  }\n"];
+export function graphql(source: "\n  fragment User_Fragment on User {\n    id\n    username\n    email\n    verified\n    phoneNumber\n    createdAt\n    updatedAt\n  }\n"): (typeof documents)["\n  fragment User_Fragment on User {\n    id\n    username\n    email\n    verified\n    phoneNumber\n    createdAt\n    updatedAt\n  }\n"];
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */

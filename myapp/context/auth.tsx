@@ -5,12 +5,20 @@ import { User, User_FragmentFragment } from "../src/gql/graphql";
 import { FragmentType, useFragment } from "../src/gql";
 import { useQuery } from "@apollo/client";
 
-interface ThemeContextType {
+interface AuthContextType {
   user: User_FragmentFragment | null;
+  token: string;
+  phoneNumber: string;
+  setToken: (token: string) => void;
+  setPhoneNumber: (phoneNumber: string) => void;
 }
 
-const AuthContext = React.createContext<ThemeContextType>({
+const AuthContext = React.createContext<AuthContextType>({
   user: null,
+  token: "",
+  phoneNumber: "",
+  setToken: () => {},
+  setPhoneNumber: () => {},
 });
 
 // This hook can be used to access the user info.
@@ -41,24 +49,21 @@ function useProtectedRoute(user: User_FragmentFragment) {
 }
 
 export function AuthProvider(props: { children: React.ReactElement }) {
-  const { data } = useQuery(meQueryDocument, {});
-  console.log("me data data", data);
-  // const { data } = useQuery({
-  //   queryKey: ["me"],
-  //   queryFn: async () =>
-  //     request(
-  //       "http://localhost:4000/query",
-  //       meQueryDocument,
-  //       // variables are type-checked too!
-  //       {}
-  //     ),
-  // });
+  const [token, setToken] = React.useState<string>("");
+  const [phoneNumber, setPhoneNumber] = React.useState<string>("");
+  const { data } = useQuery(meQueryDocument, {
+    nextFetchPolicy: "cache-only", // Used for subsequent executions
+  });
   useProtectedRoute(data?.me as any);
 
   return (
     <AuthContext.Provider
       value={{
         user: data?.me as User_FragmentFragment,
+        token,
+        phoneNumber,
+        setToken: (token: string) => setToken(token),
+        setPhoneNumber: (phoneNumber: string) => setPhoneNumber(phoneNumber),
       }}
     >
       {props.children}
