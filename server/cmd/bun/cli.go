@@ -145,6 +145,10 @@ func newDBCommand(migrator *migrate.Migrator) *cli.Command {
 		},
 	}
 }
+func init() {
+	initializers.LoadEnvVariables()
+	initializers.ConnectToDatabase()
+}
 
 func main() {
 	app := &cli.App{
