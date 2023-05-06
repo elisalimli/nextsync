@@ -14,12 +14,26 @@ import { googleLoginOrSignUpMutationDocument } from "../../../src/graphql/mutati
 import { User_Fragment } from "../../../src/graphql/query/user/me";
 import Input from "../../Form/Input";
 import { setErrors } from "../../Form/setErrors";
-import { sendOtp } from "./sendOtp";
+import { useSendOtp } from "./sendOtp";
+import { useRouter } from "expo-router";
+import { sendOtpMutation } from "../../../src/graphql/mutation/user/sendOtp";
+import { updateMeCache } from "../../../src/graphql/updateMeCache";
+import { saveAuthAccessToken } from "../../../src/auth/auth";
 
-const LoginStep2 = () => {
-  const { token } = useAuth();
+const UserDetails = () => {
+  const { token, setPhoneNumber } = useAuth();
+  const router = useRouter();
+
+  const [sendOtpMutate] = useMutation(sendOtpMutation);
+
   const [googleLoginOrSignUpMutate] = useMutation(
-    googleLoginOrSignUpMutationDocument
+    googleLoginOrSignUpMutationDocument,
+    {
+      update(cache, { data }) {
+        console.log("updating cache", data?.googleLoginOrSignUp?.user);
+        updateMeCache(cache, data?.googleLoginOrSignUp?.user);
+      },
+    }
   );
   const {
     control,
@@ -34,17 +48,32 @@ const LoginStep2 = () => {
         input: { ...data, token: token as string },
       },
     });
-    if (res?.data?.googleLoginOrSignUp?.errors) {
+    const resData = res?.data?.googleLoginOrSignUp;
+    if (resData?.errors) {
       setErrors<SendOtpInput>(
         res!.data!.googleLoginOrSignUp!.errors as FieldError[],
         setError
       );
+    } else if (resData?.ok && resData?.authToken) {
+      await saveAuthAccessToken(resData?.authToken?.token);
+      router.replace("/");
     }
-    const user = useFragment(
-      User_Fragment,
-      res?.data?.googleLoginOrSignUp?.user
-    );
-    if (user?.phoneNumber) sendOtp(user.phoneNumber);
+    // const user = useFragment(
+    //   User_Fragment,
+    //   res?.data?.googleLoginOrSignUp?.user
+    // );
+    // if (user?.phoneNumber) {
+    // const response = await sendOtpMutate({
+    // variables: {
+    // input: { to: user?.phoneNumber },
+    // },
+    // });
+    // console.log("send otp response", response, user?.phoneNumber);
+    // if (response?.data?.sendOtp?.ok) {
+    // setPhoneNumber(user?.phoneNumber);
+    // router.push("/verifyOtp");
+    // }
+    // }
   };
   return (
     <SafeAreaView style={{ flex: 1 }}>
@@ -71,4 +100,4 @@ const LoginStep2 = () => {
   );
 };
 
-export default LoginStep2;
+export default UserDetails;

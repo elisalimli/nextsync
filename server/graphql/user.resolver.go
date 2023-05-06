@@ -108,16 +108,15 @@ func (m *mutationResolver) GoogleLoginOrSignUp(ctx context.Context, input models
 	fmt.Println(googleBody)
 	if googleBody.Email != "" {
 		user, _ := m.Domain.UsersRepo.GetUserByEmail(ctx, googleBody.Email)
-		fmt.Println("fetched user", user)
 
 		// userExists, userExistsErr := getAndHandleUserExists(&user, googleBody.Email)
-
+		fmt.Println(user)
 		// if userExistsErr != nil {
 		// utils.CreateInternalServerError(ctx)
 		// return
 		// }
 
-		if user.Email == "" {
+		if user == nil && input.Username != nil && input.PhoneNumber != nil {
 			fmt.Println("creating...", user)
 			newUser := models.User{Email: googleBody.Email, SocialLogin: true, SocialProvider: "Google", Username: *input.Username, PhoneNumber: *input.PhoneNumber}
 			// 	storage.DB.Create(&user)
@@ -136,7 +135,11 @@ func (m *mutationResolver) GoogleLoginOrSignUp(ctx context.Context, input models
 
 			// utils.CreateEmailAlreadyRegistered(ctx)
 			// return
-		} else if user.Verified {
+		} else if user != nil {
+			// if !user.Verified {
+			// return &models.AuthResponse{Ok: true, User: user}, nil
+			// } else {
+
 			newRefreshToken, err := user.GenRefreshToken()
 			if err != nil {
 				return nil, errors.New(domain.ErrSomethingWentWrong)
@@ -148,8 +151,10 @@ func (m *mutationResolver) GoogleLoginOrSignUp(ctx context.Context, input models
 			}
 			user.SaveRefreshToken(ctx, newRefreshToken)
 			return &models.AuthResponse{Ok: true, AuthToken: newAccessToken, User: user}, nil
+			// }
 		}
 	}
+	fmt.Println("case 4")
 
 	return &models.AuthResponse{Ok: true}, nil
 

@@ -3,7 +3,7 @@ import { sendOtpMutation } from "../../../src/graphql/mutation/user/sendOtp";
 import { useAuth } from "../../../context/auth";
 import { useRouter } from "expo-router";
 
-export async function sendOtp(phoneNumber: string) {
+export async function useSendOtp(phoneNumber: string) {
   const router = useRouter();
   const { token, setPhoneNumber } = useAuth();
 

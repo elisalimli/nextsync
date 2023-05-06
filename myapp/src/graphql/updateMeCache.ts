@@ -2,7 +2,7 @@ import { ApolloCache } from "@apollo/client";
 import { meQueryDocument } from "./query/user/me";
 
 export const updateMeCache = (cache: ApolloCache<any>, data: any) => {
-  if (data) {
+  if (data?.id) {
     cache.writeQuery({
       query: meQueryDocument,
       data: {

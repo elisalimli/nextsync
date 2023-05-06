@@ -183,9 +183,9 @@ func (d *Domain) RefreshToken(ctx context.Context) (*models.AuthResponse, error)
 
 	fmt.Println("user verification", user)
 
-	if !user.Verified {
-		return &models.AuthResponse{Ok: false, Errors: []*validator.FieldError{{Message: "You need to verify your account.", Field: GeneralErrorFieldCode}}}, nil
-	}
+	// if !user.Verified {
+	// return &models.AuthResponse{Ok: false, Errors: []*validator.FieldError{{Message: "You need to verify your account.", Field: GeneralErrorFieldCode}}}, nil
+	// }
 
 	newRefreshToken, err := user.GenRefreshToken()
 	if err != nil {
@@ -210,7 +210,7 @@ func (d *Domain) SendOtp(ctx context.Context, input models.SendOtpInput) (*model
 	if err != nil {
 		fmt.Println(err.Error())
 	} else {
-		fmt.Printf("Sent verification '%s'\n", *resp.Sid)
+		fmt.Printf("Sent verification to %v '%s'\n", input.To, *resp.Sid)
 	}
 
 	return &models.FormResponse{Ok: true}, nil
@@ -247,7 +247,7 @@ func (d *Domain) VerifyOtp(ctx context.Context, input models.VerifyOtpInput) (*m
 			return nil, errors.New(ErrSomethingWentWrong)
 		}
 		user.SaveRefreshToken(ctx, newRefreshToken)
-		return &models.AuthResponse{Ok: true, AuthToken: newAccessToken}, nil
+		return &models.AuthResponse{Ok: true, AuthToken: newAccessToken, User: &user}, nil
 	} else {
 		fmt.Println("Incorrect!")
 		return &models.AuthResponse{Ok: false}, nil

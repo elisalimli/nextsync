@@ -10,10 +10,15 @@ import { FieldError, VerifyOtpInput } from "../../src/gql/graphql";
 import { verifyOtpMutation } from "../../src/graphql/mutation/user/verifyOtp";
 import { saveAuthAccessToken } from "../../src/auth/auth";
 import { useAuth } from "../../context/auth";
+import { updateMeCache } from "../../src/graphql/updateMeCache";
 
 const SignIn = () => {
   const { phoneNumber } = useAuth();
-  const [verifyOtpMutate, { data }] = useMutation(verifyOtpMutation);
+  const [verifyOtpMutate, { data }] = useMutation(verifyOtpMutation, {
+    update(cache, { data }) {
+      updateMeCache(cache, data?.verifyOtp?.user);
+    },
+  });
   const router = useRouter();
   const {
     control,
@@ -32,6 +37,7 @@ const SignIn = () => {
         setError
       );
     }
+    console.log("verify otp response", response);
     // if response is ok, saving accessToken
     if (response.data?.verifyOtp.ok && response?.data?.verifyOtp?.authToken) {
       await saveAuthAccessToken(response?.data?.verifyOtp?.authToken?.token);

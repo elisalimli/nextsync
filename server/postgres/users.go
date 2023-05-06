@@ -15,7 +15,10 @@ type UsersRepo struct {
 
 func (u *UsersRepo) GetUserByField(ctx context.Context, field, value string) (*models.User, error) {
 	user := models.User{}
-	u.DB.NewSelect().Model(&user).Where("? = ?", bun.Ident(field), value).Scan(ctx)
+	err := u.DB.NewSelect().Model(&user).Where("? = ?", bun.Ident(field), value).Scan(ctx)
+	if err != nil {
+		return nil, err
+	}
 	return &user, nil
 }
 

@@ -8,6 +8,9 @@ export const verifyOtpMutation = graphql(`
         message
         field
       }
+      user {
+        ...User_Fragment
+      }
       authToken {
         token
         expiredAt
