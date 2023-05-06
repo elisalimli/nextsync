@@ -52,7 +52,7 @@ export function AuthProvider(props: { children: React.ReactElement }) {
   const [token, setToken] = React.useState<string>("");
   const [phoneNumber, setPhoneNumber] = React.useState<string>("");
   const { data } = useQuery(meQueryDocument, {
-    fetchPolicy: "cache-only", // Used for subsequent executions
+    nextFetchPolicy: "cache-only", // Used for subsequent executions
   });
   useProtectedRoute(data?.me as any);
 
