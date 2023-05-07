@@ -7,9 +7,15 @@ import { LoginInput } from "../../gql/graphql";
 type IInputProps = {
   control: Control<any, any>;
   name: string;
+  containerClassName?: string;
 } & TextInputProps;
 
-const Input: React.FC<IInputProps> = ({ control, name, ...rest }) => {
+const Input: React.FC<IInputProps> = ({
+  control,
+  name,
+  containerClassName,
+  ...rest
+}) => {
   const { field, formState } = useController({
     control,
     defaultValue: "",
@@ -17,7 +23,7 @@ const Input: React.FC<IInputProps> = ({ control, name, ...rest }) => {
   });
 
   return (
-    <View>
+    <View className={containerClassName}>
       <TextInput
         autoCapitalize="none"
         {...rest}

@@ -4,9 +4,18 @@ import EditScreenInfo from "../../src/components/EditScreenInfo";
 import React from "react";
 import { clearAuthState } from "../../src/auth/auth";
 import { logoutMutationDocument } from "../../src/graphql/mutation/user/logout";
-import { useMutation } from "@apollo/client";
+import { useMutation, useQuery } from "@apollo/client";
 import Button from "../../src/components/Button";
-import Posts from "../../src/components/screens/Feed/Posts";
+import Posts from "../../src/components/screens/Home/Posts";
+import { StatusBar } from "expo-status-bar";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import {
+  User_Fragment,
+  meQueryDocument,
+} from "../../src/graphql/query/user/me";
+import { useFragment } from "../../src/gql";
+import { AntDesign } from "@expo/vector-icons";
+import HomeHeader from "../../src/components/screens/Home/HomeHeader";
 
 export default function TabOneScreen() {
   const [logout] = useMutation(logoutMutationDocument, {
@@ -20,9 +29,9 @@ export default function TabOneScreen() {
       });
     },
   });
-
   return (
-    <View style={styles.container}>
+    <View>
+      <HomeHeader />
       <TouchableOpacity
         onPress={async () => {
           const { data } = await logout({});

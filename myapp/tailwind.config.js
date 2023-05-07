@@ -16,7 +16,7 @@ module.exports = {
       },
       colors: {
         current: "currentColor",
-        primary: "#A1915C", //orange
+        primary: "#2F2E41", //orange
         darkBlue: "#111A2C",
         darkGray: "#525C67",
         darkGray2: "#757D85",
