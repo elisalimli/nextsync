@@ -51,6 +51,9 @@ type Post {
   id: String!
   title: String!
   description: String!
+  type: String!
+  variant: String!
+  language: String!
   files: [PostFile!]!
   creator: User!
   userId: String!
@@ -65,6 +68,7 @@ type PostFile {
   postId: String!
   url: String!
   contentType: String!
+  fileSize: Int!
 }
 
 # type Meetup {
@@ -151,8 +155,10 @@ input CreatePostInput {
     files: [UploadFile!]!
     title: String!
     description: String!
+    variant: String!
+    language: String!
+    type: String!
 }
-
 
 type Mutation {
   register(input: RegisterInput!): AuthResponse!
@@ -163,8 +169,6 @@ type Mutation {
   sendOtp(input: SendOtpInput!): FormResponse!
   verifyOtp(input: VerifyOtpInput!): AuthResponse!
   
-
-
   createPost(input: CreatePostInput!): CreatePostResponse!
   # createMeetup(input: NewMeetup!): Meetup!
   # updateMeetup(id: ID!, input: UpdateMeetup!): Meetup!

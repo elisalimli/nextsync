@@ -45,6 +45,9 @@ type CreatePostInput struct {
 	Files       []*UploadFile `json:"files"`
 	Title       string        `json:"title"`
 	Description string        `json:"description"`
+	Variant     string        `json:"variant"`
+	Language    string        `json:"language"`
+	Type        string        `json:"type"`
 }
 
 type CreatePostResponse struct {

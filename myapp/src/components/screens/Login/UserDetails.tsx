@@ -49,6 +49,7 @@ const UserDetails = () => {
       },
     });
     const resData = res?.data?.googleLoginOrSignUp;
+    console.log("saving auth token user details", resData);
     if (resData?.errors) {
       setErrors<SendOtpInput>(
         res!.data!.googleLoginOrSignUp!.errors as FieldError[],

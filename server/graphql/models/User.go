@@ -19,12 +19,12 @@ type User struct {
 	Email          string
 	Password       string `bun:"type:varchar(100),notnull" json:"-"`
 	Verified       bool
-	SocialLogin    bool   `bun:"socialLogin"`
-	SocialProvider string `bun:"socialProvider"`
-	PhoneNumber    string
-	CreatedAt      *time.Time
-	UpdatedAt      *time.Time
-	Posts          []*Post `bun:"rel:has-many"`
+	SocialLogin    bool       `bun:"social_login"`
+	SocialProvider string     `bun:"social_provider"`
+	PhoneNumber    string     `bun:"phone_number"`
+	CreatedAt      *time.Time `bun:"created_at"`
+	UpdatedAt      *time.Time `bun:"updated_at"`
+	Posts          []*Post    `bun:"rel:has-many"`
 }
 
 func (u *User) HashPassword(password string) error {
@@ -41,7 +41,7 @@ func (u *User) HashPassword(password string) error {
 
 func (u *User) GenAccessToken() (*AuthToken, error) {
 	// expiredAt := time.Now().Add(time.Hour * 24 * 60) // 2 months
-	expiredAt := time.Now().Add(time.Second * 20) // 2 months
+	expiredAt := time.Now().Add(time.Minute * 60 * 24 * 30 * 2) // 2 months
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.StandardClaims{
 		ExpiresAt: expiredAt.Unix(),

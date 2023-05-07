@@ -125,8 +125,10 @@ func (m *mutationResolver) GoogleLoginOrSignUp(ctx context.Context, input models
 			// 	returnUser(user, ctx)
 			// 	return
 			// }
+			// re-defining the new created user
+			user = &newUser
 
-			return &models.AuthResponse{Ok: true, User: &newUser}, nil
+			// return &models.AuthResponse{Ok: true, User: &newUser}, nil
 
 			// if user.SocialLogin == true && user.SocialProvider == "Google" {
 			// 	returnUser(user, ctx)
@@ -135,11 +137,13 @@ func (m *mutationResolver) GoogleLoginOrSignUp(ctx context.Context, input models
 
 			// utils.CreateEmailAlreadyRegistered(ctx)
 			// return
-		} else if user != nil {
-			// if !user.Verified {
-			// return &models.AuthResponse{Ok: true, User: user}, nil
-			// } else {
+		}
+		// if !user.Verified {
+		// return &models.AuthResponse{Ok: true, User: user}, nil
+		// } else {
 
+		// returning the auth tokens if user is created or existed before
+		if user != nil {
 			newRefreshToken, err := user.GenRefreshToken()
 			if err != nil {
 				return nil, errors.New(domain.ErrSomethingWentWrong)
@@ -151,8 +155,8 @@ func (m *mutationResolver) GoogleLoginOrSignUp(ctx context.Context, input models
 			}
 			user.SaveRefreshToken(ctx, newRefreshToken)
 			return &models.AuthResponse{Ok: true, AuthToken: newAccessToken, User: user}, nil
-			// }
 		}
+		// }
 	}
 	fmt.Println("case 4")
 

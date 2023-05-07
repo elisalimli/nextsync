@@ -173,7 +173,7 @@ func (d *Domain) uploadFiles(ctx context.Context, resp *[]models.PostFile, req [
 			fmt.Print(err)
 			return err
 		} else {
-			*resp = append(*resp, models.PostFile{URL: *res.Location, ContentType: file.File.ContentType})
+			*resp = append(*resp, models.PostFile{URL: *res.Location, ContentType: file.File.ContentType, FileSize: file.File.Size})
 			fmt.Println(res.String())
 		}
 	}
@@ -182,7 +182,7 @@ func (d *Domain) uploadFiles(ctx context.Context, resp *[]models.PostFile, req [
 
 func (d *Domain) CreatePost(ctx context.Context, input models.CreatePostInput) (*models.CreatePostResponse, error) {
 	currentUserId, _ := ctx.Value(customMiddleware.CurrentUserIdKey).(string)
-
+	fmt.Println("file size", input.Files[0].File.Size)
 	// TODO: check if user exists
 	var imageUrls []models.PostFile
 	if len(input.Files) == 0 {
@@ -196,6 +196,9 @@ func (d *Domain) CreatePost(ctx context.Context, input models.CreatePostInput) (
 	post := &models.Post{
 		Title:       input.Title,
 		Description: input.Description,
+		Type:        input.Type,
+		Language:    input.Language,
+		Variant:     input.Variant,
 		Files:       imageUrls,
 		UserId:      currentUserId,
 	}
