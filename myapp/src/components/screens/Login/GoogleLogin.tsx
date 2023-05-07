@@ -2,19 +2,19 @@ import { GOOGLE_IOS_CLIENT_ID, GOOGLE_WEB_CLIENT_ID } from "@env";
 import { useRouter } from "expo-router";
 import React, { useEffect } from "react";
 import { TouchableOpacity } from "react-native";
-import { useAuth } from "../../../context/auth";
-import { saveAuthAccessToken } from "../../../src/auth/auth";
-import { googleLoginOrSignUpMutationDocument } from "../../../src/graphql/mutation/user/googleLoginOrSignup";
+import { useAuth } from "../../../../context/auth";
+import { saveAuthAccessToken } from "../../../auth/auth";
+import { googleLoginOrSignUpMutationDocument } from "../../../graphql/mutation/user/googleLoginOrSignup";
 
 import { useMutation } from "@apollo/client";
 import * as Google from "expo-auth-session/providers/google";
 import * as WebBrowser from "expo-web-browser";
-import { updateMeCache } from "../../../src/graphql/updateMeCache";
+import { updateMeCache } from "../../../graphql/updateMeCache";
 import { Text } from "../../Themed";
-import { useFragment } from "../../../src/gql";
-import { User_Fragment } from "../../../src/graphql/query/user/me";
+import { useFragment } from "../../../gql";
+import { User_Fragment } from "../../../graphql/query/user/me";
 import { useSendOtp } from "./sendOtp";
-import { sendOtpMutation } from "../../../src/graphql/mutation/user/sendOtp";
+import { sendOtpMutation } from "../../../graphql/mutation/user/sendOtp";
 
 WebBrowser.maybeCompleteAuthSession();
 

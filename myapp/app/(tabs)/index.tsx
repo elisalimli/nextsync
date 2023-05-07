@@ -1,11 +1,12 @@
 import { StyleSheet, TouchableOpacity, Text, View } from "react-native";
 
-import EditScreenInfo from "../../components/EditScreenInfo";
+import EditScreenInfo from "../../src/components/EditScreenInfo";
 import React from "react";
 import { clearAuthState } from "../../src/auth/auth";
 import { logoutMutationDocument } from "../../src/graphql/mutation/user/logout";
 import { useMutation } from "@apollo/client";
-import Button from "../../components/Button";
+import Button from "../../src/components/Button";
+import Posts from "../../src/components/screens/Feed/Posts";
 
 export default function TabOneScreen() {
   const [logout] = useMutation(logoutMutationDocument, {
@@ -19,6 +20,7 @@ export default function TabOneScreen() {
       });
     },
   });
+
   return (
     <View style={styles.container}>
       <TouchableOpacity
@@ -32,15 +34,8 @@ export default function TabOneScreen() {
       >
         <Text>Logout</Text>
       </TouchableOpacity>
-      <View className="flex-1 items-center justify-center">
-        <Text className="text-3xl text-orange-700 ">
-          Open up App.js to start working on your app!
-        </Text>
-      </View>
 
-      <Button variant="primary">Test</Button>
-      <Text style={styles.title}>Tab One</Text>
-      <EditScreenInfo path="app/(tabs)/index.tsx" />
+      <Posts />
     </View>
   );
 }

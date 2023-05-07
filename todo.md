@@ -1,2 +1,3 @@
-- [ ] Update phone number in sendOtp
-- [ ] Check if phone number exists
+- [x] Update phone number in sendOtp
+- [x] Check if phone number exists
+

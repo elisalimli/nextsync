@@ -2,7 +2,7 @@ import { Control, FieldValues, useController } from "react-hook-form";
 import { TextInputProps, TextInput, View, Text } from "react-native";
 import React from "react";
 import { ErrorMessage } from "@hookform/error-message";
-import { LoginInput } from "../../src/gql/graphql";
+import { LoginInput } from "../../gql/graphql";
 
 type IInputProps = {
   control: Control<any, any>;

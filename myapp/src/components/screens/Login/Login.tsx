@@ -3,13 +3,13 @@ import { ErrorMessage } from "@hookform/error-message";
 import React from "react";
 import { FieldValues, useForm } from "react-hook-form";
 import { SafeAreaView, Text, TouchableOpacity } from "react-native";
-import { saveAuthAccessToken } from "../../../src/auth/auth";
-import { FieldError, LoginInput } from "../../../src/gql/graphql";
-import { loginMutationDocument } from "../../../src/graphql/mutation/user/login";
+import { saveAuthAccessToken } from "../../../auth/auth";
+import { FieldError, LoginInput } from "../../../gql/graphql";
+import { loginMutationDocument } from "../../../graphql/mutation/user/login";
 import Input from "../../Form/Input";
 import { setErrors } from "../../Form/setErrors";
 import GoogleLogin from "./GoogleLogin";
-import { updateMeCache } from "../../../src/graphql/updateMeCache";
+import { updateMeCache } from "../../../graphql/updateMeCache";
 
 const Login = () => {
   const {

@@ -1,5 +1,5 @@
 import { UseFormSetError, FieldValues } from "react-hook-form";
-import { FieldError } from "../../src/gql/graphql";
+import { FieldError } from "../../gql/graphql";
 
 export const setErrors = <T extends FieldValues>(
   errors: FieldError[],

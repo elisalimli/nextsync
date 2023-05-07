@@ -1,3 +1,3 @@
-import UserDetails from "../../components/screens/Login/UserDetails";
+import UserDetails from "../../src/components/screens/Login/UserDetails";
 
 export default UserDetails;

@@ -1,5 +1,5 @@
 import React from "react";
-import { Text, View } from "../../components/Themed";
+import { Text, View } from "../../src/components/Themed";
 import {
   User_Fragment,
   meQueryDocument,

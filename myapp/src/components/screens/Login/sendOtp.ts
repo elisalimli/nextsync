@@ -1,6 +1,6 @@
 import { useMutation } from "@apollo/client";
-import { sendOtpMutation } from "../../../src/graphql/mutation/user/sendOtp";
-import { useAuth } from "../../../context/auth";
+import { sendOtpMutation } from "../../../graphql/mutation/user/sendOtp";
+import { useAuth } from "../../../../context/auth";
 import { useRouter } from "expo-router";
 
 export async function useSendOtp(phoneNumber: string) {

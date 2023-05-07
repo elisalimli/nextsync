@@ -3,22 +3,22 @@ import { ErrorMessage } from "@hookform/error-message";
 import React from "react";
 import { useForm, FieldValues } from "react-hook-form";
 import { SafeAreaView, Text, TouchableOpacity } from "react-native";
-import { useAuth } from "../../../context/auth";
-import { useFragment } from "../../../src/gql";
+import { useAuth } from "../../../../context/auth";
+import { useFragment } from "../../../gql";
 import {
   FieldError,
   GoogleLoginOrSignUpInput,
   SendOtpInput,
-} from "../../../src/gql/graphql";
-import { googleLoginOrSignUpMutationDocument } from "../../../src/graphql/mutation/user/googleLoginOrSignup";
-import { User_Fragment } from "../../../src/graphql/query/user/me";
+} from "../../../gql/graphql";
+import { googleLoginOrSignUpMutationDocument } from "../../../graphql/mutation/user/googleLoginOrSignup";
+import { User_Fragment } from "../../../graphql/query/user/me";
 import Input from "../../Form/Input";
 import { setErrors } from "../../Form/setErrors";
 import { useSendOtp } from "./sendOtp";
 import { useRouter } from "expo-router";
-import { sendOtpMutation } from "../../../src/graphql/mutation/user/sendOtp";
-import { updateMeCache } from "../../../src/graphql/updateMeCache";
-import { saveAuthAccessToken } from "../../../src/auth/auth";
+import { sendOtpMutation } from "../../../graphql/mutation/user/sendOtp";
+import { updateMeCache } from "../../../graphql/updateMeCache";
+import { saveAuthAccessToken } from "../../../auth/auth";
 
 const UserDetails = () => {
   const { token, setPhoneNumber } = useAuth();
