@@ -1,8 +1,5 @@
 -- Remove the check constraints
 ALTER TABLE
-    public.posts DROP CONSTRAINT valid_language;
-
-ALTER TABLE
     public.posts DROP CONSTRAINT valid_type;
 
 ALTER TABLE
@@ -20,6 +17,12 @@ ALTER TABLE
 
 ALTER TABLE
     public.posts DROP COLUMN variant;
+
+ALTER TABLE
+    public.posts DROP COLUMN second_language;
+
+ALTER TABLE
+    public.posts DROP COLUMN grade;
 
 ALTER TABLE
     public.post_files DROP COLUMN file_size;

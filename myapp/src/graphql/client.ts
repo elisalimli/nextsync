@@ -13,6 +13,7 @@ import { getAuthAccessToken } from "../auth/auth";
 import { onError } from "@apollo/client/link/error";
 import { meQueryDocument } from "./query/user/me";
 import { refreshTokenMutationDocument } from "./mutation/user/refreshToken";
+import { createUploadLink } from "apollo-upload-client";
 
 async function refreshAuth() {
   const query = JSON.stringify({
@@ -37,6 +38,11 @@ async function refreshAuth() {
   return null;
 }
 const httpLink = createHttpLink({
+  uri: "http://localhost:4000/query",
+  credentials: "include",
+});
+
+const uploadLink = createUploadLink({
   uri: "http://localhost:4000/query",
   credentials: "include",
 });
@@ -81,7 +87,8 @@ const errorLink = onError(
 );
 
 export const client = new ApolloClient({
-  link: ApolloLink.from([errorLink, authLink, httpLink]),
+  // link: ApolloLink.from([errorLink, authLink, httpLink, uploadLink]),
+  link: ApolloLink.from([errorLink, authLink, uploadLink]),
 
   cache: new InMemoryCache({}),
 });

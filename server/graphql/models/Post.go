@@ -5,17 +5,19 @@ import (
 )
 
 type Post struct {
-	Id          string `bun:"type:uuid,default:uuid_generate_v4(),pk"`
-	Title       string
-	Description string
-	Variant     string
-	Type        string
-	Language    string
-	UserId      string     `bun:"user_id,type:uuid,notnull"`
-	Creator     *User      `bun:"rel:belongs-to,join:user_id=id"`
-	CreatedAt   *time.Time `bun:"created_at"`
-	UpdatedAt   *time.Time `bun:"updated_at"`
-	Files       []PostFile `bun:"rel:has-many"`
+	Id             string `bun:"type:uuid,default:uuid_generate_v4(),pk"`
+	Title          string
+	Description    *string
+	Variant        string
+	Type           string
+	Language       string
+	SecondLanguage string `bun:"second_language"`
+	Grade          int
+	UserId         string     `bun:"user_id,type:uuid,notnull"`
+	Creator        *User      `bun:"rel:belongs-to,join:user_id=id"`
+	CreatedAt      *time.Time `bun:"created_at"`
+	UpdatedAt      *time.Time `bun:"updated_at"`
+	Files          []PostFile `bun:"rel:has-many"`
 }
 
 type PostFile struct {

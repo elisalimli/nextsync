@@ -47,13 +47,34 @@ type User {
   updatedAt: Time!
 }
 
+enum LanguageType {
+  AZE
+  RU
+  ENG
+}
+
+enum SecondLanguageType {
+  ENG
+  RU
+  AZE
+}
+
+enum Type {
+  BURAXILIS
+  BLOK1
+  BLOK2
+  BLOK3
+  BLOK4
+}
+
+
 type Post {
   id: String!
   title: String!
   description: String!
-  type: String!
+  type: Type!
   variant: String!
-  language: String!
+  language: LanguageType!
   files: [PostFile!]!
   creator: User!
   userId: String!
@@ -152,12 +173,14 @@ input UploadFile {
 
 "The `UploadFile` type, represents the request for uploading a file with a certain payload."
 input CreatePostInput {
-    files: [UploadFile!]!
+    files: [UploadFile]
     title: String!
     description: String!
     variant: String!
-    language: String!
-    type: String!
+    language: LanguageType!
+    secondLanguage: SecondLanguageType!
+    grade: Int!
+    type: Type!
 }
 
 type Mutation {
@@ -174,6 +197,7 @@ type Mutation {
   # updateMeetup(id: ID!, input: UpdateMeetup!): Meetup!
   # deleteMeetup(id: ID!): Boolean!
 }
+
 
 
 

@@ -25,6 +25,7 @@ func (m *postResolver) Creator(ctx context.Context, obj *models.Post) (*models.U
 }
 
 func (m *mutationResolver) CreatePost(ctx context.Context, input models.CreatePostInput) (*models.CreatePostResponse, error) {
+	// fmt.Println("create post", input.SecondLanguage)
 	currentUserId, _ := ctx.Value(customMiddleware.CurrentUserIdKey).(string)
 
 	if currentUserId == "TOKEN_EXPIRED" {
@@ -65,4 +66,12 @@ func (r *queryResolver) Posts(ctx context.Context) ([]*models.Post, error) {
 		return nil, errors.New(domain.ErrSomethingWentWrong)
 	}
 	return posts, nil
+}
+
+func (r *postResolver) Language(ctx context.Context, obj *models.Post) (models.LanguageType, error) {
+	return models.LanguageType(obj.Language), nil
+}
+
+func (r *postResolver) Type(ctx context.Context, obj *models.Post) (models.Type, error) {
+	return models.Type(obj.Type), nil
 }
