@@ -14,7 +14,13 @@ function Posts() {
     return <Text>Loading...</Text>;
   }
   return (
-    <View>{data?.posts && data.posts.map((post) => <Post {...post} />)}</View>
+    <View>
+      <Text className="text-2xl font-bold">Recent Posts</Text>
+      {data?.posts &&
+        data.posts.map((post: any) => (
+          <Post key={`posts-list-${post?.id}`} {...post} />
+        ))}
+    </View>
   );
 }
 

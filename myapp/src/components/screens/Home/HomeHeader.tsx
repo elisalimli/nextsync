@@ -10,10 +10,12 @@ import Input from "../../Form/Input";
 
 import { useForm } from "react-hook-form";
 import { Animated } from "react-native";
+import { useRouter } from "expo-router";
 
 interface HomeHeaderProps {}
 
 const HomeHeader = (props: HomeHeaderProps) => {
+  const router = useRouter();
   const { control } = useForm();
   const { data } = useQuery(meQueryDocument, {
     nextFetchPolicy: "cache-only", // Used for subsequent executions
@@ -24,6 +26,10 @@ const HomeHeader = (props: HomeHeaderProps) => {
   const insets = useSafeAreaInsets();
 
   const [openSearch, setOpenSearch] = useState(false);
+
+  const handleAddPress = () => {
+    router.push("/post/createPost");
+  };
 
   const handleSearchPress = () => {
     setOpenSearch((prevState) => !prevState);
@@ -77,7 +83,7 @@ const HomeHeader = (props: HomeHeaderProps) => {
               style={{ opacity: closedSearchBarOpacity }}
               className={actionBarClassname}
             >
-              <TouchableOpacity onPress={handleSearchPress}>
+              <TouchableOpacity onPress={handleAddPress}>
                 <AntDesign name="plus" size={24} color="white" />
               </TouchableOpacity>
               <TouchableOpacity onPress={handleSearchPress}>
