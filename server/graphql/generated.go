@@ -145,6 +145,10 @@ type MutationResolver interface {
 	CreatePost(ctx context.Context, input models.CreatePostInput) (*models.CreatePostResponse, error)
 }
 type PostResolver interface {
+	Type(ctx context.Context, obj *models.Post) (models.Type, error)
+
+	Language(ctx context.Context, obj *models.Post) (models.LanguageType, error)
+
 	Creator(ctx context.Context, obj *models.Post) (*models.User, error)
 }
 type QueryResolver interface {
@@ -2190,9 +2194,9 @@ func (ec *executionContext) _Post_description(ctx context.Context, field graphql
 		}
 		return graphql.Null
 	}
-	res := resTmp.(string)
+	res := resTmp.(*string)
 	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
+	return ec.marshalNString2ᚖstring(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Post_description(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -2222,7 +2226,7 @@ func (ec *executionContext) _Post_type(ctx context.Context, field graphql.Collec
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.Type, nil
+		return ec.resolvers.Post().Type(rctx, obj)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -2234,19 +2238,19 @@ func (ec *executionContext) _Post_type(ctx context.Context, field graphql.Collec
 		}
 		return graphql.Null
 	}
-	res := resTmp.(string)
+	res := resTmp.(models.Type)
 	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
+	return ec.marshalNType2githubᚗcomᚋelisalimliᚋgo_graphql_templateᚋgraphqlᚋmodelsᚐType(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Post_type(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "Post",
 		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
+		IsMethod:   true,
+		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type String does not have child fields")
+			return nil, errors.New("field of type Type does not have child fields")
 		},
 	}
 	return fc, nil
@@ -2310,7 +2314,7 @@ func (ec *executionContext) _Post_language(ctx context.Context, field graphql.Co
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.Language, nil
+		return ec.resolvers.Post().Language(rctx, obj)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -2322,19 +2326,19 @@ func (ec *executionContext) _Post_language(ctx context.Context, field graphql.Co
 		}
 		return graphql.Null
 	}
-	res := resTmp.(string)
+	res := resTmp.(models.LanguageType)
 	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
+	return ec.marshalNLanguageType2githubᚗcomᚋelisalimliᚋgo_graphql_templateᚋgraphqlᚋmodelsᚐLanguageType(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Post_language(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "Post",
 		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
+		IsMethod:   true,
+		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type String does not have child fields")
+			return nil, errors.New("field of type LanguageType does not have child fields")
 		},
 	}
 	return fc, nil
@@ -5254,7 +5258,7 @@ func (ec *executionContext) unmarshalInputCreatePostInput(ctx context.Context, o
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"files", "title", "description", "variant", "language", "type"}
+	fieldsInOrder := [...]string{"files", "title", "description", "variant", "language", "secondLanguage", "grade", "type"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -5265,7 +5269,7 @@ func (ec *executionContext) unmarshalInputCreatePostInput(ctx context.Context, o
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("files"))
-			it.Files, err = ec.unmarshalNUploadFile2ᚕᚖgithubᚗcomᚋelisalimliᚋgo_graphql_templateᚋgraphqlᚋmodelsᚐUploadFileᚄ(ctx, v)
+			it.Files, err = ec.unmarshalOUploadFile2ᚕᚖgithubᚗcomᚋelisalimliᚋgo_graphql_templateᚋgraphqlᚋmodelsᚐUploadFile(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -5297,7 +5301,23 @@ func (ec *executionContext) unmarshalInputCreatePostInput(ctx context.Context, o
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("language"))
-			it.Language, err = ec.unmarshalNString2string(ctx, v)
+			it.Language, err = ec.unmarshalNLanguageType2githubᚗcomᚋelisalimliᚋgo_graphql_templateᚋgraphqlᚋmodelsᚐLanguageType(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "secondLanguage":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("secondLanguage"))
+			it.SecondLanguage, err = ec.unmarshalNSecondLanguageType2githubᚗcomᚋelisalimliᚋgo_graphql_templateᚋgraphqlᚋmodelsᚐSecondLanguageType(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "grade":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("grade"))
+			it.Grade, err = ec.unmarshalNInt2int(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -5305,7 +5325,7 @@ func (ec *executionContext) unmarshalInputCreatePostInput(ctx context.Context, o
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("type"))
-			it.Type, err = ec.unmarshalNString2string(ctx, v)
+			it.Type, err = ec.unmarshalNType2githubᚗcomᚋelisalimliᚋgo_graphql_templateᚋgraphqlᚋmodelsᚐType(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -5963,12 +5983,25 @@ func (ec *executionContext) _Post(ctx context.Context, sel ast.SelectionSet, obj
 				atomic.AddUint32(&invalids, 1)
 			}
 		case "type":
+			field := field
 
-			out.Values[i] = ec._Post_type(ctx, field, obj)
-
-			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&invalids, 1)
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Post_type(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
 			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
+			})
 		case "variant":
 
 			out.Values[i] = ec._Post_variant(ctx, field, obj)
@@ -5977,12 +6010,25 @@ func (ec *executionContext) _Post(ctx context.Context, sel ast.SelectionSet, obj
 				atomic.AddUint32(&invalids, 1)
 			}
 		case "language":
+			field := field
 
-			out.Values[i] = ec._Post_language(ctx, field, obj)
-
-			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&invalids, 1)
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Post_language(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
 			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
+			})
 		case "files":
 
 			out.Values[i] = ec._Post_files(ctx, field, obj)
@@ -6714,6 +6760,16 @@ func (ec *executionContext) marshalNInt2int64(ctx context.Context, sel ast.Selec
 	return res
 }
 
+func (ec *executionContext) unmarshalNLanguageType2githubᚗcomᚋelisalimliᚋgo_graphql_templateᚋgraphqlᚋmodelsᚐLanguageType(ctx context.Context, v interface{}) (models.LanguageType, error) {
+	var res models.LanguageType
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNLanguageType2githubᚗcomᚋelisalimliᚋgo_graphql_templateᚋgraphqlᚋmodelsᚐLanguageType(ctx context.Context, sel ast.SelectionSet, v models.LanguageType) graphql.Marshaler {
+	return v
+}
+
 func (ec *executionContext) unmarshalNLoginInput2githubᚗcomᚋelisalimliᚋgo_graphql_templateᚋgraphqlᚋmodelsᚐLoginInput(ctx context.Context, v interface{}) (models.LoginInput, error) {
 	res, err := ec.unmarshalInputLoginInput(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
@@ -6826,6 +6882,16 @@ func (ec *executionContext) unmarshalNRegisterInput2githubᚗcomᚋelisalimliᚋ
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
+func (ec *executionContext) unmarshalNSecondLanguageType2githubᚗcomᚋelisalimliᚋgo_graphql_templateᚋgraphqlᚋmodelsᚐSecondLanguageType(ctx context.Context, v interface{}) (models.SecondLanguageType, error) {
+	var res models.SecondLanguageType
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNSecondLanguageType2githubᚗcomᚋelisalimliᚋgo_graphql_templateᚋgraphqlᚋmodelsᚐSecondLanguageType(ctx context.Context, sel ast.SelectionSet, v models.SecondLanguageType) graphql.Marshaler {
+	return v
+}
+
 func (ec *executionContext) unmarshalNSendOtpInput2githubᚗcomᚋelisalimliᚋgo_graphql_templateᚋgraphqlᚋmodelsᚐSendOtpInput(ctx context.Context, v interface{}) (models.SendOtpInput, error) {
 	res, err := ec.unmarshalInputSendOtpInput(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
@@ -6838,6 +6904,27 @@ func (ec *executionContext) unmarshalNString2string(ctx context.Context, v inter
 
 func (ec *executionContext) marshalNString2string(ctx context.Context, sel ast.SelectionSet, v string) graphql.Marshaler {
 	res := graphql.MarshalString(v)
+	if res == graphql.Null {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+	}
+	return res
+}
+
+func (ec *executionContext) unmarshalNString2ᚖstring(ctx context.Context, v interface{}) (*string, error) {
+	res, err := graphql.UnmarshalString(v)
+	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNString2ᚖstring(ctx context.Context, sel ast.SelectionSet, v *string) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	res := graphql.MarshalString(*v)
 	if res == graphql.Null {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
@@ -6882,6 +6969,16 @@ func (ec *executionContext) marshalNTime2ᚖtimeᚐTime(ctx context.Context, sel
 	return res
 }
 
+func (ec *executionContext) unmarshalNType2githubᚗcomᚋelisalimliᚋgo_graphql_templateᚋgraphqlᚋmodelsᚐType(ctx context.Context, v interface{}) (models.Type, error) {
+	var res models.Type
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNType2githubᚗcomᚋelisalimliᚋgo_graphql_templateᚋgraphqlᚋmodelsᚐType(ctx context.Context, sel ast.SelectionSet, v models.Type) graphql.Marshaler {
+	return v
+}
+
 func (ec *executionContext) unmarshalNUpload2githubᚗcomᚋ99designsᚋgqlgenᚋgraphqlᚐUpload(ctx context.Context, v interface{}) (graphql.Upload, error) {
 	res, err := graphql.UnmarshalUpload(v)
 	return res, graphql.ErrorOnPath(ctx, err)
@@ -6895,28 +6992,6 @@ func (ec *executionContext) marshalNUpload2githubᚗcomᚋ99designsᚋgqlgenᚋg
 		}
 	}
 	return res
-}
-
-func (ec *executionContext) unmarshalNUploadFile2ᚕᚖgithubᚗcomᚋelisalimliᚋgo_graphql_templateᚋgraphqlᚋmodelsᚐUploadFileᚄ(ctx context.Context, v interface{}) ([]*models.UploadFile, error) {
-	var vSlice []interface{}
-	if v != nil {
-		vSlice = graphql.CoerceList(v)
-	}
-	var err error
-	res := make([]*models.UploadFile, len(vSlice))
-	for i := range vSlice {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
-		res[i], err = ec.unmarshalNUploadFile2ᚖgithubᚗcomᚋelisalimliᚋgo_graphql_templateᚋgraphqlᚋmodelsᚐUploadFile(ctx, vSlice[i])
-		if err != nil {
-			return nil, err
-		}
-	}
-	return res, nil
-}
-
-func (ec *executionContext) unmarshalNUploadFile2ᚖgithubᚗcomᚋelisalimliᚋgo_graphql_templateᚋgraphqlᚋmodelsᚐUploadFile(ctx context.Context, v interface{}) (*models.UploadFile, error) {
-	res, err := ec.unmarshalInputUploadFile(ctx, v)
-	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
 func (ec *executionContext) marshalNUser2githubᚗcomᚋelisalimliᚋgo_graphql_templateᚋgraphqlᚋmodelsᚐUser(ctx context.Context, sel ast.SelectionSet, v models.User) graphql.Marshaler {
@@ -7337,6 +7412,34 @@ func (ec *executionContext) marshalOString2ᚖstring(ctx context.Context, sel as
 	}
 	res := graphql.MarshalString(*v)
 	return res
+}
+
+func (ec *executionContext) unmarshalOUploadFile2ᚕᚖgithubᚗcomᚋelisalimliᚋgo_graphql_templateᚋgraphqlᚋmodelsᚐUploadFile(ctx context.Context, v interface{}) ([]*models.UploadFile, error) {
+	if v == nil {
+		return nil, nil
+	}
+	var vSlice []interface{}
+	if v != nil {
+		vSlice = graphql.CoerceList(v)
+	}
+	var err error
+	res := make([]*models.UploadFile, len(vSlice))
+	for i := range vSlice {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
+		res[i], err = ec.unmarshalOUploadFile2ᚖgithubᚗcomᚋelisalimliᚋgo_graphql_templateᚋgraphqlᚋmodelsᚐUploadFile(ctx, vSlice[i])
+		if err != nil {
+			return nil, err
+		}
+	}
+	return res, nil
+}
+
+func (ec *executionContext) unmarshalOUploadFile2ᚖgithubᚗcomᚋelisalimliᚋgo_graphql_templateᚋgraphqlᚋmodelsᚐUploadFile(ctx context.Context, v interface{}) (*models.UploadFile, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := ec.unmarshalInputUploadFile(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
 func (ec *executionContext) marshalOUser2ᚖgithubᚗcomᚋelisalimliᚋgo_graphql_templateᚋgraphqlᚋmodelsᚐUser(ctx context.Context, sel ast.SelectionSet, v *models.User) graphql.Marshaler {

@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"os"
 	"sort"
+	"strings"
 	"sync"
 	"time"
 
@@ -30,7 +31,7 @@ const (
 var SecretKey = os.Getenv("S3_SECRET_KEY")
 var AccessKey = os.Getenv("S3_ACCESS_KEY")
 
-var s3session *s3.S3
+var S3session *s3.S3
 
 type partUploadResult struct {
 	completedPart *s3.CompletedPart
@@ -38,10 +39,12 @@ type partUploadResult struct {
 }
 
 func init() {
-	s3session = s3.New(session.Must(session.NewSession(&aws.Config{
+
+	S3session = s3.New(session.Must(session.NewSession(&aws.Config{
 		Region:      aws.String(REGION),
 		Credentials: credentials.NewStaticCredentials(AccessKey, SecretKey, ""),
 	})))
+
 }
 
 var wg = sync.WaitGroup{}
@@ -51,7 +54,7 @@ func (d *Domain) uploadToS3(resp *s3.CreateMultipartUploadOutput, fileBytes []by
 	var try int
 	fmt.Printf("Uploading %v \n", len(fileBytes))
 	for try <= RETRIES {
-		uploadRes, err := s3session.UploadPart(&s3.UploadPartInput{
+		uploadRes, err := S3session.UploadPart(&s3.UploadPartInput{
 			Body:          bytes.NewReader(fileBytes),
 			Bucket:        resp.Bucket,
 			Key:           resp.Key,
@@ -100,7 +103,7 @@ func (d *Domain) uploadFiles(ctx context.Context, resp *[]models.PostFile, req [
 
 		expiryDate := time.Now().AddDate(0, 0, 1)
 
-		createdResp, err := s3session.CreateMultipartUpload(&s3.CreateMultipartUploadInput{
+		createdResp, err := S3session.CreateMultipartUpload(&s3.CreateMultipartUploadInput{
 			Bucket:  aws.String(BucketName),
 			Key:     aws.String(fileName),
 			Expires: &expiryDate,
@@ -139,7 +142,7 @@ func (d *Domain) uploadFiles(ctx context.Context, resp *[]models.PostFile, req [
 
 		for result := range ch {
 			if result.err != nil {
-				_, err = s3session.AbortMultipartUpload(&s3.AbortMultipartUploadInput{
+				_, err = S3session.AbortMultipartUpload(&s3.AbortMultipartUploadInput{
 					Bucket:   aws.String(BucketName),
 					Key:      aws.String(fileName),
 					UploadId: createdResp.UploadId,
@@ -160,7 +163,7 @@ func (d *Domain) uploadFiles(ctx context.Context, resp *[]models.PostFile, req [
 		})
 
 		// Signalling AWS S3 that the multiPartUpload is finished
-		res, err := s3session.CompleteMultipartUpload(&s3.CompleteMultipartUploadInput{
+		res, err := S3session.CompleteMultipartUpload(&s3.CompleteMultipartUploadInput{
 			Bucket:   createdResp.Bucket,
 			Key:      createdResp.Key,
 			UploadId: createdResp.UploadId,
@@ -194,13 +197,15 @@ func (d *Domain) CreatePost(ctx context.Context, input models.CreatePostInput) (
 		return nil, err
 	}
 	post := &models.Post{
-		Title:       input.Title,
-		Description: input.Description,
-		Type:        input.Type,
-		Language:    input.Language,
-		Variant:     input.Variant,
-		Files:       imageUrls,
-		UserId:      currentUserId,
+		Title:          input.Title,
+		Description:    &input.Description,
+		Type:           strings.ToUpper(input.Type.String()),
+		Language:       strings.ToUpper(input.Language.String()),
+		Variant:        strings.ToUpper(input.Variant),
+		SecondLanguage: strings.ToUpper(input.SecondLanguage.String()),
+		Grade:          input.Grade,
+		Files:          imageUrls,
+		UserId:         currentUserId,
 	}
 	fmt.Println(post)
 	err = d.PostsRepo.CreatePost(ctx, post)

@@ -42,11 +42,14 @@ export default function TabOneScreen() {
       variables: {
         input: {
           files: [
-            new ReactNativeFile({
-              uri: doc?.uri,
-              name: doc?.name,
-              type: doc?.type,
-            }),
+            {
+              file: new ReactNativeFile({
+                uri: doc?.uri,
+                name: doc?.name,
+                type: doc?.type,
+              }),
+              id: 1,
+            },
           ],
           title: "test",
           description: "test description",
