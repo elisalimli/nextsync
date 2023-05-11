@@ -130,6 +130,11 @@ input VerifyOtpInput {
   code: String!
 }
 
+input PostsInput {
+  cursor: String
+  limit: Int
+}
+
 # input NewMeetup {
 #   name: String!
 #   description: String!
@@ -147,7 +152,7 @@ input VerifyOtpInput {
 type Query {
   # meetups(filter: MeetupFilter, limit: Int = 10, offset: Int = 0): [Meetup!]!
   users: [User!]!
-  posts: [Post!]!
+  posts(input:PostsInput!): [Post!]!
   me: User
   hello: String! 
 }
