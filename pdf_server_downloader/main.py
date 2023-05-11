@@ -16,6 +16,7 @@ from telethon.tl.types import ChannelParticipantsSearch
 from telethon.tl.types import PeerChannel
 from telethon import functions, types
 import re
+import os
 
 # Setting configuration values
 api_id = 20406575
@@ -106,7 +107,10 @@ async def main(phone):
                 new_uuid = str(uuid.uuid4())
 
                 path = await message.download_media( "./documents/"+new_uuid)
-                print("pdf path :", path)
+                fileSize = os.path.getsize(path)
+                contentType="application/pdf"
+                newFileName=new_uuid + "." + fileExtension
+                
                 pdf = PyPDF2.PdfReader(path)
                 # Extract the middle page of the PDF document.
                 # ÷page = pdf.getPage(pdf.getNumPages() // 2)
@@ -134,13 +138,13 @@ async def main(phone):
                         "text": message.text,
                         "variant": variant,
                         "date": date,
-                        "fileName": new_uuid,
+                        "fileName": newFileName ,
                         "grade": grade,
                         "type": type,
+                        "contentType":contentType,
+                        "fileSize":fileSize
                     }
                 )
-                # if i == end_idx:
-                # break
                 i += 1
 
             # print("File saved to", path)  # printed after download is done
