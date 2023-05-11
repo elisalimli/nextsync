@@ -15,12 +15,14 @@ import { meQueryDocument } from "./query/user/me";
 import { refreshTokenMutationDocument } from "./mutation/user/refreshToken";
 import { createUploadLink } from "apollo-upload-client";
 
+// const BACKEND_URI = "http://localhost:4000/query";
+const BACKEND_URI = "http://192.168.100.7:4000/query";
 async function refreshAuth() {
   const query = JSON.stringify({
     query: refreshTokenMutationDocument,
   });
 
-  const response = await fetch("http://localhost:4000/query", {
+  const response = await fetch(BACKEND_URI, {
     headers: { "content-type": "application/json" },
 
     method: "POST",
@@ -38,12 +40,12 @@ async function refreshAuth() {
   return null;
 }
 const httpLink = createHttpLink({
-  uri: "http://localhost:4000/query",
+  uri: BACKEND_URI,
   credentials: "include",
 });
 
 const uploadLink = createUploadLink({
-  uri: "http://localhost:4000/query",
+  uri: BACKEND_URI,
   credentials: "include",
 });
 

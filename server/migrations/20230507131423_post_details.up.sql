@@ -67,7 +67,14 @@ ALTER TABLE
     public.posts
 ADD
     CONSTRAINT valid_type CHECK (
-        type IN ('BURAXILIS', 'BLOK1', 'BLOK2', 'BLOK3', 'BLOK4')
+        type IN (
+            'BURAXILIS',
+            'BLOK1',
+            'BLOK2',
+            'BLOK3',
+            'BLOK4',
+            'UNKNOWN'
+        )
     );
 
 -- Add a check constraint to ensure non-negative values for file_size

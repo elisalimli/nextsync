@@ -52,9 +52,9 @@ async def main(phone):
         if not message.document == None:
             date = ""
             variant = ""
-            type = ""
+            type = "UNKNOWN"
             fileName = ""
-            grade = ""
+            grade = 0
             fileName = str(message.file.name)
             fileExtension = fileName.split(".")[-1]
             if fileExtension == "pdf" and "sınaq" in message.text:
@@ -149,7 +149,7 @@ async def main(phone):
     # Convert the object array to a JSON string
     json_string = json.dumps(data)
     # Write the JSON string to a file
-    with open(f"pdfs{i}.json", "w") as f:
+    with open(f"documents.json", "w") as f:
         f.write(json_string)
 
 
