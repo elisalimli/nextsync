@@ -5,25 +5,28 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
-	"net/http"
 	"os"
 	"strings"
 
+	"github.com/elisalimli/go_graphql_template/domain"
 	"github.com/elisalimli/go_graphql_template/graphql/models"
 	"github.com/elisalimli/go_graphql_template/initializers"
 	"github.com/uptrace/bun"
 )
 
 type Document struct {
-	Text     string `json:"text"`
-	Variant  string `json:"variant"`
-	Date     string `json:"date"`
-	FileName string `json:"fileName"`
-	Grade    int    `json:"grade"`
-	Type     string `json:"type"`
+	Text        string `json:"text"`
+	Variant     string `json:"variant"`
+	Date        string `json:"date"`
+	FileName    string `json:"fileName"`
+	Grade       int    `json:"grade"`
+	Type        string `json:"type"`
+	ContentType string `json:"contentType"`
+	FileSize    int64  `json:"fileSize"`
 }
 
 func init() {
+
 	Migrations.MustRegister(func(ctx context.Context, db *bun.DB) error {
 
 		user := models.User{
@@ -42,7 +45,13 @@ func init() {
 		initializers.DB.NewInsert().Model(&user).Exec(ctx)
 
 		// Open the JSON file for reading
-		file, err := os.Open("/Users/alisalimli/Desktop/projects/pdf_server/server/migrations/documents.json")
+		// using the function
+		dir, err := os.Getwd()
+		if err != nil {
+			fmt.Println(err)
+		}
+		fmt.Println(dir)
+		file, err := os.Open(dir + "/migrations/documents.json")
 		if err != nil {
 			fmt.Println("Error opening JSON file:", err)
 			// return
@@ -59,31 +68,10 @@ func init() {
 			fmt.Println("Error decoding JSON:", err)
 			// return
 		}
+		fmt.Println("bucket name", domain.BucketName)
 
 		// Print out the name and age of each person
 		for _, document := range documents {
-			file, err := os.Open("/Users/alisalimli/Desktop/projects/pdf_server/pdf_server_downloader/documents/" + document.FileName + ".pdf")
-			if err != nil {
-				fmt.Println("Error opening file:", err)
-				// return
-			}
-			defer file.Close()
-
-			// Get the file size
-			fileInfo, err := file.Stat()
-			if err != nil {
-				fmt.Println("Error getting file info:", err)
-				// return
-			}
-			fileSize := fileInfo.Size()
-			// Get the file content type
-			buffer := make([]byte, 512)
-			_, err = file.Read(buffer)
-			if err != nil {
-				fmt.Println("Error reading file:", err)
-				// return
-			}
-			fileType := http.DetectContentType(buffer)
 			post := models.Post{
 				Title:       "Sınaq " + document.Date,
 				Description: &document.Text,
@@ -100,7 +88,7 @@ func init() {
 				fmt.Println("Error occured", err)
 			}
 
-			imageUrls := []models.PostFile{{URL: "https://azepdfserver.s3.eu-central-1.amazonaws.com/" + document.FileName + ".pdf", PostId: post.Id, FileSize: fileSize, ContentType: fileType}}
+			imageUrls := []models.PostFile{{URL: fmt.Sprintf("https://%s.s3.%s.amazonaws.com/", domain.BucketName, domain.BucketRegion) + document.FileName, PostId: post.Id, FileSize: document.FileSize, ContentType: document.ContentType}}
 			err = initializers.DB.NewInsert().Model(&imageUrls).Scan(ctx)
 			if err != nil {
 				log.Fatal("Error occured", err)

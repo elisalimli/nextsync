@@ -21,15 +21,14 @@ import (
 	"github.com/google/uuid"
 )
 
-const (
-	BucketName = "azepdfserver"
-	REGION     = "eu-central-1"
-	PartSize   = 50_000_000
-	RETRIES    = 2
+var (
+	BucketName   = os.Getenv("S3_BUCKET_NAME")
+	BucketRegion = os.Getenv("S3_BUCKET_REGION")
+	SecretKey    = os.Getenv("S3_SECRET_KEY")
+	AccessKey    = os.Getenv("S3_ACCESS_KEY")
+	PartSize     = 50_000_000
+	RETRIES      = 2
 )
-
-var SecretKey = os.Getenv("S3_SECRET_KEY")
-var AccessKey = os.Getenv("S3_ACCESS_KEY")
 
 var S3session *s3.S3
 
@@ -41,7 +40,7 @@ type partUploadResult struct {
 func init() {
 
 	S3session = s3.New(session.Must(session.NewSession(&aws.Config{
-		Region:      aws.String(REGION),
+		Region:      aws.String(BucketRegion),
 		Credentials: credentials.NewStaticCredentials(AccessKey, SecretKey, ""),
 	})))
 
