@@ -14,13 +14,8 @@ import (
 
 func (m *postResolver) Creator(ctx context.Context, obj *models.Post) (*models.User, error) {
 
-	user, err := m.Domain.UsersRepo.GetUserByID(ctx, obj.UserId)
-	// TODO: add dataloader
-	if err != nil {
-		return nil, errors.New(domain.ErrSomethingWentWrong)
-	}
+	return getUserLoader(ctx).Load(obj.UserId)
 
-	return user, nil
 }
 
 func (m *mutationResolver) CreatePost(ctx context.Context, input models.CreatePostInput) (*models.CreatePostResponse, error) {
