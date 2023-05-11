@@ -30,7 +30,7 @@ CREATE UNIQUE INDEX "idx_users_username" ON "public"."users" ("username");
 CREATE TABLE "public"."posts" (
     "id" uuid NOT NULL DEFAULT uuid_generate_v4(),
     "title" character varying(1000) NOT NULL,
-    "description" character varying(65535) NOT NULL,
+    "description" character varying(65535),
     "user_id" uuid NOT NULL,
     "created_at" timestamptz NOT NULL DEFAULT now(),
     "updated_at" timestamptz NOT NULL DEFAULT now(),

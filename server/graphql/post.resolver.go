@@ -3,7 +3,6 @@ package graphql
 import (
 	"context"
 	"errors"
-	"fmt"
 
 	"github.com/99designs/gqlgen/graphql"
 	"github.com/elisalimli/go_graphql_template/domain"
@@ -61,7 +60,7 @@ func (r *queryResolver) Posts(ctx context.Context) ([]*models.Post, error) {
 	}
 
 	err = r.Domain.PostsRepo.DB.ScanRows(ctx, rows, &posts)
-	fmt.Println(*posts[0])
+	// fmt.Println(*posts[0])
 	if err != nil {
 		return nil, errors.New(domain.ErrSomethingWentWrong)
 	}

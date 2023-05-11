@@ -13,7 +13,6 @@ import (
 	"github.com/elisalimli/go_graphql_template/domain"
 	"github.com/elisalimli/go_graphql_template/graphql"
 	"github.com/elisalimli/go_graphql_template/initializers"
-	"github.com/elisalimli/go_graphql_template/migrations"
 
 	customMiddleware "github.com/elisalimli/go_graphql_template/middleware"
 	"github.com/elisalimli/go_graphql_template/postgres"
@@ -25,7 +24,6 @@ import (
 func init() {
 	initializers.LoadEnvVariables()
 	initializers.ConnectToDatabase()
-	migrations.Seed()
 
 	// if err := Migrations.Discover(sqlMigrations); err != nil {
 	// panic(err)
