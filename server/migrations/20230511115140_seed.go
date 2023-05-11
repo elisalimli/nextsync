@@ -28,10 +28,10 @@ func init() {
 
 		user := models.User{
 			Username:       "admin",
-			Email:          "alisalimli1899@gmail.com",
+			Email:          os.Getenv("USER_ADMIN_Email"),
 			SocialLogin:    false,
 			SocialProvider: "Google",
-			PhoneNumber:    "+994506855619",
+			PhoneNumber:    os.Getenv("USER_ADMIN_PhoneNumber"),
 		}
 		err := user.HashPassword("admin")
 		if err != nil {
