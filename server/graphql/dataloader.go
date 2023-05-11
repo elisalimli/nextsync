@@ -2,6 +2,7 @@ package graphql
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 	"time"
 
@@ -14,11 +15,11 @@ const userloaderKey = "userloader"
 func DataloaderMiddleware(db *bun.DB, next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		userloader := UserLoader{
-			maxBatch: 100,
+			maxBatch: 10,
 			wait:     1 * time.Millisecond,
 			fetch: func(ids []string) ([]*models.User, []error) {
 				var users []*models.User
-
+				fmt.Println("dataloaderfired")
 				err := db.NewSelect().Model(&users).Where("id in (?)", bun.In(ids)).Scan(context.Background())
 
 				if err != nil {

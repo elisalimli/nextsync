@@ -98,6 +98,11 @@ type LoginInput struct {
 	Password string `json:"password"`
 }
 
+type PostsInput struct {
+	Cursor *string `json:"cursor,omitempty"`
+	Limit  *int    `json:"limit,omitempty"`
+}
+
 type RegisterInput struct {
 	Username        string `json:"username"`
 	Email           string `json:"email"`

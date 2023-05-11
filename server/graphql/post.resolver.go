@@ -3,6 +3,7 @@ package graphql
 import (
 	"context"
 	"errors"
+	"fmt"
 
 	"github.com/99designs/gqlgen/graphql"
 	"github.com/elisalimli/go_graphql_template/domain"
@@ -46,19 +47,26 @@ func (m *mutationResolver) CreatePost(ctx context.Context, input models.CreatePo
 	}
 	return m.Domain.CreatePost(ctx, input)
 }
-func (r *queryResolver) Posts(ctx context.Context) ([]*models.Post, error) {
+func (r *queryResolver) Posts(ctx context.Context, input models.PostsInput) ([]*models.Post, error) {
+	realLimitPlusOne := *input.Limit + 1
 	// var result []*models.Post
 	posts := make([]*models.Post, 0)
-	rows, err := r.Domain.PostsRepo.DB.QueryContext(ctx, `SELECT p.* ,json_agg(json_build_object('id', pf.id, 'postId', pf.post_id, 'url', pf.url, 'contentType', pf.content_type,'fileSize', pf.file_size)) AS "files" FROM "posts" p JOIN post_files pf ON pf.post_id = p.id GROUP BY p."id"`)
-	if err != nil {
-		panic(err)
+	q := r.Domain.PostsRepo.DB.NewSelect().Model(&posts).ColumnExpr("post.*").ColumnExpr(`json_agg(json_build_object('id', pf.id, 'postId', pf.post_id, 'url', pf.url, 'contentType', pf.content_type,'fileSize', pf.file_size)) AS "files"`).Join(`JOIN post_files AS pf ON pf.post_id = post.id`).Group(`post.id`).Order("post.created_at ASC").Limit(realLimitPlusOne)
+	if input.Cursor != nil {
+		q = q.Where("post.created_at > ?", input.Cursor)
 	}
+	err := q.Scan(ctx)
 
-	err = r.Domain.PostsRepo.DB.ScanRows(ctx, rows, &posts)
-	// fmt.Println(*posts[0])
 	if err != nil {
+		fmt.Println("Error occured:", err)
 		return nil, errors.New(domain.ErrSomethingWentWrong)
 	}
+
+	// err = r.Domain.PostsRepo.DB.ScanRows(ctx, rows, &posts)
+	// // fmt.Println(*posts[0])
+	// if err != nil {
+	// 	return nil, errors.New(domain.ErrSomethingWentWrong)
+	// }
 	return posts, nil
 }
 

@@ -119,7 +119,7 @@ type ComplexityRoot struct {
 	Query struct {
 		Hello func(childComplexity int) int
 		Me    func(childComplexity int) int
-		Posts func(childComplexity int) int
+		Posts func(childComplexity int, input models.PostsInput) int
 		Users func(childComplexity int) int
 	}
 
@@ -153,7 +153,7 @@ type PostResolver interface {
 }
 type QueryResolver interface {
 	Users(ctx context.Context) ([]*models.User, error)
-	Posts(ctx context.Context) ([]*models.Post, error)
+	Posts(ctx context.Context, input models.PostsInput) ([]*models.Post, error)
 	Me(ctx context.Context) (*models.User, error)
 	Hello(ctx context.Context) (string, error)
 }
@@ -509,7 +509,12 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			break
 		}
 
-		return e.complexity.Query.Posts(childComplexity), true
+		args, err := ec.field_Query_posts_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.Posts(childComplexity, args["input"].(models.PostsInput)), true
 
 	case "Query.users":
 		if e.complexity.Query.Users == nil {
@@ -578,6 +583,7 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 		ec.unmarshalInputCreatePostInput,
 		ec.unmarshalInputGoogleLoginOrSignUpInput,
 		ec.unmarshalInputLoginInput,
+		ec.unmarshalInputPostsInput,
 		ec.unmarshalInputRegisterInput,
 		ec.unmarshalInputSendOtpInput,
 		ec.unmarshalInputUploadFile,
@@ -763,6 +769,21 @@ func (ec *executionContext) field_Query___type_args(ctx context.Context, rawArgs
 		}
 	}
 	args["name"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_posts_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 models.PostsInput
+	if tmp, ok := rawArgs["input"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
+		arg0, err = ec.unmarshalNPostsInput2githubᚗcomᚋelisalimliᚋgo_graphql_templateᚋgraphqlᚋmodelsᚐPostsInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["input"] = arg0
 	return args, nil
 }
 
@@ -2886,7 +2907,7 @@ func (ec *executionContext) _Query_posts(ctx context.Context, field graphql.Coll
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().Posts(rctx)
+		return ec.resolvers.Query().Posts(rctx, fc.Args["input"].(models.PostsInput))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -2936,6 +2957,17 @@ func (ec *executionContext) fieldContext_Query_posts(ctx context.Context, field 
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Post", field.Name)
 		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Query_posts_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
 	}
 	return fc, nil
 }
@@ -5415,6 +5447,42 @@ func (ec *executionContext) unmarshalInputLoginInput(ctx context.Context, obj in
 	return it, nil
 }
 
+func (ec *executionContext) unmarshalInputPostsInput(ctx context.Context, obj interface{}) (models.PostsInput, error) {
+	var it models.PostsInput
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"cursor", "limit"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "cursor":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("cursor"))
+			it.Cursor, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "limit":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("limit"))
+			it.Limit, err = ec.unmarshalOInt2ᚖint(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
 func (ec *executionContext) unmarshalInputRegisterInput(ctx context.Context, obj interface{}) (models.RegisterInput, error) {
 	var it models.RegisterInput
 	asMap := map[string]interface{}{}
@@ -6877,6 +6945,11 @@ func (ec *executionContext) marshalNPostFile2ᚕgithubᚗcomᚋelisalimliᚋgo_g
 	return ret
 }
 
+func (ec *executionContext) unmarshalNPostsInput2githubᚗcomᚋelisalimliᚋgo_graphql_templateᚋgraphqlᚋmodelsᚐPostsInput(ctx context.Context, v interface{}) (models.PostsInput, error) {
+	res, err := ec.unmarshalInputPostsInput(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
 func (ec *executionContext) unmarshalNRegisterInput2githubᚗcomᚋelisalimliᚋgo_graphql_templateᚋgraphqlᚋmodelsᚐRegisterInput(ctx context.Context, v interface{}) (models.RegisterInput, error) {
 	res, err := ec.unmarshalInputRegisterInput(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
@@ -7389,6 +7462,22 @@ func (ec *executionContext) marshalOFieldError2ᚖgithubᚗcomᚋelisalimliᚋgo
 		return graphql.Null
 	}
 	return ec._FieldError(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalOInt2ᚖint(ctx context.Context, v interface{}) (*int, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := graphql.UnmarshalInt(v)
+	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalOInt2ᚖint(ctx context.Context, sel ast.SelectionSet, v *int) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	res := graphql.MarshalInt(*v)
+	return res
 }
 
 func (ec *executionContext) marshalOPost2ᚖgithubᚗcomᚋelisalimliᚋgo_graphql_templateᚋgraphqlᚋmodelsᚐPost(ctx context.Context, sel ast.SelectionSet, v *models.Post) graphql.Marshaler {
