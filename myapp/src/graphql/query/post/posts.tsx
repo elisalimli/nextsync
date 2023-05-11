@@ -8,6 +8,8 @@ export const Post_Fragment = graphql(/* GraphQL */ `
     variant
     type
     language
+    createdAt
+    updatedAt
     files {
       id
       url
@@ -22,8 +24,8 @@ export const Post_Fragment = graphql(/* GraphQL */ `
 `);
 
 export const postsQueryDocument = graphql(`
-  query Posts {
-    posts {
+  query Posts($input: PostsInput!) {
+    posts(input: $input) {
       ...Post_Fragment
     }
   }

@@ -30,10 +30,10 @@ export default function TabOneScreen() {
     },
   });
   return (
-    <View>
+    <View className="flex-1 ">
       <HomeHeader />
 
-      <View className="p-8">
+      <View className="flex-1 p-8">
         <TouchableOpacity
           onPress={async () => {
             const { data } = await logout({});

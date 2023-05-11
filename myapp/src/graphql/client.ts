@@ -92,5 +92,28 @@ export const client = new ApolloClient({
   // link: ApolloLink.from([errorLink, authLink, httpLink, uploadLink]),
   link: ApolloLink.from([errorLink, authLink, uploadLink]),
 
-  cache: new InMemoryCache({}),
+  cache: new InMemoryCache({
+    typePolicies: {
+      Query: {
+        fields: {
+          posts: {
+            keyArgs: ["createdAt"],
+
+            merge(existing, incoming, { args: { input }, readField }) {
+              console.log("merging", input, existing, incoming);
+              return [...(existing || []), ...incoming];
+              // return merged;
+            },
+
+            // If you always want to return the whole list, you can omit
+            // this read function.
+            read(existing, { args: { input }, readField }) {
+              console.log("read", existing, input);
+              return existing;
+            },
+          },
+        },
+      },
+    },
+  }),
 });
