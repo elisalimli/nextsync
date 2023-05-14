@@ -33,7 +33,6 @@ const SendOtp = () => {
       );
     }
 
-    console.log("send otp response");
     // if response is ok, saving accessToken
     if (response.data?.sendOtp.ok) {
       router.push("/verifyOtp");

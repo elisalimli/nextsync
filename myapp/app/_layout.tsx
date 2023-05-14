@@ -40,7 +40,6 @@ function RootLayoutNav() {
   const router = useRouter();
   return (
     <>
-      {/* <Provider value={client}> */}
       <ApolloProvider client={client}>
         {/* <ThemeProvider */}
         {/* value={colorScheme === "dark" ? DarkTheme : DefaultTheme} */}
@@ -53,7 +52,6 @@ function RootLayoutNav() {
         </AuthProvider>
         {/* </ThemeProvider> */}
       </ApolloProvider>
-      {/* </Provider> */}
     </>
   );
 }

@@ -37,7 +37,6 @@ const SignIn = () => {
         setError
       );
     }
-    console.log("verify otp response", response);
     // if response is ok, saving accessToken
     if (response.data?.verifyOtp.ok && response?.data?.verifyOtp?.authToken) {
       await saveAuthAccessToken(response?.data?.verifyOtp?.authToken?.token);
