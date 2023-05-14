@@ -1,9 +1,9 @@
 module.exports = {
-  name: "app",
-  slug: "app",
+  name: "pdfserverapp",
+  slug: "pdfserverapp",
   version: "1.0.0",
   orientation: "portrait",
-  scheme: "myapp",
+  scheme: "pdfserverapp",
   userInterfaceStyle: "automatic",
   splash: {
     image: "./assets/images/splash.png",
@@ -13,14 +13,14 @@ module.exports = {
   assetBundlePatterns: ["**/*"],
   ios: {
     supportsTablet: true,
-    bundleIdentifier: "com.quantum17.app",
+    bundleIdentifier: "com.quantum17.pdfserverapp",
   },
   android: {
     adaptiveIcon: {
       foregroundImage: "./assets/images/adaptive-icon.png",
       backgroundColor: "#ffffff",
     },
-    package: "com.quantum17.app",
+    package: "com.quantum17.pdfserverapp",
   },
   web: {
     bundler: "metro",
@@ -28,5 +28,9 @@ module.exports = {
   },
   extra: {
     apiUrl: process.env.GOOGLE_IOS_CLIENT_ID,
+    // ENTRY_FILE: "index.ts",
+    eas: {
+      projectId: "5b5f57ad-f194-4ef0-8bd6-7bf559174171",
+    },
   },
 };

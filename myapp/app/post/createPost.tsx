@@ -30,11 +30,9 @@ export default function TabOneScreen() {
           uri: uri,
           type: "application/" + fileType,
         };
-        console.log(fileToUpload, "...............file");
         setDoc(fileToUpload as any);
       }
     });
-    // console.log(result);
   };
 
   const handleSubmit = async () => {
@@ -61,7 +59,6 @@ export default function TabOneScreen() {
         },
       },
     });
-    console.log("result", result);
   };
 
   return (

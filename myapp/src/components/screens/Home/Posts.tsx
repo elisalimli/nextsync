@@ -15,14 +15,12 @@ function Posts() {
   if (loading) {
     return <Text>Loading...</Text>;
   }
-  console.log(data?.posts);
   return (
     <View className="flex-1">
       <Text className="text-2xl font-bold">Recent Posts</Text>
       {data?.posts && (
         <FlatList
           onEndReached={() => {
-            console.log(data?.posts[data?.posts?.length - 1].createdAt);
             fetchMore({
               variables: {
                 input: {

@@ -52,7 +52,6 @@ const uploadLink = createUploadLink({
 const authLink = setContext(async (_, { headers }) => {
   // get the authentication token from local storage if it exists
   const token = await getAuthAccessToken();
-  console.log("token", token);
   // return the headers to the context so httpLink can read them
   return {
     headers: {
@@ -90,25 +89,22 @@ const errorLink = onError(
 
 export const client = new ApolloClient({
   // link: ApolloLink.from([errorLink, authLink, httpLink, uploadLink]),
-  link: ApolloLink.from([errorLink, authLink, uploadLink]),
+  link: ApolloLink.from([errorLink, authLink, uploadLink as any]),
 
   cache: new InMemoryCache({
     typePolicies: {
       Query: {
         fields: {
           posts: {
-            keyArgs: ["createdAt"],
+            // keyArgs: [],
 
-            merge(existing, incoming, { args: { input }, readField }) {
-              console.log("merging", input, existing, incoming);
+            merge(existing, incoming) {
               return [...(existing || []), ...incoming];
-              // return merged;
             },
 
             // If you always want to return the whole list, you can omit
             // this read function.
-            read(existing, { args: { input }, readField }) {
-              console.log("read", existing, input);
+            read(existing) {
               return existing;
             },
           },

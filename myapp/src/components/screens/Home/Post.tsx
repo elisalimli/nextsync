@@ -1,20 +1,17 @@
-import React, { useEffect, useState } from "react";
+import { Feather } from "@expo/vector-icons";
+import React from "react";
 import {
+  Platform,
   ScrollView,
-  Share,
   Text,
   TouchableOpacity,
   View,
-  Platform,
 } from "react-native";
-import { LanguageType, Post_FragmentFragment } from "../../../gql/graphql";
+import RNFetchBlob from "rn-fetch-blob";
 import { FragmentType, useFragment } from "../../../gql";
+import { LanguageType } from "../../../gql/graphql";
 import { Post_Fragment } from "../../../graphql/query/post/posts";
 import { User_Fragment } from "../../../graphql/query/user/me";
-import { Feather } from "@expo/vector-icons";
-import * as FileSystem from "expo-file-system";
-import { isAvailableAsync, shareAsync } from "expo-sharing";
-import RNFetchBlob from "rn-fetch-blob";
 
 const Post = (props: FragmentType<typeof Post_Fragment>) => {
   const { id, variant, language, type, title, description, creator, files } =
@@ -22,50 +19,37 @@ const Post = (props: FragmentType<typeof Post_Fragment>) => {
   const user = useFragment(User_Fragment, creator);
 
   const downloadFromUrl = async (url: string) => {
-    const filename = url.split("/").pop() as string;
-    // console.log("file url", FileSystem.documentDirectory + filename);
+    const fileName = url.split("/").pop() as string;
+    // fs: Directory path where we want our image to download
+    const { config, fs } = RNFetchBlob;
+    const documentDir = RNFetchBlob.fs.dirs.DocumentDir;
+    const fileDest = `${documentDir}/${fileName}`;
+    const fileExists = await RNFetchBlob.fs.exists(fileDest);
 
-    const file = await FileSystem.getInfoAsync(
-      FileSystem.documentDirectory + filename
-    );
-    let fileUrl = file?.uri;
-    if (!file?.exists) {
-      const result = await FileSystem.downloadAsync(
-        url,
-        FileSystem.documentDirectory + filename
-      );
-      fileUrl = result?.uri;
-      // console.log(result);
-    }
-    RNFetchBlob.ios.openDocument(fileUrl);
-
-    // save(result.uri, filename, result.headers["Content-Type"]);r
-  };
-
-  const save = async (uri: string, filename: string, mimetype: string) => {
-    if (Platform.OS === "android") {
-      const permissions =
-        await FileSystem.StorageAccessFramework.requestDirectoryPermissionsAsync();
-      if (permissions.granted) {
-        const base64 = await FileSystem.readAsStringAsync(uri, {
-          encoding: FileSystem.EncodingType.Base64,
+    if (!fileExists) {
+      let options = {
+        path: fileDest,
+        fileCache: true,
+        addAndroidDownloads: {
+          // Related to the Android only
+          useDownloadManager: true,
+          notification: true,
+          path: fileDest,
+          description: "Pdf",
+        },
+      };
+      config(options)
+        .fetch("GET", url)
+        .then((res) => {
+          // Showing alert after successful downloading
+          alert("Image Downloaded Successfully.");
         });
-        await FileSystem.StorageAccessFramework.createFileAsync(
-          permissions.directoryUri,
-          filename,
-          mimetype
-        )
-          .then(async (uri) => {
-            await FileSystem.writeAsStringAsync(uri, base64, {
-              encoding: FileSystem.EncodingType.Base64,
-            });
-          })
-          .catch((e) => console.log(e));
-      } else {
-        shareAsync(uri);
-      }
     } else {
-      shareAsync(uri);
+      if (Platform.OS === "android") {
+        RNFetchBlob.android.actionViewIntent(fileDest, "application/pdf");
+      } else if (Platform.OS === "ios") {
+        RNFetchBlob.ios.previewDocument(fileDest);
+      }
     }
   };
 
@@ -88,14 +72,7 @@ const Post = (props: FragmentType<typeof Post_Fragment>) => {
           return (
             <TouchableOpacity
               key={`post-files-${id}-${file?.id}`}
-              // onPress={shareAsync}
               onPress={() => downloadFromUrl(file?.url)}
-              // onPress={() =>
-              // OpenAnything.Pdf(
-              // "file:///Users/alisalimli/Library/Developer/CoreSimulator/Devices/F8A7DC99-769E-4D9C-B8DB-71AC1A350034/data/Containers/Data/Application/D5B7B9B4-96CD-4E16-954C-2B1E06933E52/Documents/4972e9fd-e894-4714-abac-088f1887f277-dcefa407-32b4-47d6-93a3-57a911862110-The.Go.Programming.Language.pdf"
-              // "file:///data/user/0/host.exp.exponent/files/ExperienceData/%2540quantum17%252Fapp/4972e9fd-e894-4714-abac-088f1887f277-dcefa407-32b4-47d6-93a3-57a911862110-The.Go.Programming.Language.pdf"
-              // )
-              // }
             >
               <Text>{file?.fileSize}</Text>
             </TouchableOpacity>
