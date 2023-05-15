@@ -1,40 +1,16 @@
-import { Link, Stack } from "expo-router";
-import { StyleSheet } from "react-native";
-
-import { Text, View } from "../src/components/Themed";
+import { useQuery } from "@apollo/client";
+import { SplashScreen, useRouter } from "expo-router";
+import React, { useEffect } from "react";
+import { meQueryDocument } from "../src/graphql/query/user/me";
 
 export default function NotFoundScreen() {
-  return (
-    <>
-      <Stack.Screen options={{ title: "Oops!" }} />
-      <View style={styles.container}>
-        <Text style={styles.title}>This screen doesn't exist.</Text>
+  const router = useRouter();
+  const { data } = useQuery(meQueryDocument, {
+    nextFetchPolicy: "cache-only", // Used for subsequent executions
+  });
 
-        <Link href="/" style={styles.link}>
-          <Text style={styles.linkText}>Go to home screen!</Text>
-        </Link>
-      </View>
-    </>
-  );
+  useEffect(() => {
+    if (data?.me) router?.replace("/");
+  }, [data]);
+  return <SplashScreen />;
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    alignItems: "center",
-    justifyContent: "center",
-    padding: 20,
-  },
-  title: {
-    fontSize: 20,
-    fontWeight: "bold",
-  },
-  link: {
-    marginTop: 15,
-    paddingVertical: 15,
-  },
-  linkText: {
-    fontSize: 14,
-    color: "#2e78b7",
-  },
-});
