@@ -13,7 +13,7 @@ interface FileProps {
 }
 
 const File: React.FC<FileProps> = ({
-  file: { id, url, fileSize, fileName: displayName },
+  file: { id, url, fileSize, fileName: displayName, contentType },
 }) => {
   const [jobId, setJobId] = useState<number | null>(null);
   const [fileExists, setFileExists] = useState(false);
@@ -52,6 +52,7 @@ const File: React.FC<FileProps> = ({
           console.log("Download progress", progress);
           setProgress(progress);
         },
+        progressDivider: 10,
       };
       const downloadTask = RNFS.downloadFile(options);
 
@@ -71,7 +72,7 @@ const File: React.FC<FileProps> = ({
 
   function handleOpen() {
     if (Platform.OS === "android") {
-      RNFetchBlob.android.actionViewIntent(fileDest, "application/pdf");
+      RNFetchBlob.android.actionViewIntent(fileDest, contentType);
     } else if (Platform.OS === "ios") {
       RNFetchBlob.ios.previewDocument(fileDest);
     }
