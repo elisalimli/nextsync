@@ -51,8 +51,8 @@
     "react-dom": "18.2.0",
     "react-hook-form": "^7.43.9",
     "react-native": "0.71.7",
-    "react-native-blob-util": "^0.17.3",
     "react-native-document-picker": "^8.2.0",
+    "react-native-fs": "^2.20.0",
     "react-native-openanything": "^0.0.6",
     "react-native-pdf": "^6.6.2",
     "react-native-progress": "^5.0.0",
@@ -61,6 +61,7 @@
     "react-native-svg": "13.4.0",
     "react-native-web": "~0.18.10",
     "react-native-webview": "11.26.0",
+    "rn-fetch-blob": "^0.12.0",
     "urql": "^4.0.2"
   },
   "devDependencies": {

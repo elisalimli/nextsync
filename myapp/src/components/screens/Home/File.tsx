@@ -2,13 +2,11 @@ import { AntDesign } from "@expo/vector-icons";
 import * as React from "react";
 import { useEffect, useState } from "react";
 import { Platform, Text, TouchableOpacity, View } from "react-native";
-import RNFetchBlob, {
-  FetchBlobResponse,
-  StatefulPromise,
-} from "react-native-blob-util";
 import * as Progress from "react-native-progress";
+import RNFS, { DownloadProgressCallbackResult } from "react-native-fs";
 import { File_FragmentFragment } from "../../../gql/graphql";
 import FileSizeDisplay from "./FileSizeDisplay";
+import RNFetchBlob from "rn-fetch-blob";
 
 interface FileProps {
   file: File_FragmentFragment;
@@ -17,65 +15,60 @@ interface FileProps {
 const File: React.FC<FileProps> = ({
   file: { id, url, fileSize, fileName: displayName },
 }) => {
-  const [task, setTask] = useState<StatefulPromise<FetchBlobResponse> | null>(
-    null
-  );
+  const [jobId, setJobId] = useState<number | null>(null);
   const [fileExists, setFileExists] = useState(false);
   const [fileDest, setFileDest] = useState("");
   const [progress, setProgress] = useState(0);
   const fileName = url.split("/").pop() as string;
 
   useEffect(() => {
-    (async () => {
+    const checkFileExists = async () => {
       let documentDir = "";
-      if (Platform.OS === "android") documentDir = RNFetchBlob.fs.dirs.DCIMDir;
-      else if (Platform.OS === "ios")
-        documentDir = RNFetchBlob.fs.dirs.DocumentDir;
+      if (Platform.OS === "android") documentDir = RNFS.ExternalDirectoryPath;
+      else if (Platform.OS === "ios") documentDir = RNFS.DocumentDirectoryPath;
 
       const fileDest = `${documentDir}/${fileName}`;
 
       console.log(fileDest);
-      const fileExists = await RNFetchBlob.fs.exists(fileDest);
+      const fileExists = await RNFS.exists(fileDest);
       setFileExists(fileExists);
       setFileDest(fileDest);
-    })();
+    };
+
+    checkFileExists();
   }, []);
 
   const downloadFromUrl = async (url: string) => {
-    // fs: Directory path where we want our image to download
-    const { config, fs } = RNFetchBlob;
-
     if (!fileExists) {
-      let options = {
-        path: fileDest,
-        fileCache: true,
-        addAndroidDownloads: {
-          // Related to the Android only
-          useDownloadManager: true,
-          notification: true,
-
-          path: fileDest,
-          description: "Pdf",
+      const options: RNFS.DownloadFileOptions = {
+        fromUrl: url,
+        toFile: fileDest,
+        background: true,
+        begin: () => {
+          setProgress(0);
+        },
+        progress: (res: DownloadProgressCallbackResult) => {
+          const progress = res.bytesWritten / res.contentLength;
+          console.log("Download progress", progress);
+          setProgress(progress);
         },
       };
+      const downloadTask = RNFS.downloadFile(options);
 
-      let task = config(options)
-        .fetch("GET", url)
-        .progress((received, total) => {
-          console.log("progress", received / total);
-          setProgress(received / total);
-        });
-      setTask(task);
-      task.then(async (res) => {
-        // Showing alert after successful downloading
-        alert("File Downloaded Successfully.");
+      setJobId(downloadTask?.jobId);
+
+      try {
+        const res = await downloadTask.promise;
+        alert("File Donwload Completed");
+        console.log("Download complete", res);
         setProgress(1);
         setFileExists(true);
-      });
-
-      //   task.cancel((err) => {});
+      } catch (error) {
+        console.log("Download error", error);
+      }
     }
   };
+
   function handleOpen() {
     if (Platform.OS === "android") {
       RNFetchBlob.android.actionViewIntent(fileDest, "application/pdf");
@@ -85,26 +78,9 @@ const File: React.FC<FileProps> = ({
   }
 
   function cancelRequest() {
-    if (task) {
-      try {
-        task.cancel((err) => {
-          console.log("download request is cancelled", err);
-          setTask(null);
-          setProgress(0);
-          // Remove the downloaded file
-          RNFetchBlob.fs
-            .unlink(fileDest)
-            .then(() => {
-              console.log("File removed successfully");
-              setFileExists(false);
-            })
-            .catch((error) => {
-              console.log("Error removing file", error);
-            });
-        });
-      } catch (error) {
-        console.log("Cancelling error:", error);
-      }
+    if (jobId) {
+      RNFS.stopDownload(jobId);
+      setJobId(null);
     }
   }
 
@@ -119,7 +95,7 @@ const File: React.FC<FileProps> = ({
             </TouchableOpacity>
           ) : (
             <View>
-              {task ? (
+              {jobId ? (
                 <TouchableOpacity onPress={cancelRequest}>
                   <Progress.Circle size={24} progress={progress} />
                 </TouchableOpacity>
