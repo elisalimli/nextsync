@@ -9,13 +9,15 @@ import (
 	"github.com/elisalimli/go_graphql_template/domain"
 	"github.com/elisalimli/go_graphql_template/graphql/models"
 	customMiddleware "github.com/elisalimli/go_graphql_template/middleware"
+	"github.com/elisalimli/go_graphql_template/storage"
 	"github.com/elisalimli/go_graphql_template/validator"
 	"github.com/vektah/gqlparser/v2/gqlerror"
 )
 
 func (m *postResolver) Creator(ctx context.Context, obj *models.Post) (*models.User, error) {
 
-	return getUserLoader(ctx).Load(obj.UserId)
+	// return getUserLoader(ctx).Load(obj.UserId)
+	return storage.GetUser(ctx, obj.UserId)
 
 }
 
