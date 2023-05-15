@@ -13,6 +13,7 @@ import (
 	"github.com/elisalimli/go_graphql_template/domain"
 	"github.com/elisalimli/go_graphql_template/graphql"
 	"github.com/elisalimli/go_graphql_template/initializers"
+	"github.com/elisalimli/go_graphql_template/storage"
 
 	customMiddleware "github.com/elisalimli/go_graphql_template/middleware"
 	"github.com/elisalimli/go_graphql_template/postgres"
@@ -81,8 +82,10 @@ func main() {
 		Cache: lru.New(100),
 	})
 
+	// loading data loaders
+	dataLoaders := storage.NewLoaders(initializers.DB)
 	router.Handle("/", playground.Handler("GraphQL playground", "/query"))
-	router.Handle("/query", graphql.DataloaderMiddleware(initializers.DB, srv))
+	router.Handle("/query", storage.Middleware(dataLoaders, srv))
 
 	log.Printf("connect to http://localhost:%s/ for GraphQL playground", port)
 	log.Fatal(http.ListenAndServe(":"+port, router))
