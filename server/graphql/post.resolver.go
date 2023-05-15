@@ -53,11 +53,13 @@ func (r *queryResolver) Posts(ctx context.Context, input models.PostsInput) ([]*
 	realLimitPlusOne := *input.Limit + 1
 	// var result []*models.Post
 	posts := make([]*models.Post, 0)
-	q := r.Domain.PostsRepo.DB.NewSelect().Model(&posts).ColumnExpr("post.*").ColumnExpr(`json_agg(json_build_object('id', pf.id, 'postId', pf.post_id, 'url', pf.url, 'contentType', pf.content_type,'fileSize', pf.file_size)) AS "files"`).Join(`JOIN post_files AS pf ON pf.post_id = post.id`).Group(`post.id`).Order("post.created_at ASC").Limit(realLimitPlusOne)
+	q := r.Domain.PostsRepo.DB.NewSelect().Model(&posts).ColumnExpr("post.*").ColumnExpr(`json_agg(json_build_object('id', pf.id, 'postId', pf.post_id, 'url', pf.url, 'contentType', pf.content_type,'fileSize', pf.file_size, 'fileName', pf.file_name)) AS "files"`).Join(`JOIN post_files AS pf ON pf.post_id = post.id`).Group(`post.id`).Order("post.created_at DESC").Limit(realLimitPlusOne)
 	if input.Cursor != nil {
-		q = q.Where("post.created_at > ?", input.Cursor)
+		q = q.Where("post.created_at < ?", input.Cursor)
 	}
 	err := q.Scan(ctx)
+
+	fmt.Println(posts[0])
 
 	if err != nil {
 		fmt.Println("Error occured:", err)

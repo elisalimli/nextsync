@@ -43,6 +43,7 @@ CREATE TABLE "public"."post_files" (
     "id" uuid NOT NULL DEFAULT uuid_generate_v4(),
     "post_id" uuid NOT NULL,
     "url" text NOT NULL,
+    "file_name" text NOT NULL,
     PRIMARY KEY ("id"),
     CONSTRAINT "fk_posts_files" FOREIGN KEY ("post_id") REFERENCES "public"."posts" ("id") ON UPDATE NO ACTION ON DELETE NO ACTION
 );
