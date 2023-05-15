@@ -2,7 +2,10 @@ import { AntDesign } from "@expo/vector-icons";
 import * as React from "react";
 import { useEffect, useState } from "react";
 import { Platform, Text, TouchableOpacity, View } from "react-native";
-import RNFetchBlob, { FetchBlobResponse, StatefulPromise } from "rn-fetch-blob";
+import RNFetchBlob, {
+  FetchBlobResponse,
+  StatefulPromise,
+} from "react-native-blob-util";
 import * as Progress from "react-native-progress";
 import { File_FragmentFragment } from "../../../gql/graphql";
 import FileSizeDisplay from "./FileSizeDisplay";
