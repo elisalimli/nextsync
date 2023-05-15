@@ -110,6 +110,7 @@ type ComplexityRoot struct {
 
 	PostFile struct {
 		ContentType func(childComplexity int) int
+		FileName    func(childComplexity int) int
 		FileSize    func(childComplexity int) int
 		Id          func(childComplexity int) int
 		PostId      func(childComplexity int) int
@@ -461,6 +462,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.PostFile.ContentType(childComplexity), true
+
+	case "PostFile.fileName":
+		if e.complexity.PostFile.FileName == nil {
+			break
+		}
+
+		return e.complexity.PostFile.FileName(childComplexity), true
 
 	case "PostFile.fileSize":
 		if e.complexity.PostFile.FileSize == nil {
@@ -2414,6 +2422,8 @@ func (ec *executionContext) fieldContext_Post_files(ctx context.Context, field g
 				return ec.fieldContext_PostFile_contentType(ctx, field)
 			case "fileSize":
 				return ec.fieldContext_PostFile_fileSize(ctx, field)
+			case "fileName":
+				return ec.fieldContext_PostFile_fileName(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type PostFile", field.Name)
 		},
@@ -2828,6 +2838,50 @@ func (ec *executionContext) fieldContext_PostFile_fileSize(ctx context.Context, 
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type Int does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _PostFile_fileName(ctx context.Context, field graphql.CollectedField, obj *models.PostFile) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_PostFile_fileName(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.FileName, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_PostFile_fileName(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "PostFile",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
 		},
 	}
 	return fc, nil
@@ -6197,6 +6251,13 @@ func (ec *executionContext) _PostFile(ctx context.Context, sel ast.SelectionSet,
 		case "fileSize":
 
 			out.Values[i] = ec._PostFile_fileSize(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "fileName":
+
+			out.Values[i] = ec._PostFile_fileName(ctx, field, obj)
 
 			if out.Values[i] == graphql.Null {
 				invalids++

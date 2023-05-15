@@ -70,6 +70,11 @@ func init() {
 		}
 		fmt.Println("bucket name", domain.BucketName)
 
+		// Reverse the order of the documents slice, for simulating createdAt
+		for i, j := 0, len(documents)-1; i < j; i, j = i+1, j-1 {
+			documents[i], documents[j] = documents[j], documents[i]
+		}
+
 		// Print out the name and age of each person
 		for _, document := range documents {
 			post := models.Post{
@@ -88,7 +93,7 @@ func init() {
 				fmt.Println("Error occured", err)
 			}
 
-			imageUrls := []models.PostFile{{URL: fmt.Sprintf("https://%s.s3.%s.amazonaws.com/", domain.BucketName, domain.BucketRegion) + document.FileName, PostId: post.Id, FileSize: document.FileSize, ContentType: document.ContentType}}
+			imageUrls := []models.PostFile{{URL: fmt.Sprintf("https://%s.s3.%s.amazonaws.com/", domain.BucketName, domain.BucketRegion) + document.FileName, PostId: post.Id, FileSize: document.FileSize, ContentType: document.ContentType, FileName: "sinaq.pdf"}}
 			err = initializers.DB.NewInsert().Model(&imageUrls).Scan(ctx)
 			if err != nil {
 				log.Fatal("Error occured", err)

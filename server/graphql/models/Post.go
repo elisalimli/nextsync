@@ -26,5 +26,6 @@ type PostFile struct {
 	Post        *Post  `bun:"rel:belongs-to,join:post_id=id"`
 	URL         string
 	FileSize    int64  `bun:"file_size"`
+	FileName    string `bun:"file_name"`
 	ContentType string `bun:"content_type"`
 }

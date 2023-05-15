@@ -7,6 +7,7 @@ export const File_Fragment = graphql(/* GraphQL */ `
     postId
     contentType
     fileSize
+    fileName
   }
 `);
 

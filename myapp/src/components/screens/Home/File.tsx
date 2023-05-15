@@ -14,7 +14,9 @@ interface FileProps {
   file: File_FragmentFragment;
 }
 
-const File: React.FC<FileProps> = ({ file: { id, url, fileSize } }) => {
+const File: React.FC<FileProps> = ({
+  file: { id, url, fileSize, fileName: displayName },
+}) => {
   const [task, setTask] = useState<StatefulPromise<FetchBlobResponse> | null>(
     null
   );
@@ -132,6 +134,7 @@ const File: React.FC<FileProps> = ({ file: { id, url, fileSize } }) => {
           )}
         </View>
         <View className="ml-3 flex justify-center">
+          <Text>{displayName}</Text>
           <FileSizeDisplay fileSize={fileSize} />
         </View>
       </View>

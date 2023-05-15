@@ -90,6 +90,7 @@ type PostFile {
   url: String!
   contentType: String!
   fileSize: Int!
+  fileName: String!
 }
 
 # type Meetup {

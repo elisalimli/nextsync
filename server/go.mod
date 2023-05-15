@@ -6,6 +6,7 @@ require (
 	github.com/99designs/gqlgen v0.17.29
 	github.com/aws/aws-sdk-go v1.44.248
 	github.com/google/uuid v1.3.0
+	github.com/graph-gophers/dataloader v5.0.0+incompatible
 	github.com/redis/go-redis/v9 v9.0.3
 	github.com/twilio/twilio-go v1.5.0
 	github.com/uptrace/bun v1.1.12
@@ -19,7 +20,6 @@ require (
 	github.com/dgryski/go-rendezvous v0.0.0-20200823014737-9f7001d12a5f // indirect
 	github.com/fatih/color v1.14.1 // indirect
 	github.com/golang/mock v1.6.0 // indirect
-	github.com/graph-gophers/dataloader v5.0.0+incompatible // indirect
 	github.com/jmespath/go-jmespath v0.4.0 // indirect
 	github.com/kr/pretty v0.3.0 // indirect
 	github.com/mattn/go-colorable v0.1.13 // indirect

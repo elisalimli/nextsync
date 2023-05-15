@@ -175,7 +175,7 @@ func (d *Domain) uploadFiles(ctx context.Context, resp *[]models.PostFile, req [
 			fmt.Print(err)
 			return err
 		} else {
-			*resp = append(*resp, models.PostFile{URL: *res.Location, ContentType: file.File.ContentType, FileSize: file.File.Size})
+			*resp = append(*resp, models.PostFile{URL: *res.Location, ContentType: file.File.ContentType, FileSize: file.File.Size, FileName: file.File.Filename})
 			fmt.Println(res.String())
 		}
 	}
