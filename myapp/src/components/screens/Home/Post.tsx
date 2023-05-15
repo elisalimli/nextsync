@@ -7,51 +7,19 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import RNFetchBlob from "rn-fetch-blob";
 import { FragmentType, useFragment } from "../../../gql";
-import { LanguageType } from "../../../gql/graphql";
-import { Post_Fragment } from "../../../graphql/query/post/posts";
+import { File_FragmentFragment, LanguageType } from "../../../gql/graphql";
+import {
+  File_Fragment,
+  Post_Fragment,
+} from "../../../graphql/query/post/posts";
 import { User_Fragment } from "../../../graphql/query/user/me";
+import File from "./File";
 
 const Post = (props: FragmentType<typeof Post_Fragment>) => {
   const { id, variant, language, type, title, description, creator, files } =
     useFragment(Post_Fragment, props);
   const user = useFragment(User_Fragment, creator);
-
-  const downloadFromUrl = async (url: string) => {
-    const fileName = url.split("/").pop() as string;
-    // fs: Directory path where we want our image to download
-    const { config, fs } = RNFetchBlob;
-    const documentDir = RNFetchBlob.fs.dirs.DocumentDir;
-    const fileDest = `${documentDir}/${fileName}`;
-    const fileExists = await RNFetchBlob.fs.exists(fileDest);
-
-    if (!fileExists) {
-      let options = {
-        path: fileDest,
-        fileCache: true,
-        addAndroidDownloads: {
-          // Related to the Android only
-          useDownloadManager: true,
-          notification: true,
-          path: fileDest,
-          description: "Pdf",
-        },
-      };
-      config(options)
-        .fetch("GET", url)
-        .then((res) => {
-          // Showing alert after successful downloading
-          alert("Image Downloaded Successfully.");
-        });
-    } else {
-      if (Platform.OS === "android") {
-        RNFetchBlob.android.actionViewIntent(fileDest, "application/pdf");
-      } else if (Platform.OS === "ios") {
-        RNFetchBlob.ios.previewDocument(fileDest);
-      }
-    }
-  };
 
   return (
     <View className="rpx-4 py-6 rounded-lg">
@@ -67,16 +35,10 @@ const Post = (props: FragmentType<typeof Post_Fragment>) => {
         <Text className="font-normal text-sm">{description}</Text>
       </View>
 
-      <View>
-        {files?.map((file) => {
-          return (
-            <TouchableOpacity
-              key={`post-files-${id}-${file?.id}`}
-              onPress={() => downloadFromUrl(file?.url)}
-            >
-              <Text>{file?.fileSize}</Text>
-            </TouchableOpacity>
-          );
+      <View className="mb-4">
+        {files?.map((_file) => {
+          const file = useFragment(File_Fragment, _file);
+          return <File key={`post-files-${id}-${file?.id}`} file={file} />;
         })}
       </View>
 
