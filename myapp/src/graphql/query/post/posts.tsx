@@ -1,5 +1,15 @@
 import { graphql } from "../../../gql";
 
+export const File_Fragment = graphql(/* GraphQL */ `
+  fragment File_Fragment on PostFile {
+    id
+    url
+    postId
+    contentType
+    fileSize
+  }
+`);
+
 export const Post_Fragment = graphql(/* GraphQL */ `
   fragment Post_Fragment on Post {
     id
@@ -11,11 +21,7 @@ export const Post_Fragment = graphql(/* GraphQL */ `
     createdAt
     updatedAt
     files {
-      id
-      url
-      postId
-      contentType
-      fileSize
+      ...File_Fragment
     }
     creator {
       ...User_Fragment

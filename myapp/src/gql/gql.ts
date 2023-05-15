@@ -19,7 +19,8 @@ const documents = {
     "\n  mutation Logout {\n    logout\n  }\n": types.LogoutDocument,
     "\n  mutation SendOTP($input: SendOtpInput!) {\n    sendOtp(input: $input) {\n      ok\n      errors {\n        message\n        field\n      }\n    }\n  }\n": types.SendOtpDocument,
     "\n  mutation VerifyOTP($input: VerifyOtpInput!) {\n    verifyOtp(input: $input) {\n      ok\n      errors {\n        message\n        field\n      }\n      user {\n        ...User_Fragment\n      }\n      authToken {\n        token\n        expiredAt\n      }\n    }\n  }\n": types.VerifyOtpDocument,
-    "\n  fragment Post_Fragment on Post {\n    id\n    title\n    description\n    variant\n    type\n    language\n    createdAt\n    updatedAt\n    files {\n      id\n      url\n      postId\n      contentType\n      fileSize\n    }\n    creator {\n      ...User_Fragment\n    }\n  }\n": types.Post_FragmentFragmentDoc,
+    "\n  fragment File_Fragment on PostFile {\n    id\n    url\n    postId\n    contentType\n    fileSize\n  }\n": types.File_FragmentFragmentDoc,
+    "\n  fragment Post_Fragment on Post {\n    id\n    title\n    description\n    variant\n    type\n    language\n    createdAt\n    updatedAt\n    files {\n      ...File_Fragment\n    }\n    creator {\n      ...User_Fragment\n    }\n  }\n": types.Post_FragmentFragmentDoc,
     "\n  query Posts($input: PostsInput!) {\n    posts(input: $input) {\n      ...Post_Fragment\n    }\n  }\n": types.PostsDocument,
     "\n  query Hello {\n    hello\n  }\n": types.HelloDocument,
     "\n  fragment User_Fragment on User {\n    id\n    username\n    email\n    verified\n    phoneNumber\n    createdAt\n    updatedAt\n  }\n": types.User_FragmentFragmentDoc,
@@ -67,7 +68,11 @@ export function graphql(source: "\n  mutation VerifyOTP($input: VerifyOtpInput!)
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
-export function graphql(source: "\n  fragment Post_Fragment on Post {\n    id\n    title\n    description\n    variant\n    type\n    language\n    createdAt\n    updatedAt\n    files {\n      id\n      url\n      postId\n      contentType\n      fileSize\n    }\n    creator {\n      ...User_Fragment\n    }\n  }\n"): (typeof documents)["\n  fragment Post_Fragment on Post {\n    id\n    title\n    description\n    variant\n    type\n    language\n    createdAt\n    updatedAt\n    files {\n      id\n      url\n      postId\n      contentType\n      fileSize\n    }\n    creator {\n      ...User_Fragment\n    }\n  }\n"];
+export function graphql(source: "\n  fragment File_Fragment on PostFile {\n    id\n    url\n    postId\n    contentType\n    fileSize\n  }\n"): (typeof documents)["\n  fragment File_Fragment on PostFile {\n    id\n    url\n    postId\n    contentType\n    fileSize\n  }\n"];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "\n  fragment Post_Fragment on Post {\n    id\n    title\n    description\n    variant\n    type\n    language\n    createdAt\n    updatedAt\n    files {\n      ...File_Fragment\n    }\n    creator {\n      ...User_Fragment\n    }\n  }\n"): (typeof documents)["\n  fragment Post_Fragment on Post {\n    id\n    title\n    description\n    variant\n    type\n    language\n    createdAt\n    updatedAt\n    files {\n      ...File_Fragment\n    }\n    creator {\n      ...User_Fragment\n    }\n  }\n"];
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */

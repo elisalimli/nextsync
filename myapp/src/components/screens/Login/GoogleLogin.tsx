@@ -31,7 +31,6 @@ function GoogleLogin() {
     googleLoginOrSignUpMutationDocument,
     {
       update(cache, { data }) {
-        console.log("updating cache", data?.googleLoginOrSignUp?.user);
         updateMeCache(cache, data?.googleLoginOrSignUp?.user);
       },
     }
@@ -50,13 +49,12 @@ function GoogleLogin() {
           input: { token },
         },
       });
-      console.log("toekn", res?.data?.googleLoginOrSignUp, token);
       const data = res?.data?.googleLoginOrSignUp;
       const user = useFragment(
         User_Fragment,
         res?.data?.googleLoginOrSignUp?.user
       );
-      console.log("google login data", data, user);
+
       // if response is ok, saving accessToken
       if (data?.ok && data?.authToken) {
         await saveAuthAccessToken(data?.authToken?.token);
@@ -64,18 +62,6 @@ function GoogleLogin() {
         // if user is not verified, we need to navigate the user to userDetails screen
         router.push("/userDetails");
       }
-      // else if (data?.ok && user && !user?.verified) {
-      //   const response = await sendOtpMutate({
-      //     variables: {
-      //       input: { to: user?.phoneNumber },
-      //     },
-      //   });
-
-      //   if (response?.data?.sendOtp?.ok) {
-      //     setPhoneNumber(user?.phoneNumber);
-      //     router.push("/verifyOtp");
-      //   }
-      // }
     }
 
     if (response?.type === "success") {

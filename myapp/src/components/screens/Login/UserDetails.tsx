@@ -30,7 +30,6 @@ const UserDetails = () => {
     googleLoginOrSignUpMutationDocument,
     {
       update(cache, { data }) {
-        console.log("updating cache", data?.googleLoginOrSignUp?.user);
         updateMeCache(cache, data?.googleLoginOrSignUp?.user);
       },
     }
