@@ -146,9 +146,9 @@ type MutationResolver interface {
 	CreatePost(ctx context.Context, input models.CreatePostInput) (*models.CreatePostResponse, error)
 }
 type PostResolver interface {
-	Type(ctx context.Context, obj *models.Post) (models.Type, error)
-
-	Language(ctx context.Context, obj *models.Post) (models.LanguageType, error)
+	Type(ctx context.Context, obj *models.Post) (*models.Type, error)
+	Variant(ctx context.Context, obj *models.Post) (*string, error)
+	Language(ctx context.Context, obj *models.Post) (*models.LanguageType, error)
 
 	Creator(ctx context.Context, obj *models.Post) (*models.User, error)
 }
@@ -2218,14 +2218,11 @@ func (ec *executionContext) _Post_description(ctx context.Context, field graphql
 		return graphql.Null
 	}
 	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
 		return graphql.Null
 	}
 	res := resTmp.(*string)
 	fc.Result = res
-	return ec.marshalNString2ᚖstring(ctx, field.Selections, res)
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Post_description(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -2262,14 +2259,11 @@ func (ec *executionContext) _Post_type(ctx context.Context, field graphql.Collec
 		return graphql.Null
 	}
 	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
 		return graphql.Null
 	}
-	res := resTmp.(models.Type)
+	res := resTmp.(*models.Type)
 	fc.Result = res
-	return ec.marshalNType2githubᚗcomᚋelisalimliᚋgo_graphql_templateᚋgraphqlᚋmodelsᚐType(ctx, field.Selections, res)
+	return ec.marshalOType2ᚖgithubᚗcomᚋelisalimliᚋgo_graphql_templateᚋgraphqlᚋmodelsᚐType(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Post_type(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -2299,29 +2293,26 @@ func (ec *executionContext) _Post_variant(ctx context.Context, field graphql.Col
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.Variant, nil
+		return ec.resolvers.Post().Variant(rctx, obj)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
 		return graphql.Null
 	}
 	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
 		return graphql.Null
 	}
-	res := resTmp.(string)
+	res := resTmp.(*string)
 	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Post_variant(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "Post",
 		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
+		IsMethod:   true,
+		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type String does not have child fields")
 		},
@@ -2350,14 +2341,11 @@ func (ec *executionContext) _Post_language(ctx context.Context, field graphql.Co
 		return graphql.Null
 	}
 	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
 		return graphql.Null
 	}
-	res := resTmp.(models.LanguageType)
+	res := resTmp.(*models.LanguageType)
 	fc.Result = res
-	return ec.marshalNLanguageType2githubᚗcomᚋelisalimliᚋgo_graphql_templateᚋgraphqlᚋmodelsᚐLanguageType(ctx, field.Selections, res)
+	return ec.marshalOLanguageType2ᚖgithubᚗcomᚋelisalimliᚋgo_graphql_templateᚋgraphqlᚋmodelsᚐLanguageType(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Post_language(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -6101,9 +6089,6 @@ func (ec *executionContext) _Post(ctx context.Context, sel ast.SelectionSet, obj
 
 			out.Values[i] = ec._Post_description(ctx, field, obj)
 
-			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&invalids, 1)
-			}
 		case "type":
 			field := field
 
@@ -6114,9 +6099,6 @@ func (ec *executionContext) _Post(ctx context.Context, sel ast.SelectionSet, obj
 					}
 				}()
 				res = ec._Post_type(ctx, field, obj)
-				if res == graphql.Null {
-					atomic.AddUint32(&invalids, 1)
-				}
 				return res
 			}
 
@@ -6125,12 +6107,22 @@ func (ec *executionContext) _Post(ctx context.Context, sel ast.SelectionSet, obj
 
 			})
 		case "variant":
+			field := field
 
-			out.Values[i] = ec._Post_variant(ctx, field, obj)
-
-			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&invalids, 1)
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Post_variant(ctx, field, obj)
+				return res
 			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
+			})
 		case "language":
 			field := field
 
@@ -6141,9 +6133,6 @@ func (ec *executionContext) _Post(ctx context.Context, sel ast.SelectionSet, obj
 					}
 				}()
 				res = ec._Post_language(ctx, field, obj)
-				if res == graphql.Null {
-					atomic.AddUint32(&invalids, 1)
-				}
 				return res
 			}
 
@@ -7046,27 +7035,6 @@ func (ec *executionContext) marshalNString2string(ctx context.Context, sel ast.S
 	return res
 }
 
-func (ec *executionContext) unmarshalNString2ᚖstring(ctx context.Context, v interface{}) (*string, error) {
-	res, err := graphql.UnmarshalString(v)
-	return &res, graphql.ErrorOnPath(ctx, err)
-}
-
-func (ec *executionContext) marshalNString2ᚖstring(ctx context.Context, sel ast.SelectionSet, v *string) graphql.Marshaler {
-	if v == nil {
-		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
-			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
-		}
-		return graphql.Null
-	}
-	res := graphql.MarshalString(*v)
-	if res == graphql.Null {
-		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
-			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
-		}
-	}
-	return res
-}
-
 func (ec *executionContext) unmarshalNTime2timeᚐTime(ctx context.Context, v interface{}) (time.Time, error) {
 	res, err := graphql.UnmarshalTime(v)
 	return res, graphql.ErrorOnPath(ctx, err)
@@ -7541,6 +7509,22 @@ func (ec *executionContext) marshalOInt2ᚖint(ctx context.Context, sel ast.Sele
 	return res
 }
 
+func (ec *executionContext) unmarshalOLanguageType2ᚖgithubᚗcomᚋelisalimliᚋgo_graphql_templateᚋgraphqlᚋmodelsᚐLanguageType(ctx context.Context, v interface{}) (*models.LanguageType, error) {
+	if v == nil {
+		return nil, nil
+	}
+	var res = new(models.LanguageType)
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalOLanguageType2ᚖgithubᚗcomᚋelisalimliᚋgo_graphql_templateᚋgraphqlᚋmodelsᚐLanguageType(ctx context.Context, sel ast.SelectionSet, v *models.LanguageType) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return v
+}
+
 func (ec *executionContext) marshalOPost2ᚖgithubᚗcomᚋelisalimliᚋgo_graphql_templateᚋgraphqlᚋmodelsᚐPost(ctx context.Context, sel ast.SelectionSet, v *models.Post) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
@@ -7562,6 +7546,22 @@ func (ec *executionContext) marshalOString2ᚖstring(ctx context.Context, sel as
 	}
 	res := graphql.MarshalString(*v)
 	return res
+}
+
+func (ec *executionContext) unmarshalOType2ᚖgithubᚗcomᚋelisalimliᚋgo_graphql_templateᚋgraphqlᚋmodelsᚐType(ctx context.Context, v interface{}) (*models.Type, error) {
+	if v == nil {
+		return nil, nil
+	}
+	var res = new(models.Type)
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalOType2ᚖgithubᚗcomᚋelisalimliᚋgo_graphql_templateᚋgraphqlᚋmodelsᚐType(ctx context.Context, sel ast.SelectionSet, v *models.Type) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return v
 }
 
 func (ec *executionContext) unmarshalOUploadFile2ᚕᚖgithubᚗcomᚋelisalimliᚋgo_graphql_templateᚋgraphqlᚋmodelsᚐUploadFile(ctx context.Context, v interface{}) ([]*models.UploadFile, error) {

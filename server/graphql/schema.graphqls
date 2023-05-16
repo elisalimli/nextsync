@@ -71,10 +71,10 @@ enum Type {
 type Post {
   id: String!
   title: String!
-  description: String!
-  type: Type!
-  variant: String!
-  language: LanguageType!
+  description: String
+  type: Type
+  variant: String
+  language: LanguageType
   files: [PostFile!]!
   creator: User!
   userId: String!
