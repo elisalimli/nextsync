@@ -1,9 +1,12 @@
 import { useQuery } from "@apollo/client";
 import React from "react";
 import { FlatList, Text, View } from "react-native";
-import { postsQueryDocument } from "../../../graphql/query/post/posts";
+import { useFragment } from "../../../gql";
+import {
+  Post_Fragment,
+  postsQueryDocument,
+} from "../../../graphql/query/post/posts";
 import Post from "./Post";
-import { Post_FragmentFragment } from "../../../gql/graphql";
 
 function Posts() {
   const { data, loading, error, fetchMore } = useQuery(postsQueryDocument, {
@@ -17,14 +20,14 @@ function Posts() {
   }
   return (
     <View className="flex-1">
-      <Text className="text-2xl font-bold">Recent Posts</Text>
       {data?.posts && (
         <FlatList
           onEndReached={() => {
+            const posts = useFragment(Post_Fragment, data?.posts);
             fetchMore({
               variables: {
                 input: {
-                  cursor: data?.posts[data?.posts?.length - 1].createdAt,
+                  cursor: posts[posts?.length - 1].createdAt,
                   limit: 5,
                 },
               },
@@ -33,7 +36,7 @@ function Posts() {
           style={{ flexGrow: 1 }}
           data={data?.posts}
           renderItem={({ item }) => <Post {...item} />}
-          keyExtractor={(item) => item.id}
+          keyExtractor={(item: any) => item?.id}
         />
       )}
     </View>
