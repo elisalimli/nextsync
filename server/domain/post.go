@@ -195,12 +195,14 @@ func (d *Domain) CreatePost(ctx context.Context, input models.CreatePostInput) (
 	if err != nil {
 		return nil, err
 	}
+
+	variant := strings.ToUpper(input.Variant)
 	post := &models.Post{
 		Title:          input.Title,
 		Description:    &input.Description,
 		Type:           strings.ToUpper(input.Type.String()),
 		Language:       strings.ToUpper(input.Language.String()),
-		Variant:        strings.ToUpper(input.Variant),
+		Variant:        variant,
 		SecondLanguage: strings.ToUpper(input.SecondLanguage.String()),
 		Grade:          input.Grade,
 		Files:          imageUrls,

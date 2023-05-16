@@ -8,7 +8,7 @@ import {
   View,
 } from "react-native";
 import { FragmentType, useFragment } from "../../../gql";
-import { File_FragmentFragment, LanguageType } from "../../../gql/graphql";
+import { File_FragmentFragment } from "../../../gql/graphql";
 import {
   File_Fragment,
   Post_Fragment,
@@ -16,11 +16,25 @@ import {
 import { User_Fragment } from "../../../graphql/query/user/me";
 import File from "./File";
 
+enum Language {
+  AZE = "Azərbaycan",
+  ENG = "İngilis",
+  RU = "Rus",
+}
+
+enum Type {
+  BLOK1 = "BLOK 1-ci qrup",
+  BLOK2 = "BLOK 2-ci qrup",
+  BLOK3 = "BLOK 3-cü qrup",
+  BLOK4 = "BLOK 4-cü qrup",
+  BURAXILIS = "Buraxılış",
+}
+
 const Post = (props: FragmentType<typeof Post_Fragment>) => {
   const { id, variant, language, type, title, description, creator, files } =
     useFragment(Post_Fragment, props);
   const user = useFragment(User_Fragment, creator);
-
+  console.log("variant", type);
   return (
     <View className="px-4 py-6 rounded-lg">
       <View className="flex-row justify-between mb-2">
@@ -43,24 +57,41 @@ const Post = (props: FragmentType<typeof Post_Fragment>) => {
       </View>
 
       <ScrollView horizontal className="flex-row">
-        <View className="bg-blue-100 text-blue-800 text-xs font-medium mr-2 px-2.5 py-0.5 rounded">
-          <Text>Variant: {variant}</Text>
+        {variant && (
+          <View className="bg-indigo-100 text-indigo-800 text-xs font-medium mr-2 px-2.5 py-0.5 rounded">
+            <Text>Variant: {variant}</Text>
+          </View>
+        )}
+
+        {Type[type] && (
+          <View className="bg-indigo-100 text-indigo-800 text-xs font-medium mr-2 px-2.5 py-0.5 rounded">
+            <Text>{Type[type]}</Text>
+          </View>
+        )}
+
+        {language && (
+          <TouchableOpacity className="bg-indigo-100 text-indigo-800 text-xs font-medium mr-2 px-2.5 py-0.5 rounded">
+            <Text>Xarici dil / {Language[language]} dili</Text>
+          </TouchableOpacity>
+        )}
+
+        <View className="bg-indigo-100 text-indigo-800 text-xs font-medium mr-2 px-2.5 py-0.5 rounded">
+          <Text>Yellow</Text>
         </View>
-        <View className="bg-red-100 text-red-800 text-xs font-medium mr-2 px-2.5 py-0.5 rounded">
-          <Text>{type}</Text>
+
+        <View className="bg-indigo-100 text-indigo-800 text-xs font-medium mr-2 px-2.5 py-0.5 rounded">
+          <Text>Purple</Text>
         </View>
-        <View className="bg-green-100 text-green-800 text-xs font-medium mr-2 px-2.5 py-0.5 rounded">
-          <Text>{LanguageType[language]}</Text>
-        </View>
+        {/* 
         <View className="bg-yellow-100 text-yellow-800 text-xs font-medium mr-2 px-2.5 py-0.5 rounded">
           <Text>Yellow</Text>
         </View>
         <View className="bg-indigo-100 text-indigo-800 text-xs font-medium mr-2 px-2.5 py-0.5 rounded">
           <Text>Indigo</Text>
-        </View>
+        </View> 
         <View className="bg-purple-100 text-purple-800 text-xs font-medium mr-2 px-2.5 py-0.5 rounded">
           <Text>Purple</Text>
-        </View>
+        </View> */}
       </ScrollView>
     </View>
   );

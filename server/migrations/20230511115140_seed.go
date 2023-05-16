@@ -85,7 +85,6 @@ func init() {
 				// Files:       imageUrls,
 				UserId: user.Id,
 			}
-			fmt.Println("new post : ", document.Type == "")
 			ctx := context.Background()
 			err = initializers.DB.NewInsert().Model(&post).Scan(ctx)
 
