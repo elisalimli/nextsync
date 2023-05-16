@@ -33,18 +33,21 @@ export default function TabOneScreen() {
     <View className="flex-1 ">
       <HomeHeader />
 
-      <View className="flex-1 p-8">
-        <TouchableOpacity
-          onPress={async () => {
-            const { data } = await logout({});
-            // if logout is successful, we clear the auth state
-            if (data?.logout) {
-              await clearAuthState();
-            }
-          }}
-        >
-          <Text>Logout</Text>
-        </TouchableOpacity>
+      <View className="flex-1">
+        <View className="p-4">
+          <TouchableOpacity
+            onPress={async () => {
+              const { data } = await logout({});
+              // if logout is successful, we clear the auth state
+              if (data?.logout) {
+                await clearAuthState();
+              }
+            }}
+          >
+            <Text>Logout</Text>
+          </TouchableOpacity>
+          <Text className="text-2xl font-bold">Recent Posts</Text>
+        </View>
 
         <Posts />
       </View>

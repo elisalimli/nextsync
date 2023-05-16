@@ -7,6 +7,7 @@ import RNFS, { DownloadProgressCallbackResult } from "react-native-fs";
 import { File_FragmentFragment } from "../../../gql/graphql";
 import FileSizeDisplay from "./FileSizeDisplay";
 import RNFetchBlob from "rn-fetch-blob";
+import TruncatedFileName from "./TruncatedFileName";
 
 interface FileProps {
   file: File_FragmentFragment;
@@ -109,7 +110,7 @@ const File: React.FC<FileProps> = ({
           )}
         </View>
         <View className="ml-3 flex justify-center">
-          <Text>{displayName}</Text>
+          <TruncatedFileName fileName={displayName} />
           <FileSizeDisplay fileSize={fileSize} />
         </View>
       </View>

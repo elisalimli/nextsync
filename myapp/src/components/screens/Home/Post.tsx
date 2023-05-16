@@ -22,7 +22,7 @@ const Post = (props: FragmentType<typeof Post_Fragment>) => {
   const user = useFragment(User_Fragment, creator);
 
   return (
-    <View className="rpx-4 py-6 rounded-lg">
+    <View className="px-4 py-6 rounded-lg">
       <View className="flex-row justify-between mb-2">
         <Text className="font-medium">@{user?.username}</Text>
         <TouchableOpacity>
