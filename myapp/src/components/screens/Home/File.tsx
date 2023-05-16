@@ -23,10 +23,7 @@ const File: React.FC<FileProps> = ({
 
   useEffect(() => {
     const checkFileExists = async () => {
-      let documentDir = "";
-      if (Platform.OS === "android") documentDir = RNFS.ExternalDirectoryPath;
-      else if (Platform.OS === "ios") documentDir = RNFS.DocumentDirectoryPath;
-
+      const documentDir = RNFS.CachesDirectoryPath;
       const fileDest = `${documentDir}/${fileName}`;
 
       console.log(fileDest);
@@ -82,6 +79,7 @@ const File: React.FC<FileProps> = ({
     if (jobId) {
       RNFS.stopDownload(jobId);
       setJobId(null);
+      setProgress(0);
     }
   }
 
