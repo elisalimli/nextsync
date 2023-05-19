@@ -30,7 +30,7 @@ module.exports = {
     apiUrl: process.env.GOOGLE_IOS_CLIENT_ID,
     // ENTRY_FILE: "index.ts",
     eas: {
-      projectId: "28d50f92-9b57-4839-a174-715217aeb8c8",
+      projectId: "2fa83acc-9852-4f6d-9a32-7e57e42e9353",
     },
   },
 };

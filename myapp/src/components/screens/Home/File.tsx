@@ -2,7 +2,7 @@ import { AntDesign } from "@expo/vector-icons";
 import * as React from "react";
 import { useEffect, useState } from "react";
 import { Platform, Text, TouchableOpacity, View } from "react-native";
-import RNFetchBlob from "rn-fetch-blob";
+import RNFetchBlob from "react-native-blob-util";
 import RNFS, { DownloadProgressCallbackResult } from "react-native-fs";
 import * as Progress from "react-native-progress";
 import { File_FragmentFragment } from "../../../gql/graphql";
@@ -38,11 +38,15 @@ const File: React.FC<FileProps> = ({
     checkFileExists();
   }, [isDownloaded]);
 
+  // console.log(RNFS.DocumentDirectoryPath,RNFS.DocumentDirectoryPath)
+
   const downloadFromUrl = async (url: string) => {
     if (!fileExists) {
+      const tempFileDest = `${RNFS.DocumentDirectoryPath}/${fileName}`;
+
       const options: RNFS.DownloadFileOptions = {
         fromUrl: url,
-        toFile: fileDest,
+        toFile: tempFileDest,
         background: true,
         begin: () => {
           setProgress(0);
@@ -59,7 +63,16 @@ const File: React.FC<FileProps> = ({
 
       try {
         const res = await downloadTask.promise;
-        alert("File Donwload Completed");
+        RNFS.moveFile(tempFileDest, fileDest)
+          .then(() => {
+            console.log("File saved successfully");
+            // Additional logic after saving the file
+          })
+          .catch((error) => {
+            console.log("Error saving the file:", error);
+            // Error handling code
+          });
+        alert("File Download Completed");
         setProgress(1);
         setFileExists(true);
       } catch (error) {

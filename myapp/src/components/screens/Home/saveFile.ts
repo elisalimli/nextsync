@@ -1,4 +1,4 @@
-import RNFetchBlob from "rn-fetch-blob";
+import RNFetchBlob from "react-native-blob-util";
 
 export async function saveFile(
   sourceFilePath: string,
@@ -8,13 +8,15 @@ export async function saveFile(
   setIsDownloaded: any,
   setModalVisible: any
 ) {
+  // RNFetchBlob.fs.cp(sourceFilePath, destinationFilePath);
   const chunkSize = 1024 * 10000; // 10mb
   let bytesRead = 0;
   let totalBytes = 0;
 
-  // Get the total size of the file
+  // // Get the total size of the file
   RNFetchBlob.fs.stat(sourceFilePath).then((stats) => {
     totalBytes = stats.size;
+    console.log(totalBytes);
   });
 
   // Create a ReadStream for the source file
@@ -23,6 +25,7 @@ export async function saveFile(
     "base64",
     chunkSize
   );
+  console.log(readStream);
 
   // Create a WriteStream for the destination file
   const writeStream = await RNFetchBlob.fs.writeStream(
@@ -37,7 +40,6 @@ export async function saveFile(
   readStream.onData((chunk) => {
     // Write the chunk to the destination file
     writeStream.write(chunk as string);
-
     // Update bytesRead and calculate progress
     bytesRead += chunkSize;
     const progress = bytesRead / totalBytes;
