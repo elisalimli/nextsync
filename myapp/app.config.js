@@ -1,9 +1,9 @@
 module.exports = {
-  name: "pdfserverapp",
-  slug: "pdfserverapp",
+  name: "Nextsync",
+  slug: "nextsync",
   version: "1.0.0",
   orientation: "portrait",
-  scheme: "pdfserverapp",
+  scheme: "nextsync",
   userInterfaceStyle: "automatic",
   splash: {
     image: "./assets/images/splash.png",
@@ -13,14 +13,14 @@ module.exports = {
   assetBundlePatterns: ["**/*"],
   ios: {
     supportsTablet: true,
-    bundleIdentifier: "com.quantum17.pdfserverapp",
+    bundleIdentifier: "com.quantum17.nextsync",
   },
   android: {
     adaptiveIcon: {
       foregroundImage: "./assets/images/adaptive-icon.png",
       backgroundColor: "#ffffff",
     },
-    package: "com.quantum17.pdfserverapp",
+    package: "com.quantum17.nextsync",
   },
   web: {
     bundler: "metro",

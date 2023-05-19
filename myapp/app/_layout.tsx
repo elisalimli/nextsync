@@ -8,7 +8,9 @@ import { AuthProvider } from "../context/auth";
 export { ErrorBoundary } from "expo-router";
 
 import { ApolloProvider } from "@apollo/client";
+import RNFS from "react-native-fs";
 import { client } from "../src/graphql/client";
+import { constants } from "../src/constants";
 
 export const unstable_settings = {
   // Ensure that reloading on `/modal` keeps a back button present.
@@ -25,6 +27,19 @@ export default function RootLayout() {
   useEffect(() => {
     if (error) throw error;
   }, [error]);
+
+  useEffect(() => {
+    // const folderPath = `${RNFS.ExternalStorageDirectoryPath}/Download/nextsync`;
+    const folderPath = constants.folderPath as string;
+    console.log(RNFS.CachesDirectoryPath);
+    RNFS.mkdir(folderPath)
+      .then(() => {
+        console.log("Folder created successfully.", folderPath);
+      })
+      .catch((error) => {
+        console.log("Error creating folder:", error);
+      });
+  }, []);
 
   return (
     <>
