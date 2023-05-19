@@ -2,12 +2,13 @@ import { AntDesign } from "@expo/vector-icons";
 import * as React from "react";
 import { useEffect, useState } from "react";
 import { Platform, Text, TouchableOpacity, View } from "react-native";
-import * as Progress from "react-native-progress";
+import RNFetchBlob from "rn-fetch-blob";
 import RNFS, { DownloadProgressCallbackResult } from "react-native-fs";
+import * as Progress from "react-native-progress";
 import { File_FragmentFragment } from "../../../gql/graphql";
 import FileSizeDisplay from "./FileSizeDisplay";
-import RNFetchBlob from "rn-fetch-blob";
 import TruncatedFileName from "./TruncatedFileName";
+import { useFile } from "./PostContext";
 
 interface FileProps {
   file: File_FragmentFragment;
@@ -16,6 +17,8 @@ interface FileProps {
 const File: React.FC<FileProps> = ({
   file: { id, url, fileSize, fileName: displayName, contentType },
 }) => {
+  const { isDownloaded } = useFile();
+
   const [jobId, setJobId] = useState<number | null>(null);
   const [fileExists, setFileExists] = useState(false);
   const [fileDest, setFileDest] = useState("");
@@ -27,14 +30,13 @@ const File: React.FC<FileProps> = ({
       const documentDir = RNFS.CachesDirectoryPath;
       const fileDest = `${documentDir}/${fileName}`;
 
-      console.log(fileDest);
       const fileExists = await RNFS.exists(fileDest);
       setFileExists(fileExists);
       setFileDest(fileDest);
     };
 
     checkFileExists();
-  }, []);
+  }, [isDownloaded]);
 
   const downloadFromUrl = async (url: string) => {
     if (!fileExists) {
@@ -47,7 +49,6 @@ const File: React.FC<FileProps> = ({
         },
         progress: (res: DownloadProgressCallbackResult) => {
           const progress = res.bytesWritten / res.contentLength;
-          console.log("Download progress", progress);
           setProgress(progress);
         },
         progressDivider: 10,
@@ -59,7 +60,6 @@ const File: React.FC<FileProps> = ({
       try {
         const res = await downloadTask.promise;
         alert("File Donwload Completed");
-        console.log("Download complete", res);
         setProgress(1);
         setFileExists(true);
       } catch (error) {
