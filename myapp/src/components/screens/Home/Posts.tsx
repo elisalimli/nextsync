@@ -33,6 +33,7 @@ function Posts() {
               },
             });
           }}
+          onEndReachedThreshold={0.5}
           style={{ flexGrow: 1 }}
           data={data?.posts}
           renderItem={({ item }) => <Post {...item} />}

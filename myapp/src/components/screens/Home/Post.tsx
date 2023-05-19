@@ -1,99 +1,49 @@
-import { Feather } from "@expo/vector-icons";
 import React from "react";
-import {
-  Platform,
-  ScrollView,
-  Text,
-  TouchableOpacity,
-  View,
-} from "react-native";
+import { View } from "react-native";
 import { FragmentType, useFragment } from "../../../gql";
-import { File_FragmentFragment } from "../../../gql/graphql";
-import {
-  File_Fragment,
-  Post_Fragment,
-} from "../../../graphql/query/post/posts";
-import { User_Fragment } from "../../../graphql/query/user/me";
-import File from "./File";
-
-enum Language {
-  AZE = "Azərbaycan",
-  ENG = "İngilis",
-  RU = "Rus",
-}
-
-enum Type {
-  BLOK1 = "BLOK 1-ci qrup",
-  BLOK2 = "BLOK 2-ci qrup",
-  BLOK3 = "BLOK 3-cü qrup",
-  BLOK4 = "BLOK 4-cü qrup",
-  BURAXILIS = "Buraxılış",
-}
+import { Post_Fragment } from "../../../graphql/query/post/posts";
+import PostFiles from "./PostFiles";
+import PostHeader from "./PostHeader";
+import PostTags from "./PostTags";
+import PostTop from "./PostTop";
+import { PostContext } from "./PostContext";
 
 const Post = (props: FragmentType<typeof Post_Fragment>) => {
-  const { id, variant, language, type, title, description, creator, files } =
-    useFragment(Post_Fragment, props);
-  const user = useFragment(User_Fragment, creator);
-  console.log("variant", type);
+  const post = useFragment(Post_Fragment, props);
+  // Post Context variables
+  const [modalVisible, setModalVisible] = React.useState(false);
+  const [progress, setProgress] = React.useState(0);
+  const [title, setTitle] = React.useState("Downloading files");
+  const [isDownloaded, setIsDownloaded] = React.useState(false);
+
   return (
-    <View className="px-4 py-6 rounded-lg">
-      <View className="flex-row justify-between mb-2">
-        <Text className="font-medium">@{user?.username}</Text>
-        <TouchableOpacity>
-          <Feather name="bookmark" size={24} color="black" />
-        </TouchableOpacity>
-      </View>
-
+    <PostContext.Provider
+      value={{
+        isDownloaded,
+        progress,
+        title,
+        modalVisible,
+        setProgress,
+        setIsDownloaded,
+        setTitle,
+        setModalVisible,
+      }}
+    >
       <View>
-        <Text className="font-semibold text-base uppercase">{title}</Text>
-        <Text className="font-normal text-sm">{description}</Text>
+        <View className="px-4 py-6 bg-lightGray2">
+          {/* TITLE & DESCRIPTION */}
+          <PostTop {...post} />
+          {/* TITLE & DESCRIPTION */}
+          <PostHeader {...post} />
+          {/* FILES */}
+          <PostFiles {...post} />
+          {/* TAGS */}
+          <PostTags {...post} />
+        </View>
+        {/* divider */}
+        <View className="h-[1px] w-full  bg-lightGray1"></View>
       </View>
-
-      <View className="mb-4">
-        {files?.map((_file) => {
-          const file = useFragment(File_Fragment, _file);
-          return <File key={`post-files-${id}-${file?.id}`} file={file} />;
-        })}
-      </View>
-
-      <ScrollView horizontal className="flex-row">
-        {variant && (
-          <View className="bg-indigo-100 text-indigo-800 text-xs font-medium mr-2 px-2.5 py-0.5 rounded">
-            <Text>Variant: {variant}</Text>
-          </View>
-        )}
-
-        {Type[type] && (
-          <View className="bg-indigo-100 text-indigo-800 text-xs font-medium mr-2 px-2.5 py-0.5 rounded">
-            <Text>{Type[type]}</Text>
-          </View>
-        )}
-
-        {language && (
-          <TouchableOpacity className="bg-indigo-100 text-indigo-800 text-xs font-medium mr-2 px-2.5 py-0.5 rounded">
-            <Text>Xarici dil / {Language[language]} dili</Text>
-          </TouchableOpacity>
-        )}
-
-        <View className="bg-indigo-100 text-indigo-800 text-xs font-medium mr-2 px-2.5 py-0.5 rounded">
-          <Text>Yellow</Text>
-        </View>
-
-        <View className="bg-indigo-100 text-indigo-800 text-xs font-medium mr-2 px-2.5 py-0.5 rounded">
-          <Text>Purple</Text>
-        </View>
-        {/* 
-        <View className="bg-yellow-100 text-yellow-800 text-xs font-medium mr-2 px-2.5 py-0.5 rounded">
-          <Text>Yellow</Text>
-        </View>
-        <View className="bg-indigo-100 text-indigo-800 text-xs font-medium mr-2 px-2.5 py-0.5 rounded">
-          <Text>Indigo</Text>
-        </View> 
-        <View className="bg-purple-100 text-purple-800 text-xs font-medium mr-2 px-2.5 py-0.5 rounded">
-          <Text>Purple</Text>
-        </View> */}
-      </ScrollView>
-    </View>
+    </PostContext.Provider>
   );
 };
 

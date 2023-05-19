@@ -36,7 +36,8 @@ function GoogleLogin() {
     }
   );
   const [_, response, promptAsync] = Google.useAuthRequest({
-    androidClientId: process.env.GOOGLE_ANDROID_CLIENT_ID,
+    androidClientId:
+      "451487467771-f73fbnpnf13fjgcqrt1u0sik9v2oet3d.apps.googleusercontent.com",
     expoClientId: GOOGLE_IOS_CLIENT_ID,
     iosClientId: GOOGLE_IOS_CLIENT_ID,
     webClientId: GOOGLE_WEB_CLIENT_ID,

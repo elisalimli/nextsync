@@ -1,21 +1,11 @@
-import { StyleSheet, TouchableOpacity, Text, View } from "react-native";
+import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 
-import EditScreenInfo from "../../src/components/EditScreenInfo";
+import { useMutation } from "@apollo/client";
 import React from "react";
 import { clearAuthState } from "../../src/auth/auth";
-import { logoutMutationDocument } from "../../src/graphql/mutation/user/logout";
-import { useMutation, useQuery } from "@apollo/client";
-import Button from "../../src/components/Button";
-import Posts from "../../src/components/screens/Home/Posts";
-import { StatusBar } from "expo-status-bar";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
-import {
-  User_Fragment,
-  meQueryDocument,
-} from "../../src/graphql/query/user/me";
-import { useFragment } from "../../src/gql";
-import { AntDesign } from "@expo/vector-icons";
 import HomeHeader from "../../src/components/screens/Home/HomeHeader";
+import Posts from "../../src/components/screens/Home/Posts";
+import { logoutMutationDocument } from "../../src/graphql/mutation/user/logout";
 
 export default function TabOneScreen() {
   const [logout] = useMutation(logoutMutationDocument, {
