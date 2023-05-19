@@ -1,21 +1,20 @@
 import { Feather } from "@expo/vector-icons";
 import * as React from "react";
-import { Text, View, StyleSheet, TouchableOpacity } from "react-native";
+import { TouchableOpacity } from "react-native";
 import ContextMenu from "react-native-context-menu-view";
-import RNFetchBlob from "rn-fetch-blob";
-import { constants } from "../../../constants";
-import RNFS, { DownloadProgressCallbackResult, stat } from "react-native-fs";
-import { useFile } from "./PostContext";
-import { File_FragmentFragment, PostFile } from "../../../gql/graphql";
-import { File_Fragment } from "../../../graphql/query/post/posts";
 import { FragmentType, useFragment } from "../../../gql";
+import { File_Fragment } from "../../../graphql/query/post/posts";
+import { useFile } from "./PostContext";
 import { downloadFile } from "./downloadFile";
 import { saveFile } from "./saveFile";
+import RNFetchBlob from "react-native-blob-util";
+import { constants } from "../../../constants";
+import "react-native-get-random-values";
+import { v4 as uuidv4 } from "uuid";
 
 interface PostMenuProps {
   files: FragmentType<typeof File_Fragment>[];
 }
-
 const PostMenu = ({ files }: PostMenuProps) => {
   const {
     setTitle,
@@ -30,12 +29,17 @@ const PostMenu = ({ files }: PostMenuProps) => {
     files.map(async (f, i) => {
       const file = useFragment(File_Fragment, f);
       const fileName = file?.url.split("/").pop() as string;
-      const [sourceFilePath, destinationFilePath] = await downloadFile(
+
+      const sourceFilePath = await downloadFile(
         fileName,
         file?.url,
         setTitle,
         setProgress
       );
+      const destinationFilePath = `${constants.folderPath}/${uuidv4()}-${
+        file?.fileName
+      }`;
+
       setTitle("saving files");
       await saveFile(
         sourceFilePath,

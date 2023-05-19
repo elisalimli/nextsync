@@ -9,7 +9,6 @@ export async function downloadFile(
 ) {
   const documentDir = RNFS.CachesDirectoryPath;
   const sourceFilePath = `${documentDir}/${fileName}`;
-  const destinationFilePath = `${constants.folderPath}/${fileName}`;
   const fileExists = await RNFS.exists(sourceFilePath);
 
   if (!fileExists) {
@@ -30,5 +29,5 @@ export async function downloadFile(
     };
     await RNFS.downloadFile(options).promise;
   }
-  return [sourceFilePath, destinationFilePath];
+  return sourceFilePath;
 }
