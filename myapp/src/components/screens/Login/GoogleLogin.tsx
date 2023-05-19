@@ -36,8 +36,7 @@ function GoogleLogin() {
     }
   );
   const [_, response, promptAsync] = Google.useAuthRequest({
-    androidClientId:
-      "451487467771-f73fbnpnf13fjgcqrt1u0sik9v2oet3d.apps.googleusercontent.com",
+    androidClientId: GOOGLE_ANDROID_CLIENT_ID,
     expoClientId: GOOGLE_IOS_CLIENT_ID,
     iosClientId: GOOGLE_IOS_CLIENT_ID,
     webClientId: GOOGLE_WEB_CLIENT_ID,
@@ -51,10 +50,6 @@ function GoogleLogin() {
         },
       });
       const data = res?.data?.googleLoginOrSignUp;
-      const user = useFragment(
-        User_Fragment,
-        res?.data?.googleLoginOrSignUp?.user
-      );
 
       // if response is ok, saving accessToken
       if (data?.ok && data?.authToken) {
