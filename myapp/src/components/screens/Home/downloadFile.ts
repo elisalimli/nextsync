@@ -12,7 +12,6 @@ export async function downloadFile(
   const fileExists = await RNFS.exists(sourceFilePath);
 
   if (!fileExists) {
-    setTitle("downloading files");
     const options: RNFS.DownloadFileOptions = {
       fromUrl: url,
       toFile: sourceFilePath,
