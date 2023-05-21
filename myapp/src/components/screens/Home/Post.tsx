@@ -2,11 +2,11 @@ import React from "react";
 import { View } from "react-native";
 import { FragmentType, useFragment } from "../../../gql";
 import { Post_Fragment } from "../../../graphql/query/post/posts";
+import { PostContext } from "./PostContext";
 import PostFiles from "./PostFiles";
 import PostHeader from "./PostHeader";
 import PostTags from "./PostTags";
 import PostTop from "./PostTop";
-import { PostContext } from "./PostContext";
 
 const Post = (props: FragmentType<typeof Post_Fragment>) => {
   const post = useFragment(Post_Fragment, props);
