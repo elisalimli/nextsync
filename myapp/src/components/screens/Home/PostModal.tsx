@@ -11,9 +11,9 @@ const PostModal = (props: PostModalProps) => {
   return (
     <Modal isVisible={modalVisible}>
       <View className="flex-1 justify-center">
-        <View className="bg-white/30 p-2">
+        <View className="bg-primary px-4 py-6 rounded-lg">
           <Text className="text-white text-2xl font-bold">{title}</Text>
-          <View className="w-full ">
+          <View className="w-full mt-4">
             <Progress.Bar progress={progress} width={null} />
           </View>
         </View>

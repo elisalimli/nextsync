@@ -1,4 +1,4 @@
-import RNFetchBlob from "react-native-blob-util";
+import RNFetchBlob from "rn-fetch-blob";
 
 export async function saveFile(
   sourceFilePath: string,
@@ -48,7 +48,6 @@ export async function saveFile(
   });
 
   readStream.onEnd(() => {
-    console.log("end");
     if (lastElement) {
       setModalVisible(false);
       setIsDownloaded(true);
