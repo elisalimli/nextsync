@@ -7,12 +7,13 @@ interface HomeHeaderSvgProps {}
 const HomeHeaderSvg = (props: HomeHeaderSvgProps) => {
   return (
     <Svg
-      height={30}
+      fill="none"
+      height={20}
       data-name="Layer 1"
-      viewBox="0 0 1200 120"
+      viewBox="0 0 1200 100"
       preserveAspectRatio="none"
     >
-      <Path d="M1200 0L0 0 598.97 60.72 1200 0z" fill={"#2F2E41"}></Path>
+      <Path d="M1200 0L0 0 598.97 50.72 1200 0z" fill={"#121221"}></Path>
     </Svg>
   );
 };

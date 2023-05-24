@@ -47,4 +47,4 @@ const Post = (props: FragmentType<typeof Post_Fragment>) => {
   );
 };
 
-export default Post;
+export default React.memo(Post);

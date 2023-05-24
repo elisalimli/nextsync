@@ -20,6 +20,7 @@ module.exports = function (api) {
           verbose: false,
         },
       ],
+      "react-native-reanimated/plugin",
     ],
   };
 };
