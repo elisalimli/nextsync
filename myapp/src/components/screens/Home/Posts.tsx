@@ -1,12 +1,45 @@
-import { useQuery } from "@apollo/client";
+import { useMutation, useQuery } from "@apollo/client";
 import React from "react";
-import { FlatList, Text, View } from "react-native";
+import { FlatList, Text, TouchableOpacity, View } from "react-native";
 import { useFragment } from "../../../gql";
 import {
   Post_Fragment,
   postsQueryDocument,
 } from "../../../graphql/query/post/posts";
 import Post from "./Post";
+import { clearAuthState } from "../../../auth/auth";
+import { logoutMutationDocument } from "../../../graphql/mutation/user/logout";
+import HomeHeader from "./HomeHeader";
+
+function ListHeader() {
+  const [logout] = useMutation(logoutMutationDocument, {
+    update(cache) {
+      cache.modify({
+        fields: {
+          me() {
+            return null;
+          },
+        },
+      });
+    },
+  });
+  return (
+    <View>
+      <TouchableOpacity
+        onPress={async () => {
+          const { data } = await logout({});
+          // if logout is successful, we clear the auth state
+          if (data?.logout) {
+            await clearAuthState();
+          }
+        }}
+      >
+        <Text>Logout</Text>
+      </TouchableOpacity>
+      <Text className="text-2xl font-bold">Recent Posts</Text>
+    </View>
+  );
+}
 
 function Posts() {
   const { data, loading, error, fetchMore } = useQuery(postsQueryDocument, {
@@ -22,6 +55,7 @@ function Posts() {
     <View className="flex-1">
       {data?.posts && (
         <FlatList
+          ListHeaderComponent={ListHeader}
           onEndReached={() => {
             const posts = useFragment(Post_Fragment, data?.posts);
             fetchMore({
@@ -33,6 +67,7 @@ function Posts() {
               },
             });
           }}
+          scrollEventThrottle={16}
           onEndReachedThreshold={0.5}
           style={{ flexGrow: 1 }}
           data={data?.posts}
