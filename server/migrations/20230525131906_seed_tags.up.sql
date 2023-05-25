@@ -11,7 +11,7 @@ VALUES
             FROM
                 catalogs
             WHERE
-                name = 'type'
+                code = 'type'
         )
     ),
     (
@@ -23,7 +23,7 @@ VALUES
             FROM
                 catalogs
             WHERE
-                name = 'type'
+                code = 'type'
         )
     ),
     (
@@ -35,7 +35,7 @@ VALUES
             FROM
                 catalogs
             WHERE
-                name = 'type'
+                code = 'type'
         )
     ),
     (
@@ -47,7 +47,7 @@ VALUES
             FROM
                 catalogs
             WHERE
-                name = 'type'
+                code = 'type'
         )
     ),
     (
@@ -59,7 +59,7 @@ VALUES
             FROM
                 catalogs
             WHERE
-                name = 'type'
+                code = 'type'
         )
     ),
     (
@@ -71,7 +71,7 @@ VALUES
             FROM
                 catalogs
             WHERE
-                name = 'variant'
+                code = 'variant'
         )
     ),
     (
@@ -83,7 +83,7 @@ VALUES
             FROM
                 catalogs
             WHERE
-                name = 'variant'
+                code = 'variant'
         )
     ),
     (
@@ -95,7 +95,7 @@ VALUES
             FROM
                 catalogs
             WHERE
-                name = 'variant'
+                code = 'variant'
         )
     ),
     (
@@ -107,7 +107,7 @@ VALUES
             FROM
                 catalogs
             WHERE
-                name = 'variant'
+                code = 'variant'
         )
     ),
     (
@@ -119,7 +119,7 @@ VALUES
             FROM
                 catalogs
             WHERE
-                name = 'variant'
+                code = 'variant'
         )
     ),
     (
@@ -131,7 +131,7 @@ VALUES
             FROM
                 catalogs
             WHERE
-                name = 'primary_language'
+                code = 'primary_language'
         )
     ),
     (
@@ -143,7 +143,7 @@ VALUES
             FROM
                 catalogs
             WHERE
-                name = 'primary_language'
+                code = 'primary_language'
         )
     ),
     (
@@ -155,7 +155,7 @@ VALUES
             FROM
                 catalogs
             WHERE
-                name = 'primary_language'
+                code = 'primary_language'
         )
     ),
     (
@@ -167,7 +167,7 @@ VALUES
             FROM
                 catalogs
             WHERE
-                name = 'second_language'
+                code = 'second_language'
         )
     ),
     (
@@ -179,7 +179,7 @@ VALUES
             FROM
                 catalogs
             WHERE
-                name = 'second_language'
+                code = 'second_language'
         )
     ),
     (
@@ -191,7 +191,7 @@ VALUES
             FROM
                 catalogs
             WHERE
-                name = 'second_language'
+                code = 'second_language'
         )
     ),
     (
@@ -203,7 +203,7 @@ VALUES
             FROM
                 catalogs
             WHERE
-                name = 'grade'
+                code = 'grade'
         )
     ),
     (
@@ -215,7 +215,7 @@ VALUES
             FROM
                 catalogs
             WHERE
-                name = 'grade'
+                code = 'grade'
         )
     ),
     (
@@ -227,7 +227,7 @@ VALUES
             FROM
                 catalogs
             WHERE
-                name = 'grade'
+                code = 'grade'
         )
     ),
     (
@@ -239,7 +239,7 @@ VALUES
             FROM
                 catalogs
             WHERE
-                name = 'grade'
+                code = 'grade'
         )
     ),
     (
@@ -251,7 +251,7 @@ VALUES
             FROM
                 catalogs
             WHERE
-                name = 'grade'
+                code = 'grade'
         )
     ),
     (
@@ -263,7 +263,7 @@ VALUES
             FROM
                 catalogs
             WHERE
-                name = 'grade'
+                code = 'grade'
         )
     ),
     (
@@ -275,7 +275,7 @@ VALUES
             FROM
                 catalogs
             WHERE
-                name = 'grade'
+                code = 'grade'
         )
     ),
     (
@@ -287,7 +287,7 @@ VALUES
             FROM
                 catalogs
             WHERE
-                name = 'grade'
+                code = 'grade'
         )
     ),
     (
@@ -299,7 +299,7 @@ VALUES
             FROM
                 catalogs
             WHERE
-                name = 'grade'
+                code = 'grade'
         )
     ),
     (
@@ -311,7 +311,7 @@ VALUES
             FROM
                 catalogs
             WHERE
-                name = 'grade'
+                code = 'grade'
         )
     ),
     (
@@ -323,6 +323,6 @@ VALUES
             FROM
                 catalogs
             WHERE
-                name = 'grade'
+                code = 'grade'
         )
     );
