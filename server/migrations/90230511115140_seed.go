@@ -2,6 +2,7 @@ package migrations
 
 import (
 	"context"
+	"database/sql"
 	"encoding/json"
 	"fmt"
 	"log"
@@ -14,21 +15,61 @@ import (
 )
 
 type Document struct {
-	Text        string `json:"text"`
-	Variant     string `json:"variant"`
-	CodeVariant string `json:"code_variant"`
-	Date        string `json:"date"`
-	FileName    string `json:"fileName"`
-	Grade       string `json:"grade"`
-	CodeGrade   string `json:"code_grade"`
-	CodeType    string `json:"code_type"`
-	ContentType string `json:"contentType"`
-	FileSize    int64  `json:"fileSize"`
+	Text        string  `json:"text"`
+	Date        string  `json:"date"`
+	FileName    string  `json:"fileName"`
+	Variant     *string `json:"variant"`
+	CodeVariant *string `json:"code_variant"`
+	Grade       *string `json:"grade"`
+	CodeGrade   *string `json:"code_grade"`
+	Type        *string `json:"type"`
+	CodeType    *string `json:"code_type"`
+	ContentType string  `json:"contentType"`
+	FileSize    int64   `json:"fileSize"`
+}
+
+func createTag(name string, code string, post models.Post, ctx context.Context, catalogId string) {
+
+	newTag := models.Tag{Name: name, Code: code, CatalogId: catalogId}
+	err := initializers.DB.NewInsert().Model(&post).Scan(ctx)
+	if err != sql.ErrNoRows {
+		fmt.Println("Error occured", err)
+	}
+	initializers.DB.NewInsert().Model(&newTag).Scan(ctx)
+
+	newGradePostTag := models.PostTag{PostId: post.Id, TagId: newTag.Id}
+	err = initializers.DB.NewInsert().Model(&newGradePostTag).Scan(ctx)
+	if err != sql.ErrNoRows {
+		fmt.Println("Error occured", err)
+	}
+	initializers.DB.NewInsert().Model(&newTag).Scan(ctx)
+
 }
 
 func init() {
 
 	Migrations.MustRegister(func(ctx context.Context, db *bun.DB) error {
+
+		catalogGrade := models.Catalog{}
+		err := initializers.DB.NewSelect().Model(&catalogGrade).Where("? = ?", bun.Ident("code"), "grade").Scan(ctx)
+		if err != nil {
+			log.Fatalf("error occured: %v", err)
+			return nil
+		}
+
+		catalogVariant := models.Catalog{}
+		err = initializers.DB.NewSelect().Model(&catalogGrade).Where("? = ?", bun.Ident("code"), "variant").Scan(ctx)
+		if err != nil {
+			log.Fatalf("error occured: %v", err)
+			return nil
+		}
+
+		catalogType := models.Catalog{}
+		err = initializers.DB.NewSelect().Model(&catalogGrade).Where("? = ?", bun.Ident("code"), "type").Scan(ctx)
+		if err != nil {
+			log.Fatalf("error occured: %v", err)
+			return nil
+		}
 
 		user := models.User{
 			Username:       "admin",
@@ -37,9 +78,9 @@ func init() {
 			SocialProvider: "Google",
 			PhoneNumber:    os.Getenv("USER_ADMIN_PhoneNumber"),
 		}
-		err := user.HashPassword("admin")
+		err = user.HashPassword("admin")
 		if err != nil {
-			log.Printf("error while hashing password: %v", err)
+			log.Fatalf("error while hashing password: %v", err)
 			return nil
 		}
 
@@ -55,7 +96,7 @@ func init() {
 		file, err := os.Open(dir + "/migrations/documents.json")
 		if err != nil {
 			fmt.Println("Error opening JSON file:", err)
-			// return
+			return nil
 		}
 		defer file.Close()
 
@@ -67,7 +108,7 @@ func init() {
 		err = decoder.Decode(&documents)
 		if err != nil {
 			fmt.Println("Error decoding JSON:", err)
-			// return
+			return nil
 		}
 		fmt.Println("bucket name", domain.BucketName)
 
@@ -81,8 +122,7 @@ func init() {
 			post := models.Post{
 				Title:       "Sınaq " + document.Date,
 				Description: &document.Text,
-				// Files:       imageUrls,
-				UserId: user.Id,
+				UserId:      user.Id,
 			}
 			ctx := context.Background()
 			err = initializers.DB.NewInsert().Model(&post).Scan(ctx)
@@ -91,7 +131,17 @@ func init() {
 				fmt.Println("Error occured", err)
 			}
 
-			// initializers.DB.NewInsert().Model(Post)
+			if document.CodeGrade != nil && document.Grade != nil {
+				createTag(*document.Grade, *document.CodeGrade, post, ctx, catalogGrade.Id)
+			}
+
+			if document.CodeType != nil && document.Type != nil {
+				createTag(*document.Type, *document.CodeType, post, ctx, catalogType.Id)
+			}
+
+			if document.CodeVariant != nil && document.Variant != nil {
+				createTag(*document.Variant, *document.CodeVariant, post, ctx, catalogVariant.Id)
+			}
 
 			imageUrls := []models.PostFile{{URL: fmt.Sprintf("https://%s.s3.%s.amazonaws.com/", domain.BucketName, domain.BucketRegion) + document.FileName, PostId: post.Id, FileSize: document.FileSize, ContentType: document.ContentType, FileName: "sinaq.pdf"}}
 			err = initializers.DB.NewInsert().Model(&imageUrls).Scan(ctx)
