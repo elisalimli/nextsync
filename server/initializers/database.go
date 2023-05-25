@@ -5,6 +5,7 @@ import (
 	"log"
 	"os"
 
+	"github.com/elisalimli/go_graphql_template/graphql/models"
 	"github.com/uptrace/bun"
 	"github.com/uptrace/bun/dialect/pgdialect"
 	"github.com/uptrace/bun/driver/pgdriver"
@@ -28,6 +29,10 @@ func ConnectToDatabase() {
 	}
 
 	DB.AddQueryHook(bundebug.NewQueryHook(bundebug.WithVerbose(true)))
+
+	// Register many to many model so bun can better recognize m2m relation.
+	// This should be done before you use the model for the first time.
+	DB.RegisterModel((*models.PostTag)(nil))
 
 	// logger := logrus.New()
 

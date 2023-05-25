@@ -47,34 +47,11 @@ type User {
   updatedAt: Time!
 }
 
-enum LanguageType {
-  AZE
-  RU
-  ENG
-}
-
-enum SecondLanguageType {
-  ENG
-  RU
-  AZE
-}
-
-enum Type {
-  BURAXILIS
-  BLOK1
-  BLOK2
-  BLOK3
-  BLOK4
-}
-
 
 type Post {
   id: String!
   title: String!
   description: String
-  type: Type
-  variant: String
-  language: LanguageType
   files: [PostFile!]!
   creator: User!
   userId: String!
@@ -182,11 +159,6 @@ input CreatePostInput {
     files: [UploadFile]
     title: String!
     description: String!
-    variant: String!
-    language: LanguageType!
-    secondLanguage: SecondLanguageType!
-    grade: Int!
-    type: Type!
 }
 
 type Mutation {
