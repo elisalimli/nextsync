@@ -11,14 +11,32 @@ export const File_Fragment = graphql(/* GraphQL */ `
   }
 `);
 
+export const Catalog_Fragment = graphql(/* GraphQL */ `
+  fragment Catalog_Fragment on Catalog {
+    id
+    name
+    code
+  }
+`);
+
+export const Tag_Fragment = graphql(/* GraphQL */ `
+  fragment Tag_Fragment on Tag {
+    id
+    name
+    catalog {
+      ...Catalog_Fragment
+    }
+  }
+`);
+
 export const Post_Fragment = graphql(/* GraphQL */ `
   fragment Post_Fragment on Post {
     id
     title
     description
-    variant
-    type
-    language
+    tags {
+      ...Tag_Fragment
+    }
     createdAt
     updatedAt
     files {

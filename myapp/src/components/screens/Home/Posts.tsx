@@ -41,9 +41,11 @@ function ListHeader() {
   );
 }
 
+const POSTS_LIMIT = 5;
+
 function Posts() {
   const { data, loading, error, fetchMore } = useQuery(postsQueryDocument, {
-    variables: { input: { limit: 5 } },
+    variables: { input: { limit: POSTS_LIMIT } },
   });
   if (error) {
     return <Text>Something went wrong while retrieving posts</Text>;
@@ -62,7 +64,7 @@ function Posts() {
               variables: {
                 input: {
                   cursor: posts[posts?.length - 1].createdAt,
-                  limit: 5,
+                  limit: POSTS_LIMIT,
                 },
               },
             });
