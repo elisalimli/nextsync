@@ -21,11 +21,12 @@ models:
     fields:
       creator:
         resolver: true
-      variant:
-        resolver: true
-    
   PostFile:
     model: github.com/elisalimli/go_graphql_template/graphql/models.PostFile
+  Tag:
+    model: github.com/elisalimli/go_graphql_template/graphql/models.Tag
+  Catalog:
+    model: github.com/elisalimli/go_graphql_template/graphql/models.Catalog
   FieldError:
     model: github.com/elisalimli/go_graphql_template/validator.FieldError
 

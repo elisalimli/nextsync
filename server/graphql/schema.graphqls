@@ -53,6 +53,7 @@ type Post {
   title: String!
   description: String
   files: [PostFile!]!
+  tags: [Tag!]!
   creator: User!
   userId: String!
 
@@ -60,6 +61,22 @@ type Post {
   createdAt: Time!
   updatedAt: Time!
 }
+
+type Tag {
+  id: String!
+  name: String!
+  code: String!
+  catalogId: String!
+  catalog: Catalog!
+}
+
+
+type Catalog {
+  id: String!
+  name: String!
+  code: String!
+}
+
 
 type PostFile {
   id: String!
