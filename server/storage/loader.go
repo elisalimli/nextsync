@@ -24,6 +24,11 @@ type UserReader struct {
 	conn *bun.DB
 }
 
+// PostFilesReader reads Users from a database
+type PostFilesReader struct {
+	conn *bun.DB
+}
+
 // GetUsers implements a batch function that can retrieve many users by ID,
 // for use in a dataloader
 func (u *UserReader) GetUsers(ctx context.Context, keys dataloader.Keys) []*dataloader.Result {
@@ -61,17 +66,59 @@ func (u *UserReader) GetUsers(ctx context.Context, keys dataloader.Keys) []*data
 	return output
 }
 
+// GetUsers implements a batch function that can retrieve man// PostFilesLoader implements a batch function that can retrieve many postFiles by post ID,
+// for use in a dataloader
+func (p *PostFilesReader) GetPostsFiles(ctx context.Context, keys dataloader.Keys) []*dataloader.Result {
+	// Read all requested postFiles in a single query
+
+	var postFiles []*models.PostFile
+	postIDs := make([]string, len(keys))
+	for ix, key := range keys {
+		postID := key.String()
+		postIDs[ix] = postID
+	}
+	err := p.conn.NewSelect().Model(&postFiles).Where("post_id in (?)", bun.In(postIDs)).Scan(context.Background())
+	fmt.Println("postFiles loader: ")
+
+	if err != nil {
+		return nil
+	}
+
+	postFilesByPostID := make(map[string][]*models.PostFile, len(postFiles))
+
+	for _, postFile := range postFiles {
+		postFilesByPostID[postFile.PostId] = append(postFilesByPostID[postFile.PostId], postFile)
+	}
+
+	// Return postFiles in the same order as requested
+	output := make([]*dataloader.Result, len(keys))
+	for index, postKey := range keys {
+		postID := postKey.String()
+		files, ok := postFilesByPostID[postID]
+		if ok {
+			output[index] = &dataloader.Result{Data: files, Error: nil}
+		} else {
+			err := fmt.Errorf("postFiles not found for post ID %v", postID)
+			output[index] = &dataloader.Result{Data: nil, Error: err}
+		}
+	}
+	return output
+}
+
 // Loaders wrap your data loaders to inject via middleware
 type Loaders struct {
-	UserLoader *dataloader.Loader
+	UserLoader      *dataloader.Loader
+	PostFilesLoader *dataloader.Loader
 }
 
 // NewLoaders instantiates data loaders for the middleware
 func NewLoaders(conn *bun.DB) *Loaders {
 	// define the data loader
 	userReader := &UserReader{conn: conn}
+	postFilesReader := &PostFilesReader{conn: conn}
 	loaders := &Loaders{
-		UserLoader: dataloader.NewBatchedLoader(userReader.GetUsers),
+		UserLoader:      dataloader.NewBatchedLoader(userReader.GetUsers),
+		PostFilesLoader: dataloader.NewBatchedLoader(postFilesReader.GetPostsFiles),
 	}
 	return loaders
 }
@@ -101,4 +148,15 @@ func GetUser(ctx context.Context, userID string) (*models.User, error) {
 		return nil, err
 	}
 	return result.(*models.User), nil
+}
+
+// GetUser wraps the User dataloader for efficient retrieval by user ID
+func GetPostFiles(ctx context.Context, postId string) ([]*models.PostFile, error) {
+	loaders := For(ctx)
+	thunk := loaders.PostFilesLoader.Load(ctx, dataloader.StringKey(postId))
+	result, err := thunk()
+	if err != nil {
+		return nil, err
+	}
+	return result.([]*models.PostFile), nil
 }

@@ -9,7 +9,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"log"
 	"net/http"
 	"os"
@@ -97,7 +97,7 @@ func (m *mutationResolver) GoogleLoginOrSignUp(ctx context.Context, input models
 	}
 
 	defer res.Body.Close()
-	body, bodyErr := ioutil.ReadAll(res.Body)
+	body, bodyErr := io.ReadAll(res.Body)
 	if bodyErr != nil {
 		log.Panic(bodyErr)
 		return &models.AuthResponse{Ok: false}, nil

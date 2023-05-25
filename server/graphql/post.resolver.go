@@ -17,7 +17,13 @@ import (
 func (m *postResolver) Creator(ctx context.Context, obj *models.Post) (*models.User, error) {
 	// return getUserLoader(ctx).Load(obj.UserId)
 	return storage.GetUser(ctx, obj.UserId)
+}
 
+func (m *postResolver) Files(ctx context.Context, obj *models.Post) ([]*models.PostFile, error) {
+	// return getUserLoader(ctx).Load(obj.UserId)
+	// return []*models.PostFile{&models.PostFile{Id: "sads"}}, nil
+
+	return storage.GetPostFiles(ctx, obj.Id)
 }
 
 func (m *mutationResolver) CreatePost(ctx context.Context, input models.CreatePostInput) (*models.CreatePostResponse, error) {
@@ -51,7 +57,7 @@ func (m *mutationResolver) CreatePost(ctx context.Context, input models.CreatePo
 func (r *queryResolver) Posts(ctx context.Context, input models.PostsInput) ([]*models.Post, error) {
 	realLimitPlusOne := *input.Limit + 1
 	posts := make([]*models.Post, 0)
-	q := r.Domain.PostsRepo.DB.NewSelect().Model(&posts).ColumnExpr("post.*").ColumnExpr(`json_agg(json_build_object('id', pf.id, 'postId', pf.post_id, 'url', pf.url, 'contentType', pf.content_type,'fileSize', pf.file_size, 'fileName', pf.file_name)) AS "files"`).ColumnExpr("json_agg(json_build_object('id', t.id,'name', t.name,'code', t.code, 'catalog', json_build_object('id', c.id,'name', c.name,'code', c.code))) AS tags").Join(`JOIN post_files AS pf ON pf.post_id = post.id`).Join("LEFT JOIN post_tags pt ON post.id = pt.post_id").Join("LEFT JOIN tags t ON t.id = pt.tag_id").Join("LEFT JOIN catalogs c ON t.catalog_id = c.id").Group(`post.id`).Order("post.created_at DESC").Limit(realLimitPlusOne)
+	q := r.Domain.PostsRepo.DB.NewSelect().Model(&posts).ColumnExpr("post.*").ColumnExpr("json_agg(json_build_object('id', t.id,'name', t.name,'code', t.code, 'catalog', json_build_object('id', c.id,'name', c.name,'code', c.code))) AS tags").Join("LEFT JOIN post_tags pt ON post.id = pt.post_id").Join("LEFT JOIN tags t ON t.id = pt.tag_id").Join("LEFT JOIN catalogs c ON t.catalog_id = c.id").Group(`post.id`).Order("post.created_at DESC").Limit(realLimitPlusOne)
 	if input.Cursor != nil {
 		q = q.Where("post.created_at < ?", input.Cursor)
 	}
