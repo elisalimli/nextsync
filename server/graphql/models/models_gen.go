@@ -3,9 +3,6 @@
 package models
 
 import (
-	"fmt"
-	"io"
-	"strconv"
 	"time"
 
 	"github.com/99designs/gqlgen/graphql"
@@ -45,14 +42,9 @@ type AuthToken struct {
 
 // The `UploadFile` type, represents the request for uploading a file with a certain payload.
 type CreatePostInput struct {
-	Files          []*UploadFile      `json:"files,omitempty"`
-	Title          string             `json:"title"`
-	Description    string             `json:"description"`
-	Variant        string             `json:"variant"`
-	Language       LanguageType       `json:"language"`
-	SecondLanguage SecondLanguageType `json:"secondLanguage"`
-	Grade          int                `json:"grade"`
-	Type           Type               `json:"type"`
+	Files       []*UploadFile `json:"files,omitempty"`
+	Title       string        `json:"title"`
+	Description string        `json:"description"`
 }
 
 type CreatePostResponse struct {
@@ -126,137 +118,4 @@ type UploadFile struct {
 type VerifyOtpInput struct {
 	To   string `json:"to"`
 	Code string `json:"code"`
-}
-
-type LanguageType string
-
-const (
-	LanguageTypeAze LanguageType = "AZE"
-	LanguageTypeRu  LanguageType = "RU"
-	LanguageTypeEng LanguageType = "ENG"
-)
-
-var AllLanguageType = []LanguageType{
-	LanguageTypeAze,
-	LanguageTypeRu,
-	LanguageTypeEng,
-}
-
-func (e LanguageType) IsValid() bool {
-	switch e {
-	case LanguageTypeAze, LanguageTypeRu, LanguageTypeEng:
-		return true
-	}
-	return false
-}
-
-func (e LanguageType) String() string {
-	return string(e)
-}
-
-func (e *LanguageType) UnmarshalGQL(v interface{}) error {
-	str, ok := v.(string)
-	if !ok {
-		return fmt.Errorf("enums must be strings")
-	}
-
-	*e = LanguageType(str)
-	if !e.IsValid() {
-		return fmt.Errorf("%s is not a valid LanguageType", str)
-	}
-	return nil
-}
-
-func (e LanguageType) MarshalGQL(w io.Writer) {
-	fmt.Fprint(w, strconv.Quote(e.String()))
-}
-
-type SecondLanguageType string
-
-const (
-	SecondLanguageTypeEng SecondLanguageType = "ENG"
-	SecondLanguageTypeRu  SecondLanguageType = "RU"
-	SecondLanguageTypeAze SecondLanguageType = "AZE"
-)
-
-var AllSecondLanguageType = []SecondLanguageType{
-	SecondLanguageTypeEng,
-	SecondLanguageTypeRu,
-	SecondLanguageTypeAze,
-}
-
-func (e SecondLanguageType) IsValid() bool {
-	switch e {
-	case SecondLanguageTypeEng, SecondLanguageTypeRu, SecondLanguageTypeAze:
-		return true
-	}
-	return false
-}
-
-func (e SecondLanguageType) String() string {
-	return string(e)
-}
-
-func (e *SecondLanguageType) UnmarshalGQL(v interface{}) error {
-	str, ok := v.(string)
-	if !ok {
-		return fmt.Errorf("enums must be strings")
-	}
-
-	*e = SecondLanguageType(str)
-	if !e.IsValid() {
-		return fmt.Errorf("%s is not a valid SecondLanguageType", str)
-	}
-	return nil
-}
-
-func (e SecondLanguageType) MarshalGQL(w io.Writer) {
-	fmt.Fprint(w, strconv.Quote(e.String()))
-}
-
-type Type string
-
-const (
-	TypeBuraxilis Type = "BURAXILIS"
-	TypeBlok1     Type = "BLOK1"
-	TypeBlok2     Type = "BLOK2"
-	TypeBlok3     Type = "BLOK3"
-	TypeBlok4     Type = "BLOK4"
-)
-
-var AllType = []Type{
-	TypeBuraxilis,
-	TypeBlok1,
-	TypeBlok2,
-	TypeBlok3,
-	TypeBlok4,
-}
-
-func (e Type) IsValid() bool {
-	switch e {
-	case TypeBuraxilis, TypeBlok1, TypeBlok2, TypeBlok3, TypeBlok4:
-		return true
-	}
-	return false
-}
-
-func (e Type) String() string {
-	return string(e)
-}
-
-func (e *Type) UnmarshalGQL(v interface{}) error {
-	str, ok := v.(string)
-	if !ok {
-		return fmt.Errorf("enums must be strings")
-	}
-
-	*e = Type(str)
-	if !e.IsValid() {
-		return fmt.Errorf("%s is not a valid Type", str)
-	}
-	return nil
-}
-
-func (e Type) MarshalGQL(w io.Writer) {
-	fmt.Fprint(w, strconv.Quote(e.String()))
 }

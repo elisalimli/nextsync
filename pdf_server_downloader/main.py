@@ -53,9 +53,12 @@ async def main(phone):
         if not message.document == None:
             date = ""
             variant = ""
-            type = "UNKNOWN"
+            codeVariant = ""
+            type = ""
+            codeType = ""
             fileName = ""
             grade = 0
+            codeGrade = ""
             fileName = str(message.file.name)
             fileExtension = fileName.split(".")[-1]
             if fileExtension == "pdf" and "sınaq" in message.text:
@@ -73,33 +76,41 @@ async def main(phone):
                 if "Blok" in message.text:
                     if "1-ci qrup" in message.text or "1 ci qrup" in message.text:
                         print("type :", "BLOK 1")
-                        type = "BLOK 1"
+                        type = "1-ci qrup"
+                        codeType = "BLOK1"
                     elif "2-ci qrup" in message.text or "2 ci qrup" in message.text:
-                        type = "BLOK 2"
+                        type = "2-ci qrup"
+                        codeType = "BLOK2"
 
                         print("type :", "BLOK 2")
                     elif "3-cü qrup" in message.text or "3 cü qrup" in message.text:
                         print("type :", "BLOK 3")
-                        type = "BLOK 3"
+                        type = "3-cü qrup"
+                        codeType = "BLOK3"
 
                     elif "4-cü qrup" in message.text or "4 cü qrup" in message.text:
                         print("type :", "BLOK 4")
-                        type = "BLOK 4"
+                        type = "4-cü qrup"
+                        codeType = "BLOK4"
 
                 elif "Buraxılış" in message.text:
                     print("type :", "Buraxilis")
-                    type = "BURAXILIS"
+                    type = "Buraxılış"
+                    codeType = "BURAXILIS"
 
                 # extracting the class
                 if "11-ci sinif" in message.text or "11 ci sinif" in message.text:
                     print("grade :", "11")
                     grade = 11
+                    codeGrade = "grade_11"
                 elif "10-cu sinif" in message.text or "10 cu sinif" in message.text:
                     print("grade :", "10")
                     grade = 10
+                    codeGrade = "grade_10"
                 elif "9-cu sinif" in message.text or "9 cu sinif" in message.text:
                     print("grade :", "9")
                     grade = 9
+                    codeGrade = "grade_9"
                 # print(fileName)
                 print("sender_id : ", message.sender_id)
                 print("text :", message.text)
@@ -126,8 +137,8 @@ async def main(phone):
 
                 match = re.search(variant_regex, text)
                 if match:
-                    variant = match.group(1) or match.group(2) or match.group(3)
-
+                    variant = "Variant" +match.group(1) or match.group(2) or match.group(3)
+                    codeVariant = match.group(1) or match.group(2) or match.group(3)
                     print("variant :", variant)
                 else:
                     print("No variant found in the text")
@@ -137,10 +148,13 @@ async def main(phone):
                     {
                         "text": message.text,
                         "variant": variant,
+                        "code_variant": codeVariant,
                         "date": date,
                         "fileName": newFileName ,
                         "grade": grade,
+                        "code_grade": codeGrade,
                         "type": type,
+                        "code_type": codeType,
                         "contentType":contentType,
                         "fileSize":fileSize
                     }

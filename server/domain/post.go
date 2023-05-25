@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"os"
 	"sort"
-	"strings"
 	"sync"
 	"time"
 
@@ -196,17 +195,17 @@ func (d *Domain) CreatePost(ctx context.Context, input models.CreatePostInput) (
 		return nil, err
 	}
 
-	variant := strings.ToUpper(input.Variant)
+	// variant := strings.ToUpper(input.Variant)
 	post := &models.Post{
-		Title:          input.Title,
-		Description:    &input.Description,
-		Type:           strings.ToUpper(input.Type.String()),
-		Language:       strings.ToUpper(input.Language.String()),
-		Variant:        variant,
-		SecondLanguage: strings.ToUpper(input.SecondLanguage.String()),
-		Grade:          input.Grade,
-		Files:          imageUrls,
-		UserId:         currentUserId,
+		Title:       input.Title,
+		Description: &input.Description,
+		// Type:           strings.ToUpper(input.Type.String()),
+		// Language:       strings.ToUpper(input.Language.String()),
+		// Variant:        variant,
+		// SecondLanguage: strings.ToUpper(input.SecondLanguage.String()),
+		// Grade:          input.Grade,
+		Files:  imageUrls,
+		UserId: currentUserId,
 	}
 	fmt.Println(post)
 	err = d.PostsRepo.CreatePost(ctx, post)

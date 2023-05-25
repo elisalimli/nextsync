@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"strings"
 
 	"github.com/99designs/gqlgen/graphql"
 	"github.com/elisalimli/go_graphql_template/domain"
@@ -65,18 +64,4 @@ func (r *queryResolver) Posts(ctx context.Context, input models.PostsInput) ([]*
 		return nil, errors.New(domain.ErrSomethingWentWrong)
 	}
 	return posts, nil
-}
-
-func (r *postResolver) Language(ctx context.Context, obj *models.Post) (*models.LanguageType, error) {
-	x := models.LanguageType(obj.Language)
-	return &x, nil
-}
-
-func (r *postResolver) Variant(ctx context.Context, obj *models.Post) (*string, error) {
-	variant := strings.TrimSpace(obj.Variant)
-	return &variant, nil
-}
-func (r *postResolver) Type(ctx context.Context, obj *models.Post) (*models.Type, error) {
-	postType := models.Type(obj.Language)
-	return &postType, nil
 }
