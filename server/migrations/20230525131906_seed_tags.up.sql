@@ -63,6 +63,18 @@ VALUES
         )
     ),
     (
+        'MIQ',
+        'MIQ',
+        (
+            SELECT
+                id
+            FROM
+                catalogs
+            WHERE
+                code = 'type'
+        )
+    ),
+    (
         'A',
         'A',
         (

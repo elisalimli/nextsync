@@ -35,6 +35,7 @@ func (u *UserReader) GetUsers(ctx context.Context, keys dataloader.Keys) []*data
 		userIDs[ix] = key.String()
 	}
 	err := u.conn.NewSelect().Model(&users).Where("id in (?)", bun.In(userIDs)).Scan(context.Background())
+	fmt.Println("user loader: ")
 
 	if err != nil {
 		return nil
