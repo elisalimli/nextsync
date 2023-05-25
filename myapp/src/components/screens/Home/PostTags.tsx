@@ -7,6 +7,11 @@ import {
   TouchableOpacity,
 } from "react-native";
 import { Post_FragmentFragment } from "../../../gql/graphql";
+import { useFragment } from "../../../gql";
+import {
+  Catalog_Fragment,
+  Tag_Fragment,
+} from "../../../graphql/query/post/posts";
 
 enum Language {
   AZE = "Azərbaycan",
@@ -24,34 +29,33 @@ enum Type {
 
 type PostTagsProps = Post_FragmentFragment;
 
-const PostTags = ({ variant, type, language }: PostTagsProps) => {
+const PostTags = ({ tags }: PostTagsProps) => {
+  // console.log(tags);
   return (
     <ScrollView horizontal className="flex-row">
-      {variant && (
-        <TouchableOpacity className="bg-indigo-100 text-indigo-800 text-xs font-medium mr-2 px-2.5 py-0.5 rounded">
-          <Text>Variant: {variant}</Text>
-        </TouchableOpacity>
-      )}
-
-      {Type[type] && (
-        <TouchableOpacity className="bg-indigo-100 text-indigo-800 text-xs font-medium mr-2 px-2.5 py-0.5 rounded">
-          <Text>{Type[type]}</Text>
-        </TouchableOpacity>
-      )}
-
-      {language && (
-        <TouchableOpacity className="bg-indigo-100 text-indigo-800 text-xs font-medium mr-2 px-2.5 py-0.5 rounded">
-          <Text>Xarici dil / {Language[language]} dili</Text>
-        </TouchableOpacity>
-      )}
-
-      <TouchableOpacity className="bg-indigo-100 text-indigo-800 text-xs font-medium mr-2 px-2.5 py-0.5 rounded">
+      {tags.map((t) => {
+        const tag = useFragment(Tag_Fragment, t);
+        const catalog = useFragment(Catalog_Fragment, tag.catalog);
+        return (
+          tag.id && (
+            <TouchableOpacity
+              key={`post-tags-${tag?.id}-${catalog?.id}`}
+              className="bg-indigo-100 text-indigo-800 text-xs font-medium mr-2 px-2.5 py-0.5 rounded"
+            >
+              <Text>
+                {catalog?.name && `${catalog?.name} : `} {tag?.name}
+              </Text>
+            </TouchableOpacity>
+          )
+        );
+      })}
+      {/* <TouchableOpacity className="bg-indigo-100 text-indigo-800 text-xs font-medium mr-2 px-2.5 py-0.5 rounded">
         <Text>Yellow</Text>
       </TouchableOpacity>
 
       <TouchableOpacity className="bg-indigo-100 text-indigo-800 text-xs font-medium mr-2 px-2.5 py-0.5 rounded">
         <Text>Purple</Text>
-      </TouchableOpacity>
+      </TouchableOpacity> */}
     </ScrollView>
   );
 };
