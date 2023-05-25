@@ -21,6 +21,8 @@ models:
     fields:
       creator:
         resolver: true
+      files:
+        resolver: true
   PostFile:
     model: github.com/elisalimli/go_graphql_template/graphql/models.PostFile
   Tag:
