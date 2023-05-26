@@ -8,6 +8,7 @@ type FieldError {
   field: String!
 }
 
+# @regionStart Responses 
 interface IFormResponse {
   ok: Boolean!
   errors: [FieldError]
@@ -30,6 +31,10 @@ type CreatePostResponse implements IFormResponse {
   errors: [FieldError]
   post: Post
 }
+
+# @regionEnd Responses 
+
+# @regionStart Types 
 
 type AuthToken {
   token: String!
@@ -67,7 +72,7 @@ type Tag {
   name: String!
   code: String!
   catalogId: String!
-  catalog: Catalog!
+  catalog: Catalog
 }
 
 
@@ -76,7 +81,6 @@ type Catalog {
   name: String!
   code: String!
 }
-
 
 type PostFile {
   id: String!
@@ -87,12 +91,21 @@ type PostFile {
   fileName: String!
 }
 
-# type Meetup {
-#   id: ID!
-#   name: String!
-#   description: String!
-#   user: User!
-# }
+"The `Upload` scalar type represents a multipart file upload."
+scalar Upload
+
+"The `File` type, represents the response of uploading a file."
+type File {
+    id: Int!
+    name: String!
+    content: String!
+    contentType: String!
+}
+
+
+# @regionEnd Types 
+
+# @regionStart Inputs 
 
 input RegisterInput {
   username: String!
@@ -131,39 +144,6 @@ input PostsInput {
   tagIds: [String!]
 }
 
-# input NewMeetup {
-#   name: String!
-#   description: String!
-# }
-
-# input UpdateMeetup {
-#   name: String
-#   description: String
-# }
-
-# input MeetupFilter {
-#   name: String
-# }
-
-type Query {
-  # meetups(filter: MeetupFilter, limit: Int = 10, offset: Int = 0): [Meetup!]!
-  users: [User!]!
-  posts(input:PostsInput!): [Post!]!
-  me: User
-  hello: String! 
-}
-
-"The `Upload` scalar type represents a multipart file upload."
-scalar Upload
-
-"The `File` type, represents the response of uploading a file."
-type File {
-    id: Int!
-    name: String!
-    content: String!
-    contentType: String!
-}
-
 
 "The `UploadFile` type, represents the request for uploading a file with certain payload."
 input UploadFile {
@@ -177,6 +157,18 @@ input CreatePostInput {
     files: [UploadFile]
     title: String!
     description: String!
+}
+
+# @regionEnd Inputs 
+
+
+
+type Query {
+  users: [User!]!
+  posts(input:PostsInput!): [Post!]!
+  tags: [Tag!]!
+  me: User
+  hello: String! 
 }
 
 type Mutation {
