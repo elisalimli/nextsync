@@ -91,8 +91,9 @@ type LoginInput struct {
 }
 
 type PostsInput struct {
-	Cursor *string `json:"cursor,omitempty"`
-	Limit  *int    `json:"limit,omitempty"`
+	Cursor *string  `json:"cursor,omitempty"`
+	Limit  *int     `json:"limit,omitempty"`
+	TagIds []string `json:"tagIds,omitempty"`
 }
 
 type RegisterInput struct {
