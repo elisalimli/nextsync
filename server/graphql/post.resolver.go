@@ -11,6 +11,7 @@ import (
 	customMiddleware "github.com/elisalimli/go_graphql_template/middleware"
 	"github.com/elisalimli/go_graphql_template/storage"
 	"github.com/elisalimli/go_graphql_template/validator"
+	"github.com/uptrace/bun"
 	"github.com/vektah/gqlparser/v2/gqlerror"
 )
 
@@ -57,15 +58,23 @@ func (m *mutationResolver) CreatePost(ctx context.Context, input models.CreatePo
 func (r *queryResolver) Posts(ctx context.Context, input models.PostsInput) ([]*models.Post, error) {
 	realLimitPlusOne := *input.Limit + 1
 	posts := make([]*models.Post, 0)
-	q := r.Domain.PostsRepo.DB.NewSelect().Model(&posts).ColumnExpr("post.*").ColumnExpr("json_agg(json_build_object('id', t.id,'name', t.name,'code', t.code, 'catalog', json_build_object('id', c.id,'name', c.name,'code', c.code))) AS tags").Join("LEFT JOIN post_tags pt ON post.id = pt.post_id").Join("LEFT JOIN tags t ON t.id = pt.tag_id").Join("LEFT JOIN catalogs c ON t.catalog_id = c.id").Group(`post.id`).Order("post.created_at DESC").Limit(realLimitPlusOne)
+	q := r.Domain.PostsRepo.DB.NewSelect().Model(&posts).ColumnExpr("post.*").ColumnExpr("json_agg(json_build_object('id', t.id,'name', t.name,'code', t.code, 'catalog', json_build_object('id', c.id,'name', c.name,'code', c.code))) AS tags").Join("LEFT JOIN post_tags pt ON post.id = pt.post_id").Join("LEFT JOIN tags t ON t.id = pt.tag_id").Join("LEFT JOIN catalogs c ON t.catalog_id = c.id").GroupExpr(`post.id, post.title, post.description`).Order("post.created_at DESC").Limit(realLimitPlusOne)
+
 	if input.Cursor != nil {
 		q = q.Where("post.created_at < ?", input.Cursor)
 	}
+	// filtering by tag ids
+	if input.TagIds != nil {
+		q = q.Where("pt.tag_id IN (?)", bun.In(input.TagIds)).Having(fmt.Sprintf("COUNT(DISTINCT pt.tag_id) = %d", len(input.TagIds)))
+	}
+
 	err := q.Scan(ctx)
 
 	if err != nil {
 		fmt.Println("Error occured:", err)
 		return nil, errors.New(domain.ErrSomethingWentWrong)
 	}
+
+	// TODO: slice array has more
 	return posts, nil
 }
