@@ -98,19 +98,11 @@ const HomeHeader = ({ scrollY, scrollDiffY }: HomeHeaderProps) => {
     <Animated.View
       style={[
         {
-          position: "absolute",
-          top: 0,
-          right: 0,
-          left: 0,
-          zIndex: 100,
-          backgroundColor: "orange",
           paddingTop: insets.top,
-          paddingBottom: 12,
-          alignItems: "center",
-          justifyContent: "flex-end",
         },
         animatedStyles,
       ]}
+      className="bg-primary items-center justify-end absolute top-0 left-0 right-0 pb-3 z-10"
     >
       <Animated.Text
         style={animatedTextStyles}
@@ -123,14 +115,14 @@ const HomeHeader = ({ scrollY, scrollDiffY }: HomeHeaderProps) => {
         className="flex-row justify-between w-full"
         style={{ paddingHorizontal: SEARCH_BAR_PADDING_HORIZONTAL }}
       >
-        <Text>Add</Text>
-        <Text>NextSync</Text>
+        <Text className="text-white">Add</Text>
+        <Text className="text-white">NextSync</Text>
         <TouchableOpacity
           onPress={() => {
             translateSearch.value = withSpring(SEARCH_BAR_PADDING_HORIZONTAL);
           }}
         >
-          <Text>Search</Text>
+          <Text className="text-white">Search</Text>
         </TouchableOpacity>
         <Animated.View
           className="w-full bg-red-500 absolute flex-row"
