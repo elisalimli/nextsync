@@ -11,9 +11,9 @@ import { useFragment } from "../../../gql";
 import { User_Fragment } from "../../../graphql/query/user/me";
 import PostModal from "./PostModal";
 
-type PostTopProps = Post_FragmentFragment;
+type PostActionProps = Post_FragmentFragment;
 
-const PostTop: React.FC<PostTopProps> = ({ files, creator }) => {
+const PostAction: React.FC<PostActionProps> = ({ files, creator }) => {
   const user = useFragment(User_Fragment, creator);
 
   return (
@@ -26,7 +26,7 @@ const PostTop: React.FC<PostTopProps> = ({ files, creator }) => {
   );
 };
 
-export default PostTop;
+export default PostAction;
 
 const styles = StyleSheet.create({
   container: {},

@@ -46,6 +46,7 @@ import {
   Animated,
   FlatList,
   TouchableOpacity,
+  Platform,
 } from "react-native";
 import ReAnimated, {
   Extrapolation,
@@ -66,6 +67,8 @@ import { logoutMutationDocument } from "../../src/graphql/mutation/user/logout";
 import HomeHeader, {
   HEADER_HEIGHT_EXPANDED,
 } from "../../src/components/screens/Home/HomeHeader";
+import { StatusBar } from "expo-status-bar";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 function ListHeader() {
   const [logout] = useMutation(logoutMutationDocument, {
@@ -117,6 +120,7 @@ export const clamp = (
 const App = () => {
   const translationDiffY = useSharedValue(0);
   const translationY = useSharedValue(0);
+  const insets = useSafeAreaInsets();
 
   const animatedStyles = useAnimatedStyle(() => {
     const height = interpolate(
@@ -168,7 +172,14 @@ const App = () => {
   return (
     <View style={{ flex: 1 }}>
       <HomeHeader scrollY={translationY} scrollDiffY={translationDiffY} />
-
+      <StatusBar style={"light"} />
+      {/* custom status bar */}
+      <View
+        style={{
+          height: insets.top,
+        }}
+        className="bg-primary w-full z-20"
+      />
       <View className="flex-1">
         {data?.posts && (
           <ReAnimated.FlatList

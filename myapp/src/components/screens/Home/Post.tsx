@@ -6,7 +6,7 @@ import { PostContext } from "./PostContext";
 import PostFiles from "./PostFiles";
 import PostHeader from "./PostHeader";
 import PostTags from "./PostTags";
-import PostTop from "./PostTop";
+import PostAction from "./PostAction";
 
 const Post = (props: FragmentType<typeof Post_Fragment>) => {
   const post = useFragment(Post_Fragment, props);
@@ -32,7 +32,7 @@ const Post = (props: FragmentType<typeof Post_Fragment>) => {
       <View>
         <View className="px-4 py-6 bg-lightGray2">
           {/* TITLE & DESCRIPTION */}
-          <PostTop {...post} />
+          <PostAction {...post} />
           {/* TITLE & DESCRIPTION */}
           <PostHeader {...post} />
           {/* FILES */}
