@@ -3,7 +3,7 @@ INSERT INTO
     tags (name, code, catalog_id)
 VALUES
     (
-        '1-ci qrup',
+        'I Qrup',
         'BLOK1',
         (
             SELECT
@@ -15,7 +15,7 @@ VALUES
         )
     ),
     (
-        '2-ci qrup',
+        'II Qrup',
         'BLOK2',
         (
             SELECT
@@ -27,7 +27,7 @@ VALUES
         )
     ),
     (
-        '3-cü qrup',
+        'III Qrup',
         'BLOK3',
         (
             SELECT
@@ -39,7 +39,7 @@ VALUES
         )
     ),
     (
-        '4-cü qrup',
+        'IV Qrup',
         'BLOK4',
         (
             SELECT
