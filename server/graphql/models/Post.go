@@ -2,6 +2,8 @@ package models
 
 import (
 	"time"
+
+	"github.com/uptrace/bun"
 )
 
 type Post struct {
@@ -27,8 +29,9 @@ type PostFile struct {
 }
 
 type PostTag struct {
-	PostId string `bun:",pk"`
-	TagId  string `bun:",pk"`
-	Tag    *Tag   `bun:"rel:belongs-to,join:tag_id=id"`
-	Post   *Post  `bun:"rel:belongs-to,join:post_id=id"`
+	bun.BaseModel `bun:"table:post_tags,alias:pt"`
+	PostId        string `bun:",pk"`
+	TagId         string `bun:",pk"`
+	Tag           *Tag   `bun:"rel:belongs-to,join:tag_id=id"`
+	Post          *Post  `bun:"rel:belongs-to,join:post_id=id"`
 }

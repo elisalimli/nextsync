@@ -56,6 +56,7 @@ func (m *mutationResolver) CreatePost(ctx context.Context, input models.CreatePo
 	return m.Domain.CreatePost(ctx, input)
 }
 func (r *queryResolver) Posts(ctx context.Context, input models.PostsInput) ([]*models.Post, error) {
+	fmt.Println("posts query trigged!!")
 	realLimitPlusOne := *input.Limit + 1
 	posts := make([]*models.Post, 0)
 	q := r.Domain.PostsRepo.DB.NewSelect().Model(&posts).Column("post.*").
@@ -75,9 +76,15 @@ func (r *queryResolver) Posts(ctx context.Context, input models.PostsInput) ([]*
 	if input.Cursor != nil {
 		q = q.Where("post.created_at < ?", input.Cursor)
 	}
+
+	fmt.Println("tag ids ", input.TagIds)
 	// filtering by tag ids
-	if input.TagIds != nil {
-		q = q.Where("pt.tag_id IN (?)", bun.In(input.TagIds)).Having(fmt.Sprintf("COUNT(DISTINCT pt.tag_id) = %d", len(input.TagIds)))
+	if len(input.TagIds) > 0 {
+		subq := r.Domain.PostsRepo.DB.NewSelect().Model((*models.PostTag)(nil)).
+			ColumnExpr("pt.post_id").
+			Where("pt.tag_id IN (?)", bun.In(input.TagIds)).
+			Group("pt.post_id").Having(fmt.Sprintf("COUNT(DISTINCT pt.tag_id) = %d", len(input.TagIds)))
+		q = q.Where("post.id IN (?)", subq)
 	}
 
 	err := q.Scan(ctx)
