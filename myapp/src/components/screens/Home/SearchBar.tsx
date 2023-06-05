@@ -15,6 +15,9 @@ import Animated, {
 import { constants } from "../../../constants";
 import { tagsQueryDocument } from "../../../graphql/query/tag/tags";
 import SearchTag from "./SearchBarTag";
+import { useSearchStore } from "../../../stores/searchStore";
+import { useFragment } from "../../../gql";
+import { Tag_Fragment } from "../../../graphql/query/post/posts";
 
 interface SearchBarProps {
   translateSearch: SharedValue<number>;
@@ -23,12 +26,29 @@ interface SearchBarProps {
 
 const SearchBar = ({ translateSearch, tagsHeight }: SearchBarProps) => {
   const { data } = useQuery(tagsQueryDocument);
+  const tags = useFragment(Tag_Fragment, data?.tags) || [];
+  const { activeTagIds } = useSearchStore();
+
+  // Filter active tags
+  const activeTagItems =
+    tags.filter((tag) => activeTagIds.includes(tag?.id)) || [];
+
+  // Filter inactive tags
+  const inactiveTagItems =
+    tags.filter((tag) => !activeTagIds.includes(tag?.id)) || [];
 
   const searchBarAnimatedStyles = useAnimatedStyle(() => {
     return {
       transform: [{ translateX: translateSearch.value }],
     };
   });
+
+  const scrollViewRef = React.useRef<ScrollView>(null);
+
+  const scrollToStart = () => {
+    if (scrollViewRef.current)
+      scrollViewRef.current.scrollTo({ x: 0, animated: true });
+  };
 
   return (
     <Animated.View
@@ -54,9 +74,20 @@ const SearchBar = ({ translateSearch, tagsHeight }: SearchBarProps) => {
           </TouchableOpacity>
         </View>
         {/* Filter Tags */}
-        <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-          {data?.tags.map((tag: any) => (
-            <SearchTag key={`search-tag-${tag?.id}`} {...tag} />
+        <ScrollView
+          ref={scrollViewRef}
+          horizontal
+          showsHorizontalScrollIndicator={false}
+        >
+          {activeTagItems.map((tag: any) => (
+            <SearchTag active key={`search-tag-${tag?.id}`} tag={tag} />
+          ))}
+          {inactiveTagItems.map((tag: any) => (
+            <SearchTag
+              scrollToStart={scrollToStart}
+              key={`search-tag-${tag?.id}`}
+              tag={tag}
+            />
           ))}
         </ScrollView>
       </View>

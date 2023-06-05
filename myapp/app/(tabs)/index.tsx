@@ -1,6 +1,6 @@
 import { useQuery } from "@apollo/client";
 import { StatusBar } from "expo-status-bar";
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { Text, View } from "react-native";
 import ReAnimated from "react-native-reanimated";
 import HomeHeader from "../../src/components/screens/Home/HomeHeader";
@@ -12,12 +12,13 @@ import {
   Post_Fragment,
   postsQueryDocument,
 } from "../../src/graphql/query/post/posts";
-import { useSearchStore } from "../../src/stores/search";
+import { useSearchStore } from "../../src/stores/searchStore";
 import { useScrollHandler } from "../../src/utils/hooks/usePostsScrollHandler";
 import { HEADER_HEIGHT_EXPANDED } from "../../src/animation/useAnimatedHeaderStyles";
 
 const App = () => {
-  const { tags } = useSearchStore();
+  const { activeTagIds } = useSearchStore();
+  const [isFilterTagsCalled, setFilterTagsCalled] = useState(false);
 
   const {
     translationY,
@@ -27,9 +28,38 @@ const App = () => {
     scrollHandler,
   } = useScrollHandler();
 
-  const { data, loading, error, fetchMore } = useQuery(postsQueryDocument, {
-    variables: { input: { limit: constants.POSTS_QUERY_LIMIT } },
-  });
+  const { data, loading, error, fetchMore, refetch, called } = useQuery(
+    postsQueryDocument,
+    {
+      variables: { input: { limit: constants.POSTS_QUERY_LIMIT } },
+    }
+  );
+
+  useEffect(() => {
+    // filtering posts when tags changed
+    if (activeTagIds?.length || isFilterTagsCalled) {
+      refetch({
+        input: {
+          limit: constants.POSTS_QUERY_LIMIT,
+          tagIds: activeTagIds,
+        },
+      });
+    } else setFilterTagsCalled(true);
+  }, [activeTagIds?.length]);
+
+  const handleEndReached = async () => {
+    const posts = useFragment(Post_Fragment, data?.posts);
+    if (posts?.length)
+      await fetchMore({
+        variables: {
+          input: {
+            cursor: posts[posts?.length - 1].createdAt,
+            limit: constants.POSTS_QUERY_LIMIT,
+            tagIds: activeTagIds,
+          },
+        },
+      });
+  };
 
   if (error) {
     return <Text>Something went wrong while retrieving posts</Text>;
@@ -38,20 +68,6 @@ const App = () => {
   if (loading) {
     return <Text>Loading...</Text>;
   }
-
-  const handleEndReached = async () => {
-    const posts = useFragment(Post_Fragment, data?.posts);
-    if (posts)
-      await fetchMore({
-        variables: {
-          input: {
-            cursor: posts[posts?.length - 1].createdAt,
-            limit: constants.POSTS_QUERY_LIMIT,
-            tagIds: tags,
-          },
-        },
-      });
-  };
 
   return (
     <View style={{ flex: 1 }}>
@@ -66,20 +82,20 @@ const App = () => {
       />
 
       <View className="flex-1">
-        {data?.posts && (
+        {data!.posts!.length > 0 && !loading ? (
           <ReAnimated.FlatList
             onScroll={scrollHandler}
             scrollEventThrottle={16}
             // contentContainerStyle={{ paddingTop: 200 }}
-            ListHeaderComponent={ListHeader}
+            // ListHeaderComponent={ListHeader}
             onEndReached={handleEndReached}
-            ListFooterComponent={() => {
-              return (
-                <Text style={{ paddingBottom: HEADER_HEIGHT_EXPANDED + 20 }}>
-                  loading..
-                </Text>
-              );
-            }}
+            // ListFooterComponent={() => {
+            //   return (
+            //     <Text style={{ paddingBottom: HEADER_HEIGHT_EXPANDED + 20 }}>
+            //       loading..
+            //     </Text>
+            //   );
+            // }}
             onEndReachedThreshold={0.5}
             style={[
               {
@@ -93,6 +109,15 @@ const App = () => {
             renderItem={({ item }) => <Post {...item} />}
             keyExtractor={(item: any) => item?.id}
           />
+        ) : (
+          <View
+            className="justify-center items-center"
+            style={{ paddingTop: HEADER_HEIGHT_EXPANDED }}
+          >
+            <Text className="text-red-500">
+              Axtarışa uyğun heç bir nəticə tapılmadı.
+            </Text>
+          </View>
         )}
       </View>
     </View>
