@@ -83,7 +83,8 @@ func (r *queryResolver) Posts(ctx context.Context, input models.PostsInput) ([]*
 		subq := r.Domain.PostsRepo.DB.NewSelect().Model((*models.PostTag)(nil)).
 			ColumnExpr("pt.post_id").
 			Where("pt.tag_id IN (?)", bun.In(input.TagIds)).
-			Group("pt.post_id").Having(fmt.Sprintf("COUNT(DISTINCT pt.tag_id) = %d", len(input.TagIds)))
+			Group("pt.post_id").
+			Having(fmt.Sprintf("COUNT(DISTINCT pt.tag_id) = %d", len(input.TagIds)))
 		q = q.Where("post.id IN (?)", subq)
 	}
 

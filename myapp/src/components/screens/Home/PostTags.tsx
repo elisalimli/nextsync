@@ -1,31 +1,11 @@
 import * as React from "react";
-import {
-  Text,
-  View,
-  StyleSheet,
-  ScrollView,
-  TouchableOpacity,
-} from "react-native";
-import { Post_FragmentFragment } from "../../../gql/graphql";
+import { ScrollView, Text, TouchableOpacity } from "react-native";
 import { useFragment } from "../../../gql";
+import { Post_FragmentFragment } from "../../../gql/graphql";
 import {
   Catalog_Fragment,
   Tag_Fragment,
 } from "../../../graphql/query/post/posts";
-
-enum Language {
-  AZE = "Azərbaycan",
-  ENG = "İngilis",
-  RU = "Rus",
-}
-
-enum Type {
-  BLOK1 = "BLOK 1-ci qrup",
-  BLOK2 = "BLOK 2-ci qrup",
-  BLOK3 = "BLOK 3-cü qrup",
-  BLOK4 = "BLOK 4-cü qrup",
-  BURAXILIS = "Buraxılış",
-}
 
 type PostTagsProps = Post_FragmentFragment;
 

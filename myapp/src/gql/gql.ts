@@ -24,6 +24,7 @@ const documents = {
     "\n  fragment Tag_Fragment on Tag {\n    id\n    name\n    catalog {\n      ...Catalog_Fragment\n    }\n  }\n": types.Tag_FragmentFragmentDoc,
     "\n  fragment Post_Fragment on Post {\n    id\n    title\n    description\n    tags {\n      ...Tag_Fragment\n    }\n    createdAt\n    updatedAt\n    files {\n      ...File_Fragment\n    }\n    creator {\n      ...User_Fragment\n    }\n  }\n": types.Post_FragmentFragmentDoc,
     "\n  query Posts($input: PostsInput!) {\n    posts(input: $input) {\n      ...Post_Fragment\n    }\n  }\n": types.PostsDocument,
+    "\n  query Tags {\n    tags {\n      id\n      name\n    }\n  }\n": types.TagsDocument,
     "\n  query Hello {\n    hello\n  }\n": types.HelloDocument,
     "\n  fragment User_Fragment on User {\n    id\n    username\n    email\n    verified\n    phoneNumber\n    createdAt\n    updatedAt\n  }\n": types.User_FragmentFragmentDoc,
     "\n  query Me {\n    me {\n      ...User_Fragment\n    }\n  }\n": types.MeDocument,
@@ -87,6 +88,10 @@ export function graphql(source: "\n  fragment Post_Fragment on Post {\n    id\n 
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
 export function graphql(source: "\n  query Posts($input: PostsInput!) {\n    posts(input: $input) {\n      ...Post_Fragment\n    }\n  }\n"): (typeof documents)["\n  query Posts($input: PostsInput!) {\n    posts(input: $input) {\n      ...Post_Fragment\n    }\n  }\n"];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "\n  query Tags {\n    tags {\n      id\n      name\n    }\n  }\n"): (typeof documents)["\n  query Tags {\n    tags {\n      id\n      name\n    }\n  }\n"];
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */

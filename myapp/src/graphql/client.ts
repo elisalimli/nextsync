@@ -96,9 +96,10 @@ export const client = new ApolloClient({
       Query: {
         fields: {
           posts: {
-            // keyArgs: [],
+            keyArgs: ["tagIds"],
 
             merge(existing, incoming) {
+              // return  incoming;
               return [...(existing || []), ...incoming];
             },
 
