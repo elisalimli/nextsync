@@ -1,8 +1,8 @@
 Arguments: 
-  /Users/alisalimli/.local/share/nvm/v18.15.0/bin/node /Users/alisalimli/.local/share/nvm/v18.15.0/bin/yarn add react-native-scroll-handler
+  /Users/alisalimli/.local/share/nvm/v18.15.0/bin/node /Users/alisalimli/.local/share/nvm/v18.15.0/bin/yarn add react-native-reanimated@3.2.0
 
 PATH: 
-  /Users/alisalimli/.local/share/nvm/v18.15.0/bin:/Users/alisalimli/go/bin:/opt/homebrew/bin:/opt/homebrew/sbin:/usr/local/bin:/System/Cryptexes/App/usr/bin:/usr/bin:/bin:/usr/sbin:/sbin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/local/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/appleinternal/bin:/Library/Apple/usr/bin:/usr/local/go/bin:/Applications/Postgres.app/Contents/Versions/latest/bin
+  /Users/alisalimli/miniconda3/bin:/Users/alisalimli/miniconda3/condabin:/Users/alisalimli/.local/share/nvm/v18.15.0/bin:/Users/alisalimli/go/bin:/opt/homebrew/bin:/opt/homebrew/sbin:/usr/local/bin:/System/Cryptexes/App/usr/bin:/usr/bin:/bin:/usr/sbin:/sbin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/local/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/appleinternal/bin:/Library/Apple/usr/bin:/usr/local/go/bin:/Applications/Postgres.app/Contents/Versions/latest/bin
 
 Yarn version: 
   1.22.19
@@ -14,17 +14,8 @@ Platform:
   darwin arm64
 
 Trace: 
-  Error: https://registry.yarnpkg.com/react-native-scroll-handler: Not found
-      at params.callback [as _callback] (/Users/alisalimli/.local/share/nvm/v18.15.0/lib/node_modules/yarn/lib/cli.js:66145:18)
-      at self.callback (/Users/alisalimli/.local/share/nvm/v18.15.0/lib/node_modules/yarn/lib/cli.js:140890:22)
-      at Request.emit (node:events:513:28)
-      at Request.<anonymous> (/Users/alisalimli/.local/share/nvm/v18.15.0/lib/node_modules/yarn/lib/cli.js:141862:10)
-      at Request.emit (node:events:513:28)
-      at IncomingMessage.<anonymous> (/Users/alisalimli/.local/share/nvm/v18.15.0/lib/node_modules/yarn/lib/cli.js:141784:12)
-      at Object.onceWrapper (node:events:627:28)
-      at IncomingMessage.emit (node:events:525:35)
-      at endReadableNT (node:internal/streams/readable:1359:12)
-      at process.processTicksAndRejections (node:internal/process/task_queues:82:21)
+  Error: getaddrinfo ENOTFOUND registry.yarnpkg.com
+      at GetAddrInfoReqWrap.onlookup [as oncomplete] (node:dns:107:26)
 
 npm manifest: 
   {
@@ -54,9 +45,10 @@ npm manifest:
       "apollo-upload-client": "^17.0.0",
       "clsx": "^1.2.1",
       "core-js": "^3.30.1",
-      "expo": "~48.0.15",
+      "expo": "~48.0.18",
       "expo-application": "~5.1.1",
       "expo-auth-session": "~4.0.3",
+      "expo-blur": "^12.3.0",
       "expo-crypto": "~12.2.1",
       "expo-document-picker": "~11.2.2",
       "expo-file-system": "~15.2.2",
@@ -79,13 +71,14 @@ npm manifest:
       "react": "18.2.0",
       "react-dom": "18.2.0",
       "react-hook-form": "^7.43.9",
-      "react-native": "0.71.7",
+      "react-native": "0.71.8",
       "react-native-context-menu-view": "^1.9.1",
       "react-native-fs": "^2.20.0",
+      "react-native-gesture-handler": "^2.10.1",
       "react-native-get-random-values": "^1.9.0",
       "react-native-modal": "^13.0.1",
       "react-native-progress": "^5.0.0",
-      "react-native-reanimated": "^3.1.0",
+      "react-native-reanimated": "3.1.0",
       "react-native-safe-area-context": "4.5.0",
       "react-native-screens": "~3.20.0",
       "react-native-svg": "13.4.0",
@@ -93,7 +86,8 @@ npm manifest:
       "react-native-webview": "11.26.0",
       "rn-fetch-blob": "^0.12.0",
       "urql": "^4.0.2",
-      "uuid": "^9.0.0"
+      "uuid": "^9.0.0",
+      "zustand": "^4.3.8"
     },
     "devDependencies": {
       "@babel/core": "^7.20.0",
@@ -1507,6 +1501,13 @@ Lockfile:
     dependencies:
       "@jridgewell/trace-mapping" "0.3.9"
   
+  "@egjs/hammerjs@^2.0.17":
+    version "2.0.17"
+    resolved "https://registry.yarnpkg.com/@egjs/hammerjs/-/hammerjs-2.0.17.tgz#5dc02af75a6a06e4c2db0202cae38c9263895124"
+    integrity sha512-XQsZgjm2EcVUiZQf11UBJQfmZeEmOW8DpI1gsFeln6w0ae0ii4dMQEQ0kjl6DspdWX1aGY1/loyXnP0JS06e/A==
+    dependencies:
+      "@types/hammerjs" "^2.0.36"
+  
   "@expo/bunyan@4.0.0", "@expo/bunyan@^4.0.0":
     version "4.0.0"
     resolved "https://registry.yarnpkg.com/@expo/bunyan/-/bunyan-4.0.0.tgz#be0c1de943c7987a9fbd309ea0b1acd605890c7b"
@@ -1517,10 +1518,10 @@ Lockfile:
       mv "~2"
       safe-json-stringify "~1"
   
-  "@expo/cli@0.7.1":
-    version "0.7.1"
-    resolved "https://registry.yarnpkg.com/@expo/cli/-/cli-0.7.1.tgz#8b2e32867452b4dad006759dd438b5f7fc4bc047"
-    integrity sha512-414sC4phJA5p96+bgPsyaPNwsepcOsGeErxFXp9OhqwgiQpw+H0uN9mVrvNIKLDHMVWHrW9bAFUEcpoL6VkzbQ==
+  "@expo/cli@0.7.2":
+    version "0.7.2"
+    resolved "https://registry.yarnpkg.com/@expo/cli/-/cli-0.7.2.tgz#22df58e7ee355cdc06d8d5e0b60c7d11c24d13d7"
+    integrity sha512-QOooDZ1qy31GsXj2Z5JxpofhZO51loF7NK8QPj5/dHJmG88dQdM4TBA5BWutDN/CA3Dseg+oTCaFiehu3Rn1ew==
     dependencies:
       "@babel/runtime" "^7.20.0"
       "@expo/code-signing-certificates" "0.0.5"
@@ -1592,7 +1593,28 @@ Lockfile:
       node-forge "^1.2.1"
       nullthrows "^1.1.1"
   
-  "@expo/config-plugins@6.0.1", "@expo/config-plugins@~6.0.0":
+  "@expo/config-plugins@6.0.2":
+    version "6.0.2"
+    resolved "https://registry.yarnpkg.com/@expo/config-plugins/-/config-plugins-6.0.2.tgz#cf07319515022ba94d9aa9fa30e0cff43a14256f"
+    integrity sha512-Cn01fXMHwjU042EgO9oO3Mna0o/UCrW91MQLMbJa4pXM41CYGjNgVy1EVXiuRRx/upegHhvltBw5D+JaUm8aZQ==
+    dependencies:
+      "@expo/config-types" "^48.0.0"
+      "@expo/json-file" "~8.2.37"
+      "@expo/plist" "^0.0.20"
+      "@expo/sdk-runtime-versions" "^1.0.0"
+      "@react-native/normalize-color" "^2.0.0"
+      chalk "^4.1.2"
+      debug "^4.3.1"
+      find-up "~5.0.0"
+      getenv "^1.0.0"
+      glob "7.1.6"
+      resolve-from "^5.0.0"
+      semver "^7.3.5"
+      slash "^3.0.0"
+      xcode "^3.0.1"
+      xml2js "0.4.23"
+  
+  "@expo/config-plugins@~6.0.0":
     version "6.0.1"
     resolved "https://registry.yarnpkg.com/@expo/config-plugins/-/config-plugins-6.0.1.tgz#827cb34c51f725d8825b0768df6550c1cf81d457"
     integrity sha512-6mqZutxeibXFeqFfoZApFUEH2n1RxGXYMHCdJrDj4eXDBBFZ3aJ0XBoroZcHHHvfRieEsf54vNyJoWp7JZGj8g==
@@ -3147,6 +3169,11 @@ Lockfile:
     integrity sha512-Sig0SNORX9fdW+bQuTEovKj3uHcUL6LQKbCrrqb1X7J6/ReAbhCXRAhc+SMejhLELFj2QcyuxmUooZ4bt5ReSw==
     dependencies:
       "@types/node" "*"
+  
+  "@types/hammerjs@^2.0.36":
+    version "2.0.41"
+    resolved "https://registry.yarnpkg.com/@types/hammerjs/-/hammerjs-2.0.41.tgz#f6ecf57d1b12d2befcce00e928a6a097c22980aa"
+    integrity sha512-ewXv/ceBaJprikMcxCmWU1FKyMAQ2X7a9Gtmzw8fcg2kIePI1crERDM818W+XYrxqdBBOdlf2rm137bU+BltCA==
   
   "@types/istanbul-lib-coverage@*", "@types/istanbul-lib-coverage@^2.0.0", "@types/istanbul-lib-coverage@^2.0.1":
     version "2.0.4"
@@ -5861,6 +5888,11 @@ Lockfile:
       invariant "^2.2.4"
       qs "^6.11.0"
   
+  expo-blur@^12.3.0:
+    version "12.3.0"
+    resolved "https://registry.yarnpkg.com/expo-blur/-/expo-blur-12.3.0.tgz#883907bd2bb2ac3aed15be701d3c8f98570d51d7"
+    integrity sha512-MwnLi57f7xpjwj/mG8CW40MJ6u81WW7HDEorIzYcvABO4+J+guO6P6e8uiWiYUdwomOzJzj25iMLiml6vJdISA==
+  
   expo-constants@~14.2.0, expo-constants@~14.2.1:
     version "14.2.1"
     resolved "https://registry.yarnpkg.com/expo-constants/-/expo-constants-14.2.1.tgz#b5b6b8079d2082c31ccf2cbc7cf97a0e83c229c3"
@@ -5944,10 +5976,10 @@ Lockfile:
       find-up "^5.0.0"
       fs-extra "^9.1.0"
   
-  expo-modules-core@1.2.6:
-    version "1.2.6"
-    resolved "https://registry.yarnpkg.com/expo-modules-core/-/expo-modules-core-1.2.6.tgz#921abc8031fe0e5474ee48905071902b9627d051"
-    integrity sha512-vyleKepkP8F6L+D55B/E4FbZ8x9pdy3yw/mdbGBkDkrmo2gmeMjOM1mKLSszOkLIqet05O7Wy8m0FZHZTo0VBg==
+  expo-modules-core@1.2.7:
+    version "1.2.7"
+    resolved "https://registry.yarnpkg.com/expo-modules-core/-/expo-modules-core-1.2.7.tgz#c80627b13a8f1c94ae9da8eea41e1ef1df5788c8"
+    integrity sha512-sulqn2M8+tIdxi6QFkKppDEzbePAscgE2LEHocYoQOgHxJpeT7axE0Hkzc+81EeviQilZzGeFZMtNMGh3c9yJg==
     dependencies:
       compare-versions "^3.4.0"
       invariant "^2.2.4"
@@ -6034,15 +6066,15 @@ Lockfile:
       compare-urls "^2.0.0"
       url "^0.11.0"
   
-  expo@~48.0.15:
-    version "48.0.15"
-    resolved "https://registry.yarnpkg.com/expo/-/expo-48.0.15.tgz#28194c03ac85f7f5a87b7493b8cef0eb405eccbe"
-    integrity sha512-me2Xxr7Faxf60BiKq8WBSwkYV9BVbS+VqeHRFdXduVA0Uj2zp1a0zYB5eblmWqpRco75VBUgOa9M+/eR1YVZmw==
+  expo@~48.0.18:
+    version "48.0.18"
+    resolved "https://registry.yarnpkg.com/expo/-/expo-48.0.18.tgz#5df44c93c2e3ab95dd9f513cd7c9f6a5bf078241"
+    integrity sha512-mRsOQC3e+VhUKEaYJlvIDiqwaQtFEJv9JZZ8yRkofsj1y+9WoQFq5WN+w2sKg+aMvTE3ReNzhhwBM7QMVy5FrA==
     dependencies:
       "@babel/runtime" "^7.20.0"
-      "@expo/cli" "0.7.1"
+      "@expo/cli" "0.7.2"
       "@expo/config" "8.0.2"
-      "@expo/config-plugins" "6.0.1"
+      "@expo/config-plugins" "6.0.2"
       "@expo/vector-icons" "^13.0.0"
       babel-preset-expo "~9.3.2"
       cross-spawn "^6.0.5"
@@ -6053,7 +6085,7 @@ Lockfile:
       expo-font "~11.1.1"
       expo-keep-awake "~12.0.1"
       expo-modules-autolinking "1.2.0"
-      expo-modules-core "1.2.6"
+      expo-modules-core "1.2.7"
       fbemitter "^3.0.0"
       getenv "^1.0.0"
       invariant "^2.2.4"
@@ -6760,7 +6792,7 @@ Lockfile:
     dependencies:
       source-map "^0.7.3"
   
-  hoist-non-react-statics@^3.3.2:
+  hoist-non-react-statics@^3.3.0, hoist-non-react-statics@^3.3.2:
     version "3.3.2"
     resolved "https://registry.yarnpkg.com/hoist-non-react-statics/-/hoist-non-react-statics-3.3.2.tgz#ece0acaf71d62c2969c2ec59feff42a4b1a85b45"
     integrity sha512-/gGivxi8JPKWNm/W0jSmzcMPpfpPLc3dY/6GxhX2hQ9iGj3aDfklV4ET7NjKpSinLpJ5vafa9iiGIEZg10SfBw==
@@ -9992,6 +10024,17 @@ Lockfile:
       base-64 "^0.1.0"
       utf8 "^3.0.0"
   
+  react-native-gesture-handler@^2.10.1:
+    version "2.10.1"
+    resolved "https://registry.yarnpkg.com/react-native-gesture-handler/-/react-native-gesture-handler-2.10.1.tgz#ca5f0f09bfa8d0560f492fc599fa64a64dcdd231"
+    integrity sha512-vDJx3KnheMLEPg35chQW6aiNGqfv3tmWGRRzmfVvqnvvIt5pNkxXe8+x7CYpfIAAnqNLaK1xiozvMkzZPRw1vw==
+    dependencies:
+      "@egjs/hammerjs" "^2.0.17"
+      hoist-non-react-statics "^3.3.0"
+      invariant "^2.2.4"
+      lodash "^4.17.21"
+      prop-types "^15.7.2"
+  
   react-native-get-random-values@^1.9.0:
     version "1.9.0"
     resolved "https://registry.yarnpkg.com/react-native-get-random-values/-/react-native-get-random-values-1.9.0.tgz#6cb30511c406922e75fe73833dc1812a85bfb37e"
@@ -9999,7 +10042,7 @@ Lockfile:
     dependencies:
       fast-base64-decode "^1.0.0"
   
-  react-native-gradle-plugin@^0.71.17:
+  react-native-gradle-plugin@^0.71.18:
     version "0.71.18"
     resolved "https://registry.yarnpkg.com/react-native-gradle-plugin/-/react-native-gradle-plugin-0.71.18.tgz#20ef199bc85be32e45bb6cc069ec2e7dcb1a74a6"
     integrity sha512-7F6bD7B8Xsn3JllxcwHhFcsl9aHIig47+3eN4IHFNqfLhZr++3ElDrcqfMzugM+niWbaMi7bJ0kAkAL8eCpdWg==
@@ -10019,7 +10062,7 @@ Lockfile:
     dependencies:
       prop-types "^15.7.2"
   
-  react-native-reanimated@^3.1.0:
+  react-native-reanimated@3.1.0:
     version "3.1.0"
     resolved "https://registry.yarnpkg.com/react-native-reanimated/-/react-native-reanimated-3.1.0.tgz#6fe757dadf06a59b365c1c0339e992751ab03792"
     integrity sha512-8YJR7yHnrqK6yKWzkGLVEawi1WZqJ9bGIehKEnE8zG58yLrSwUZe1T220XTbftpkA3r37Sy0kJJ/HOOiaIU+HQ==
@@ -10080,10 +10123,10 @@ Lockfile:
       escape-string-regexp "2.0.0"
       invariant "2.2.4"
   
-  react-native@0.71.7:
-    version "0.71.7"
-    resolved "https://registry.yarnpkg.com/react-native/-/react-native-0.71.7.tgz#d0ae409f6ee4fc7e7a876b4ca9d8d28934133228"
-    integrity sha512-Id6iRLS581fJMFGbBl1jP5uSmjExtGOvw5Gvh7694zISXjsRAsFMmU+izs0pyCLqDBoHK7y4BT7WGPGw693nYw==
+  react-native@0.71.8:
+    version "0.71.8"
+    resolved "https://registry.yarnpkg.com/react-native/-/react-native-0.71.8.tgz#4314145341c49448cf7465b93ced52a433a5e191"
+    integrity sha512-ftMAuhpgTkbHU9brrqsEyxcNrpYvXKeATY+if22Nfhhg1zW+6wn95w9otwTnA3xHkljPCbng8mUhmmERjGEl7g==
     dependencies:
       "@jest/create-cache-key-function" "^29.2.1"
       "@react-native-community/cli" "10.2.2"
@@ -10110,7 +10153,7 @@ Lockfile:
       promise "^8.3.0"
       react-devtools-core "^4.26.1"
       react-native-codegen "^0.71.5"
-      react-native-gradle-plugin "^0.71.17"
+      react-native-gradle-plugin "^0.71.18"
       react-refresh "^0.4.0"
       react-shallow-renderer "^16.15.0"
       regenerator-runtime "^0.13.2"
@@ -11782,7 +11825,7 @@ Lockfile:
     resolved "https://registry.yarnpkg.com/use-latest-callback/-/use-latest-callback-0.1.6.tgz#3fa6e7babbb5f9bfa24b5094b22939e1e92ebcf6"
     integrity sha512-VO/P91A/PmKH9bcN9a7O3duSuxe6M14ZoYXgA6a8dab8doWNdhiIHzEkX/jFeTTRBsX0Ubk6nG4q2NIjNsj+bg==
   
-  use-sync-external-store@^1.0.0, use-sync-external-store@^1.1.0:
+  use-sync-external-store@1.2.0, use-sync-external-store@^1.0.0, use-sync-external-store@^1.1.0:
     version "1.2.0"
     resolved "https://registry.yarnpkg.com/use-sync-external-store/-/use-sync-external-store-1.2.0.tgz#7dbefd6ef3fe4e767a0cf5d7287aacfb5846928a"
     integrity sha512-eEgnFxGQ1Ife9bzYs6VLi8/4X6CObHMw9Qr9tPY43iKwsPw8xE8+EFsf/2cFZ5S3esXgpWgtSCtLNS41F+sKPA==
@@ -12227,3 +12270,10 @@ Lockfile:
     version "0.8.15"
     resolved "https://registry.yarnpkg.com/zen-observable/-/zen-observable-0.8.15.tgz#96415c512d8e3ffd920afd3889604e30b9eaac15"
     integrity sha512-PQ2PC7R9rslx84ndNBZB/Dkv8V8fZEpk83RLgXtYd0fwUgEjseMn1Dgajh2x6S8QbZAFa9p2qVCEuYZNgve0dQ==
+  
+  zustand@^4.3.8:
+    version "4.3.8"
+    resolved "https://registry.yarnpkg.com/zustand/-/zustand-4.3.8.tgz#37113df8e9e1421b0be1b2dca02b49b76210e7c4"
+    integrity sha512-4h28KCkHg5ii/wcFFJ5Fp+k1J3gJoasaIbppdgZFO4BPJnsNxL0mQXBSFgOgAdCdBj35aDTPvdAJReTMntFPGg==
+    dependencies:
+      use-sync-external-store "1.2.0"
