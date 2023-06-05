@@ -1,5 +1,7 @@
-import { Platform } from "react-native";
+import { Dimensions, Platform } from "react-native";
 import RNFS from "react-native-fs";
+
+const { width, height } = Dimensions.get("screen");
 
 export const constants = {
   apiBase:
@@ -11,4 +13,7 @@ export const constants = {
     ios: `${RNFS.DocumentDirectoryPath}/Documents`,
   }),
   POSTS_QUERY_LIMIT: 24,
+
+  SCREEN_WIDTH: width,
+  SCREEN_HEIGHT: height,
 };
