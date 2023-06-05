@@ -13,7 +13,6 @@ const PostFiles = ({ files, id }: PostFilesProps) => {
     <View className="mb-4">
       {files?.map((_file) => {
         const file = useFragment(File_Fragment, _file);
-        console.log("file id", file.id);
         return <File key={`post-files-${id}-${file?.id}`} file={file} />;
       })}
     </View>
