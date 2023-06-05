@@ -1,39 +1,54 @@
-import * as React from "react";
-import { Text, View, StyleSheet, TouchableOpacity } from "react-native";
-import {
-  Tag_Fragment,
-  postsQueryDocument,
-} from "../../../graphql/query/post/posts";
+import React from "react";
+
+import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { FragmentType, useFragment } from "../../../gql";
-import { useSearchStore } from "../../../stores/search";
-import { useQuery } from "@apollo/client";
-import { constants } from "../../../constants";
+import {
+  Catalog_Fragment,
+  Tag_Fragment,
+} from "../../../graphql/query/post/posts";
+import { useSearchStore } from "../../../stores/searchStore";
+import clsx from "clsx";
 
-type SearchTagProps = FragmentType<typeof Tag_Fragment>;
+type SearchTagProps = {
+  tag: FragmentType<typeof Tag_Fragment>;
+  active?: boolean;
+  scrollToStart?: () => void;
+};
 
-const SearchTag: React.FC<SearchTagProps> = (tag) => {
+const SearchTag: React.FC<SearchTagProps> = ({
+  active,
+  tag,
+  scrollToStart,
+}) => {
   const data = useFragment(Tag_Fragment, tag);
-  const { tags, setTags } = useSearchStore();
+  const catalog = useFragment(Catalog_Fragment, data?.catalog);
+  const { addTag, removeTag } = useSearchStore();
 
-  const { refetch } = useQuery(postsQueryDocument, {
-    variables: { input: { limit: constants.POSTS_QUERY_LIMIT } },
-  });
+  const handlePress = () => {
+    const tagId = data?.id;
+    if (active) removeTag(tagId);
+    else addTag(tagId);
+
+    if (scrollToStart) scrollToStart();
+  };
 
   return (
     <View style={styles.container}>
       <TouchableOpacity
-        onPress={async () => {
-          setTags(data?.id);
-          await refetch({
-            input: {
-              limit: constants.POSTS_QUERY_LIMIT,
-              tagIds: [...tags, data?.id],
-            },
-          });
-        }}
-        className="bg-indigo-100 text-indigo-800 text-xs font-medium mr-2 px-2.5 py-0.5 rounded"
+        onPress={handlePress}
+        className={clsx(
+          "bg-white mr-2 px-3 py-1.5 rounded-full",
+          active && "bg-secondary"
+        )}
       >
-        <Text>{data?.name}</Text>
+        <Text
+          className={clsx(
+            "text-[#171717] text-xs font-light",
+            active && "text-white"
+          )}
+        >
+          {catalog?.name && `${catalog?.name} : `} {data?.name}
+        </Text>
       </TouchableOpacity>
     </View>
   );

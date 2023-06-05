@@ -15,8 +15,8 @@ import { meQueryDocument } from "./query/user/me";
 import { refreshTokenMutationDocument } from "./mutation/user/refreshToken";
 import { createUploadLink } from "apollo-upload-client";
 
-// const BACKEND_URI = "http://localhost:4000/query";
-const BACKEND_URI = "http://192.168.100.7:4000/query";
+const BACKEND_URI = "http://localhost:4000/query";
+// const BACKEND_URI = "http://192.168.100.7:4000/query";
 async function refreshAuth() {
   const query = JSON.stringify({
     query: refreshTokenMutationDocument,
@@ -60,6 +60,7 @@ const authLink = setContext(async (_, { headers }) => {
     },
   };
 });
+
 const errorLink = onError(
   ({ graphQLErrors, networkError, operation, forward }) => {
     if (graphQLErrors) {
