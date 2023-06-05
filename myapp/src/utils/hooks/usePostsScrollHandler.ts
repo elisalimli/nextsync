@@ -7,8 +7,8 @@ import {
   withTiming,
 } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { HEADER_HEIGHT_EXPANDED } from "../../components/screens/Home/HomeHeader";
 import { clamp } from "../clamp";
+import { HEADER_HEIGHT_EXPANDED } from "../../animation/useAnimatedHeaderStyles";
 
 export const useScrollHandler = () => {
   const translationDiffY = useSharedValue(0);

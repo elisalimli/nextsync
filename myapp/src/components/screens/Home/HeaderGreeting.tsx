@@ -14,7 +14,7 @@ interface HeaderGreetingProps {
 
 const HeaderGreeting = ({ username, scrollY }: HeaderGreetingProps) => {
   const animatedTextStyles = useAnimatedStyle(() => {
-    const opacity = interpolate(scrollY.value, [0, 100], [1, 0], {
+    const opacity = interpolate(scrollY.value, [0, 20], [1, 0], {
       extrapolateLeft: Extrapolation.CLAMP,
       extrapolateRight: Extrapolation.CLAMP,
     });
@@ -23,6 +23,7 @@ const HeaderGreeting = ({ username, scrollY }: HeaderGreetingProps) => {
       opacity,
     };
   });
+
   return (
     <Animated.Text
       style={animatedTextStyles}

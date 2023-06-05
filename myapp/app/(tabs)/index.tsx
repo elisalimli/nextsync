@@ -3,9 +3,7 @@ import { StatusBar } from "expo-status-bar";
 import React from "react";
 import { Text, View } from "react-native";
 import ReAnimated from "react-native-reanimated";
-import HomeHeader, {
-  HEADER_HEIGHT_EXPANDED,
-} from "../../src/components/screens/Home/HomeHeader";
+import HomeHeader from "../../src/components/screens/Home/HomeHeader";
 import ListHeader from "../../src/components/screens/Home/LIstHeader";
 import Post from "../../src/components/screens/Home/Post";
 import { constants } from "../../src/constants";
@@ -16,6 +14,7 @@ import {
 } from "../../src/graphql/query/post/posts";
 import { useSearchStore } from "../../src/stores/search";
 import { useScrollHandler } from "../../src/utils/hooks/usePostsScrollHandler";
+import { HEADER_HEIGHT_EXPANDED } from "../../src/animation/useAnimatedHeaderStyles";
 
 const App = () => {
   const { tags } = useSearchStore();
