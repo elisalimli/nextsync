@@ -121,6 +121,11 @@ type ComplexityRoot struct {
 		URL         func(childComplexity int) int
 	}
 
+	PostsResponse struct {
+		HasMore func(childComplexity int) int
+		Posts   func(childComplexity int) int
+	}
+
 	Query struct {
 		Hello func(childComplexity int) int
 		Me    func(childComplexity int) int
@@ -165,7 +170,7 @@ type PostResolver interface {
 }
 type QueryResolver interface {
 	Users(ctx context.Context) ([]*models.User, error)
-	Posts(ctx context.Context, input models.PostsInput) ([]*models.Post, error)
+	Posts(ctx context.Context, input models.PostsInput) (*models.PostsResponse, error)
 	Tags(ctx context.Context) ([]*models.Tag, error)
 	Me(ctx context.Context) (*models.User, error)
 	Hello(ctx context.Context) (string, error)
@@ -516,6 +521,20 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.PostFile.URL(childComplexity), true
+
+	case "PostsResponse.hasMore":
+		if e.complexity.PostsResponse.HasMore == nil {
+			break
+		}
+
+		return e.complexity.PostsResponse.HasMore(childComplexity), true
+
+	case "PostsResponse.posts":
+		if e.complexity.PostsResponse.Posts == nil {
+			break
+		}
+
+		return e.complexity.PostsResponse.Posts(childComplexity), true
 
 	case "Query.hello":
 		if e.complexity.Query.Hello == nil {
@@ -2997,6 +3016,114 @@ func (ec *executionContext) fieldContext_PostFile_fileName(ctx context.Context, 
 	return fc, nil
 }
 
+func (ec *executionContext) _PostsResponse_hasMore(ctx context.Context, field graphql.CollectedField, obj *models.PostsResponse) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_PostsResponse_hasMore(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.HasMore, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_PostsResponse_hasMore(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "PostsResponse",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _PostsResponse_posts(ctx context.Context, field graphql.CollectedField, obj *models.PostsResponse) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_PostsResponse_posts(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Posts, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]*models.Post)
+	fc.Result = res
+	return ec.marshalNPost2ᚕᚖgithubᚗcomᚋelisalimliᚋgo_graphql_templateᚋgraphqlᚋmodelsᚐPostᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_PostsResponse_posts(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "PostsResponse",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_Post_id(ctx, field)
+			case "title":
+				return ec.fieldContext_Post_title(ctx, field)
+			case "description":
+				return ec.fieldContext_Post_description(ctx, field)
+			case "files":
+				return ec.fieldContext_Post_files(ctx, field)
+			case "tags":
+				return ec.fieldContext_Post_tags(ctx, field)
+			case "creator":
+				return ec.fieldContext_Post_creator(ctx, field)
+			case "userId":
+				return ec.fieldContext_Post_userId(ctx, field)
+			case "createdAt":
+				return ec.fieldContext_Post_createdAt(ctx, field)
+			case "updatedAt":
+				return ec.fieldContext_Post_updatedAt(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type Post", field.Name)
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Query_users(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Query_users(ctx, field)
 	if err != nil {
@@ -3083,9 +3210,9 @@ func (ec *executionContext) _Query_posts(ctx context.Context, field graphql.Coll
 		}
 		return graphql.Null
 	}
-	res := resTmp.([]*models.Post)
+	res := resTmp.(*models.PostsResponse)
 	fc.Result = res
-	return ec.marshalNPost2ᚕᚖgithubᚗcomᚋelisalimliᚋgo_graphql_templateᚋgraphqlᚋmodelsᚐPostᚄ(ctx, field.Selections, res)
+	return ec.marshalNPostsResponse2ᚖgithubᚗcomᚋelisalimliᚋgo_graphql_templateᚋgraphqlᚋmodelsᚐPostsResponse(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Query_posts(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -3096,26 +3223,12 @@ func (ec *executionContext) fieldContext_Query_posts(ctx context.Context, field 
 		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
-			case "id":
-				return ec.fieldContext_Post_id(ctx, field)
-			case "title":
-				return ec.fieldContext_Post_title(ctx, field)
-			case "description":
-				return ec.fieldContext_Post_description(ctx, field)
-			case "files":
-				return ec.fieldContext_Post_files(ctx, field)
-			case "tags":
-				return ec.fieldContext_Post_tags(ctx, field)
-			case "creator":
-				return ec.fieldContext_Post_creator(ctx, field)
-			case "userId":
-				return ec.fieldContext_Post_userId(ctx, field)
-			case "createdAt":
-				return ec.fieldContext_Post_createdAt(ctx, field)
-			case "updatedAt":
-				return ec.fieldContext_Post_updatedAt(ctx, field)
+			case "hasMore":
+				return ec.fieldContext_PostsResponse_hasMore(ctx, field)
+			case "posts":
+				return ec.fieldContext_PostsResponse_posts(ctx, field)
 			}
-			return nil, fmt.Errorf("no field named %q was found under type Post", field.Name)
+			return nil, fmt.Errorf("no field named %q was found under type PostsResponse", field.Name)
 		},
 	}
 	defer func() {
@@ -3615,14 +3728,11 @@ func (ec *executionContext) _Tag_catalog(ctx context.Context, field graphql.Coll
 		return graphql.Null
 	}
 	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
 		return graphql.Null
 	}
 	res := resTmp.(*models.Catalog)
 	fc.Result = res
-	return ec.marshalNCatalog2ᚖgithubᚗcomᚋelisalimliᚋgo_graphql_templateᚋgraphqlᚋmodelsᚐCatalog(ctx, field.Selections, res)
+	return ec.marshalOCatalog2ᚖgithubᚗcomᚋelisalimliᚋgo_graphql_templateᚋgraphqlᚋmodelsᚐCatalog(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Tag_catalog(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -6643,6 +6753,41 @@ func (ec *executionContext) _PostFile(ctx context.Context, sel ast.SelectionSet,
 	return out
 }
 
+var postsResponseImplementors = []string{"PostsResponse"}
+
+func (ec *executionContext) _PostsResponse(ctx context.Context, sel ast.SelectionSet, obj *models.PostsResponse) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, postsResponseImplementors)
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("PostsResponse")
+		case "hasMore":
+
+			out.Values[i] = ec._PostsResponse_hasMore(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "posts":
+
+			out.Values[i] = ec._PostsResponse_posts(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
 var queryImplementors = []string{"Query"}
 
 func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) graphql.Marshaler {
@@ -6839,9 +6984,6 @@ func (ec *executionContext) _Tag(ctx context.Context, sel ast.SelectionSet, obj 
 
 			out.Values[i] = ec._Tag_catalog(ctx, field, obj)
 
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -7270,16 +7412,6 @@ func (ec *executionContext) marshalNBoolean2bool(ctx context.Context, sel ast.Se
 	return res
 }
 
-func (ec *executionContext) marshalNCatalog2ᚖgithubᚗcomᚋelisalimliᚋgo_graphql_templateᚋgraphqlᚋmodelsᚐCatalog(ctx context.Context, sel ast.SelectionSet, v *models.Catalog) graphql.Marshaler {
-	if v == nil {
-		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
-			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
-		}
-		return graphql.Null
-	}
-	return ec._Catalog(ctx, sel, v)
-}
-
 func (ec *executionContext) unmarshalNCreatePostInput2githubᚗcomᚋelisalimliᚋgo_graphql_templateᚋgraphqlᚋmodelsᚐCreatePostInput(ctx context.Context, v interface{}) (models.CreatePostInput, error) {
 	res, err := ec.unmarshalInputCreatePostInput(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
@@ -7464,6 +7596,20 @@ func (ec *executionContext) marshalNPostFile2ᚖgithubᚗcomᚋelisalimliᚋgo_g
 func (ec *executionContext) unmarshalNPostsInput2githubᚗcomᚋelisalimliᚋgo_graphql_templateᚋgraphqlᚋmodelsᚐPostsInput(ctx context.Context, v interface{}) (models.PostsInput, error) {
 	res, err := ec.unmarshalInputPostsInput(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNPostsResponse2githubᚗcomᚋelisalimliᚋgo_graphql_templateᚋgraphqlᚋmodelsᚐPostsResponse(ctx context.Context, sel ast.SelectionSet, v models.PostsResponse) graphql.Marshaler {
+	return ec._PostsResponse(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNPostsResponse2ᚖgithubᚗcomᚋelisalimliᚋgo_graphql_templateᚋgraphqlᚋmodelsᚐPostsResponse(ctx context.Context, sel ast.SelectionSet, v *models.PostsResponse) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._PostsResponse(ctx, sel, v)
 }
 
 func (ec *executionContext) unmarshalNRegisterInput2githubᚗcomᚋelisalimliᚋgo_graphql_templateᚋgraphqlᚋmodelsᚐRegisterInput(ctx context.Context, v interface{}) (models.RegisterInput, error) {
@@ -7991,6 +8137,13 @@ func (ec *executionContext) marshalOBoolean2ᚖbool(ctx context.Context, sel ast
 	}
 	res := graphql.MarshalBoolean(*v)
 	return res
+}
+
+func (ec *executionContext) marshalOCatalog2ᚖgithubᚗcomᚋelisalimliᚋgo_graphql_templateᚋgraphqlᚋmodelsᚐCatalog(ctx context.Context, sel ast.SelectionSet, v *models.Catalog) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._Catalog(ctx, sel, v)
 }
 
 func (ec *executionContext) marshalOFieldError2ᚕᚖgithubᚗcomᚋelisalimliᚋgo_graphql_templateᚋvalidatorᚐFieldError(ctx context.Context, sel ast.SelectionSet, v []*validator.FieldError) graphql.Marshaler {

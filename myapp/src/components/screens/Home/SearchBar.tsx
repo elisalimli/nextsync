@@ -80,7 +80,12 @@ const SearchBar = ({ translateSearch, tagsHeight }: SearchBarProps) => {
           showsHorizontalScrollIndicator={false}
         >
           {activeTagItems.map((tag: any) => (
-            <SearchTag active key={`search-tag-${tag?.id}`} tag={tag} />
+            <SearchTag
+              scrollToStart={scrollToStart}
+              active
+              key={`search-tag-${tag?.id}`}
+              tag={tag}
+            />
           ))}
           {inactiveTagItems.map((tag: any) => (
             <SearchTag

@@ -12,7 +12,7 @@ export const constants = {
     android: `${RNFS.ExternalStorageDirectoryPath}/Download/nextsync`,
     ios: `${RNFS.DocumentDirectoryPath}/Documents`,
   }),
-  POSTS_QUERY_LIMIT: 24,
+  POSTS_QUERY_LIMIT: 12,
 
   SCREEN_WIDTH: width,
   SCREEN_HEIGHT: height,

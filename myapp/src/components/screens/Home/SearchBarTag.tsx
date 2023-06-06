@@ -12,7 +12,7 @@ import clsx from "clsx";
 type SearchTagProps = {
   tag: FragmentType<typeof Tag_Fragment>;
   active?: boolean;
-  scrollToStart?: () => void;
+  scrollToStart: () => void;
 };
 
 const SearchTag: React.FC<SearchTagProps> = ({
@@ -29,7 +29,7 @@ const SearchTag: React.FC<SearchTagProps> = ({
     if (active) removeTag(tagId);
     else addTag(tagId);
 
-    if (scrollToStart) scrollToStart();
+    if (!active) scrollToStart();
   };
 
   return (
