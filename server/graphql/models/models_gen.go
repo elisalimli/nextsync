@@ -91,9 +91,10 @@ type LoginInput struct {
 }
 
 type PostsInput struct {
-	Cursor *string  `json:"cursor,omitempty"`
-	Limit  *int     `json:"limit,omitempty"`
-	TagIds []string `json:"tagIds,omitempty"`
+	Cursor      *string  `json:"cursor,omitempty"`
+	Limit       *int     `json:"limit,omitempty"`
+	SearchQuery *string  `json:"searchQuery,omitempty"`
+	TagIds      []string `json:"tagIds,omitempty"`
 }
 
 type PostsResponse struct {

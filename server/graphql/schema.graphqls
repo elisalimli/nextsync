@@ -147,6 +147,7 @@ input VerifyOtpInput {
 input PostsInput {
   cursor: String
   limit: Int
+  searchQuery: String
   tagIds: [String!]
 }
 
