@@ -46,7 +46,7 @@ const App = () => {
             tagIds: activeTagIds,
           },
         });
-        //scrolling to top when we refetch data
+        // scrolling to top when data refetched
         if (flatListRef?.current)
           flatListRef.current.scrollToOffset({ animated: true, offset: 10 });
       })();

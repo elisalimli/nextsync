@@ -10,6 +10,7 @@ type Post struct {
 	Id          string `bun:"type:uuid,default:uuid_generate_v4(),pk"`
 	Title       string
 	Description *string
+	Rank        *float64
 	UserId      string     `bun:"user_id,type:uuid,notnull"`
 	Creator     *User      `bun:"rel:belongs-to,join:user_id=id"`
 	CreatedAt   *time.Time `bun:"created_at"`

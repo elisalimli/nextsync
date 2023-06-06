@@ -5968,7 +5968,7 @@ func (ec *executionContext) unmarshalInputPostsInput(ctx context.Context, obj in
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"cursor", "limit", "tagIds"}
+	fieldsInOrder := [...]string{"cursor", "limit", "searchQuery", "tagIds"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -5988,6 +5988,14 @@ func (ec *executionContext) unmarshalInputPostsInput(ctx context.Context, obj in
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("limit"))
 			it.Limit, err = ec.unmarshalOInt2ᚖint(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "searchQuery":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("searchQuery"))
+			it.SearchQuery, err = ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
 				return it, err
 			}

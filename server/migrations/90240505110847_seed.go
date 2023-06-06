@@ -99,7 +99,7 @@ func init() {
 				UserId:      user.Id,
 			}
 			ctx := context.Background()
-			_, err = initializers.DB.NewInsert().Model(&post).Returning("*").Exec(ctx)
+			_, err = initializers.DB.NewInsert().Model(&post).Returning("id").Exec(ctx)
 
 			if err != nil {
 				fmt.Println("Error occured", err)
