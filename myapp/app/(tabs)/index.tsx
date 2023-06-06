@@ -1,8 +1,8 @@
 import { useQuery } from "@apollo/client";
 import { StatusBar } from "expo-status-bar";
-import React, { useEffect, useState } from "react";
-import { Text, View } from "react-native";
-import ReAnimated from "react-native-reanimated";
+import React, { useEffect, useRef, useState } from "react";
+import { FlatList, Text, View } from "react-native";
+import Animated from "react-native-reanimated";
 import HomeHeader from "../../src/components/screens/Home/HomeHeader";
 import ListHeader from "../../src/components/screens/Home/LIstHeader";
 import Post from "../../src/components/screens/Home/Post";
@@ -19,6 +19,7 @@ import { HEADER_HEIGHT_EXPANDED } from "../../src/animation/useAnimatedHeaderSty
 const App = () => {
   const { activeTagIds } = useSearchStore();
   const [isFilterTagsCalled, setFilterTagsCalled] = useState(false);
+  const flatListRef = useRef<FlatList>(null);
 
   const {
     translationY,
@@ -38,18 +39,21 @@ const App = () => {
   useEffect(() => {
     // filtering posts when tags changed
     if (activeTagIds?.length || isFilterTagsCalled) {
-      refetch({
-        input: {
-          limit: constants.POSTS_QUERY_LIMIT,
-          tagIds: activeTagIds,
-        },
-      });
+      (async () => {
+        await refetch({
+          input: {
+            limit: constants.POSTS_QUERY_LIMIT,
+            tagIds: activeTagIds,
+          },
+        });
+        //scrolling to top when we refetch data
+        if (flatListRef?.current)
+          flatListRef.current.scrollToOffset({ animated: true, offset: 10 });
+      })();
     } else setFilterTagsCalled(true);
   }, [activeTagIds?.length]);
 
   const handleEndReached = async () => {
-    console.log("hasMOre", data?.posts?.hasMore);
-    // if (data?.posts?.posts?.length)
     if (data?.posts?.hasMore && data?.posts?.posts) {
       const lastPost = useFragment(
         Post_Fragment,
@@ -89,7 +93,8 @@ const App = () => {
 
       <View className="flex-1">
         {data?.posts?.posts && data?.posts?.posts?.length > 0 && !loading ? (
-          <ReAnimated.FlatList
+          <Animated.FlatList
+            ref={flatListRef as any}
             onScroll={scrollHandler}
             scrollEventThrottle={16}
             // contentContainerStyle={{ paddingTop: 200 }}
