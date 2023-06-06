@@ -96,6 +96,11 @@ type PostsInput struct {
 	TagIds []string `json:"tagIds,omitempty"`
 }
 
+type PostsResponse struct {
+	HasMore bool    `json:"hasMore"`
+	Posts   []*Post `json:"posts"`
+}
+
 type RegisterInput struct {
 	Username        string `json:"username"`
 	Email           string `json:"email"`

@@ -5,6 +5,7 @@ import {
   ApolloLink,
   InMemoryCache,
   createHttpLink,
+  from,
   fromPromise,
   useMutation,
 } from "@apollo/client";
@@ -14,9 +15,16 @@ import { onError } from "@apollo/client/link/error";
 import { meQueryDocument } from "./query/user/me";
 import { refreshTokenMutationDocument } from "./mutation/user/refreshToken";
 import { createUploadLink } from "apollo-upload-client";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import {
+  AsyncStorageWrapper,
+  CachePersistor,
+  persistCache,
+} from "apollo3-cache-persist";
+import { useState, useEffect } from "react";
 
-const BACKEND_URI = "http://localhost:4000/query";
-// const BACKEND_URI = "http://192.168.100.7:4000/query";
+// const BACKEND_URI = "http://localhost:4000/query";
+const BACKEND_URI = "http://192.168.100.7:4000/query";
 async function refreshAuth() {
   const query = JSON.stringify({
     query: refreshTokenMutationDocument,
@@ -88,30 +96,65 @@ const errorLink = onError(
   }
 );
 
-export const client = new ApolloClient({
-  // link: ApolloLink.from([errorLink, authLink, httpLink, uploadLink]),
-  link: ApolloLink.from([errorLink, authLink, uploadLink as any]),
+const cache = new InMemoryCache({
+  typePolicies: {
+    Query: {
+      fields: {
+        posts: {
+          keyArgs: ["tagIds"],
 
-  cache: new InMemoryCache({
-    typePolicies: {
-      Query: {
-        fields: {
-          posts: {
-            keyArgs: ["tagIds"],
-
-            merge(existing, incoming) {
-              // return  incoming;
-              return [...(existing || []), ...incoming];
-            },
-
-            // If you always want to return the whole list, you can omit
-            // this read function.
-            read(existing) {
-              return existing;
-            },
+          merge(existing, incoming) {
+            // return  incoming;
+            return {
+              __typename: "PostsResponse",
+              hasMore: incoming?.hasMore,
+              // posts: [...incoming?.posts],
+              posts: [...(existing?.posts || []), ...incoming?.posts],
+            };
+            // return
           },
+
+          // // If you always want to return the whole list, you can omit
+          // // this read function.
+          // read(existing) {
+          //   console.log("read existing", existing);
+
+          //   return existing;
+          // },
         },
       },
     },
-  }),
+  },
 });
+
+const persistor = new CachePersistor({
+  cache,
+  storage: new AsyncStorageWrapper(AsyncStorage),
+});
+
+export const useInitializeClient = () => {
+  const [client, setClient] = useState<ApolloClient<any>>();
+  useEffect(() => {
+    async function initializeCache() {
+      await persistor.restore();
+      const client = new ApolloClient({
+        // link: ApolloLink.from([errorLink, authLink, httpLink, uploadLink]),
+
+        link: ApolloLink.from([errorLink, authLink, uploadLink as any]),
+
+        cache,
+        // defaultOptions: {
+        //   watchQuery: {
+        // fetchPolicy: "cache-and-network",
+        //   },
+        // },
+      });
+      client.onClearStore(async () => {
+        await persistor.purge();
+      });
+      setClient(client);
+    }
+    initializeCache();
+  }, []);
+  return client;
+};

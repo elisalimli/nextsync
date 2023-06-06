@@ -9,7 +9,7 @@ export { ErrorBoundary } from "expo-router";
 
 import { ApolloProvider } from "@apollo/client";
 import RNFS from "react-native-fs";
-import { client } from "../src/graphql/client";
+import { useInitializeClient } from "../src/graphql/client";
 import { constants } from "../src/constants";
 
 export const unstable_settings = {
@@ -53,6 +53,10 @@ export default function RootLayout() {
 function RootLayoutNav() {
   const colorScheme = useColorScheme();
   const router = useRouter();
+  const client = useInitializeClient();
+  if (!client) {
+    return <SplashScreen />;
+  }
   return (
     <>
       <ApolloProvider client={client}>

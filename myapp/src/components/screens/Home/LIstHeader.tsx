@@ -26,7 +26,7 @@ function ListHeader() {
   };
 
   return (
-    <View>
+    <View className="px-2">
       <TouchableOpacity onPress={handleLogout}>
         <Text>Logout</Text>
       </TouchableOpacity>

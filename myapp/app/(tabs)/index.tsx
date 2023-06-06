@@ -28,7 +28,7 @@ const App = () => {
     scrollHandler,
   } = useScrollHandler();
 
-  const { data, loading, error, fetchMore, refetch, called } = useQuery(
+  const { data, loading, error, fetchMore, refetch } = useQuery(
     postsQueryDocument,
     {
       variables: { input: { limit: constants.POSTS_QUERY_LIMIT } },
@@ -48,17 +48,23 @@ const App = () => {
   }, [activeTagIds?.length]);
 
   const handleEndReached = async () => {
-    const posts = useFragment(Post_Fragment, data?.posts);
-    if (posts?.length)
+    console.log("hasMOre", data?.posts?.hasMore);
+    // if (data?.posts?.posts?.length)
+    if (data?.posts?.hasMore && data?.posts?.posts) {
+      const lastPost = useFragment(
+        Post_Fragment,
+        data.posts.posts[data.posts.posts.length - 1]
+      );
       await fetchMore({
         variables: {
           input: {
-            cursor: posts[posts?.length - 1].createdAt,
+            cursor: lastPost!.createdAt,
             limit: constants.POSTS_QUERY_LIMIT,
             tagIds: activeTagIds,
           },
         },
       });
+    }
   };
 
   if (error) {
@@ -82,20 +88,20 @@ const App = () => {
       />
 
       <View className="flex-1">
-        {data!.posts!.length > 0 && !loading ? (
+        {data?.posts?.posts && data?.posts?.posts?.length > 0 && !loading ? (
           <ReAnimated.FlatList
             onScroll={scrollHandler}
             scrollEventThrottle={16}
             // contentContainerStyle={{ paddingTop: 200 }}
-            // ListHeaderComponent={ListHeader}
+            ListHeaderComponent={ListHeader}
             onEndReached={handleEndReached}
-            // ListFooterComponent={() => {
-            //   return (
-            //     <Text style={{ paddingBottom: HEADER_HEIGHT_EXPANDED + 20 }}>
-            //       loading..
-            //     </Text>
-            //   );
-            // }}
+            ListFooterComponent={() => {
+              return data?.posts?.hasMore ? (
+                <Text style={{ paddingBottom: HEADER_HEIGHT_EXPANDED + 20 }}>
+                  loading..
+                </Text>
+              ) : null;
+            }}
             onEndReachedThreshold={0.5}
             style={[
               {
@@ -104,14 +110,14 @@ const App = () => {
               animatedHeaderStyles,
             ]}
             // data={data?.posts}
-            data={data?.posts}
+            data={data?.posts?.posts}
             // renderItem={({ item }) => <Post {...item} />}
             renderItem={({ item }) => <Post {...item} />}
             keyExtractor={(item: any) => item?.id}
           />
         ) : (
           <View
-            className="justify-center items-center"
+            className="justify-center items-center flex-1"
             style={{ paddingTop: HEADER_HEIGHT_EXPANDED }}
           >
             <Text className="text-red-500">

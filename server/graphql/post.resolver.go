@@ -55,7 +55,7 @@ func (m *mutationResolver) CreatePost(ctx context.Context, input models.CreatePo
 	}
 	return m.Domain.CreatePost(ctx, input)
 }
-func (r *queryResolver) Posts(ctx context.Context, input models.PostsInput) ([]*models.Post, error) {
+func (r *queryResolver) Posts(ctx context.Context, input models.PostsInput) (*models.PostsResponse, error) {
 	fmt.Println("posts query trigged!!")
 	realLimitPlusOne := *input.Limit + 1
 	posts := make([]*models.Post, 0)
@@ -95,6 +95,12 @@ func (r *queryResolver) Posts(ctx context.Context, input models.PostsInput) ([]*
 		return nil, errors.New(domain.ErrSomethingWentWrong)
 	}
 
+	hasMore := len(posts) == realLimitPlusOne
+	fmt.Println("has more ", hasMore, len(posts), realLimitPlusOne)
+	if hasMore {
+		posts = posts[:len(posts)-1]
+	}
+
 	// TODO: slice array has more
-	return posts, nil
+	return &models.PostsResponse{HasMore: hasMore, Posts: posts}, nil
 }

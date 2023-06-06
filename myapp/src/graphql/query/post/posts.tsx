@@ -51,7 +51,10 @@ export const Post_Fragment = graphql(/* GraphQL */ `
 export const postsQueryDocument = graphql(`
   query Posts($input: PostsInput!) {
     posts(input: $input) {
-      ...Post_Fragment
+      hasMore
+      posts {
+        ...Post_Fragment
+      }
     }
   }
 `);
