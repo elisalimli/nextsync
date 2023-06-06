@@ -59,19 +59,19 @@ func (r *queryResolver) Posts(ctx context.Context, input models.PostsInput) (*mo
 	fmt.Println("posts query trigged!!")
 	realLimitPlusOne := *input.Limit + 1
 	posts := make([]*models.Post, 0)
-	q := r.Domain.PostsRepo.DB.NewSelect().Model(&posts).ColumnExpr("post.id, post.title, post.description").
+	q := r.Domain.PostsRepo.DB.NewSelect().Model(&posts).
+		ColumnExpr("post.id, post.title, post.description, post.user_id, post.created_at, post.updated_at").
 		ColumnExpr(`json_agg(json_build_object(
 			'id', t.id,
 			'name', t.name,
 			'code', t.code,
 			'catalog', json_build_object('id', c.id,'name', c.name,'code', c.code)
 			)) AS tags`).
-		ColumnExpr(`ts_rank(search, websearch_to_tsquery ('turkish', 'blok 4 cu qrup')) AS rank`).
 		Join("LEFT JOIN post_tags pt ON post.id = pt.post_id").
 		Join("LEFT JOIN tags t ON t.id = pt.tag_id").
 		Join("LEFT JOIN catalogs c ON t.catalog_id = c.id").
 		GroupExpr(`post.id, post.title, post.description`).
-		Order(`rank DESC`, `post.created_at DESC`).
+		Order(`post.created_at DESC`).
 		Limit(realLimitPlusOne)
 
 	if input.Cursor != nil {
@@ -90,8 +90,9 @@ func (r *queryResolver) Posts(ctx context.Context, input models.PostsInput) (*mo
 	}
 
 	// searching posts
-	if len(*input.SearchQuery) > 0 {
-		q = q.Where(fmt.Sprintf("search @@ websearch_to_tsquery ('turkish', '%s')", *input.SearchQuery))
+	if input.SearchQuery != nil && len(*input.SearchQuery) > 0 {
+		q = q.ColumnExpr(`ts_rank(search, websearch_to_tsquery ('turkish', 'blok 4 cu qrup')) AS rank`).
+			Where(fmt.Sprintf("search @@ websearch_to_tsquery ('turkish', '%s')", *input.SearchQuery)).Order(`rank DESC`)
 	}
 
 	err := q.Scan(ctx)
@@ -106,7 +107,7 @@ func (r *queryResolver) Posts(ctx context.Context, input models.PostsInput) (*mo
 	if hasMore {
 		posts = posts[:len(posts)-1]
 	}
-
+	fmt.Println("posts", posts[0])
 	// TODO: slice array has more
 	return &models.PostsResponse{HasMore: hasMore, Posts: posts}, nil
 }
