@@ -91,7 +91,7 @@ func (r *queryResolver) Posts(ctx context.Context, input models.PostsInput) (*mo
 
 	// searching posts
 	if input.SearchQuery != nil && len(*input.SearchQuery) > 0 {
-		q = q.ColumnExpr(`ts_rank(search, websearch_to_tsquery ('turkish', 'blok 4 cu qrup')) AS rank`).
+		q = q.ColumnExpr(fmt.Sprintf(`ts_rank(search, websearch_to_tsquery ('turkish', '%s')) AS rank`, *input.SearchQuery)).
 			Where(fmt.Sprintf("search @@ websearch_to_tsquery ('turkish', '%s')", *input.SearchQuery)).Order(`rank DESC`)
 	}
 
@@ -107,7 +107,7 @@ func (r *queryResolver) Posts(ctx context.Context, input models.PostsInput) (*mo
 	if hasMore {
 		posts = posts[:len(posts)-1]
 	}
-	fmt.Println("posts", posts[0])
-	// TODO: slice array has more
+
+	// TODO: lice array has more
 	return &models.PostsResponse{HasMore: hasMore, Posts: posts}, nil
 }

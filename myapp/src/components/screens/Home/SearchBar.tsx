@@ -18,6 +18,7 @@ import SearchTag from "./SearchBarTag";
 import { useSearchStore } from "../../../stores/searchStore";
 import { useFragment } from "../../../gql";
 import { Tag_Fragment } from "../../../graphql/query/post/posts";
+import SearchInput from "./SearchInput";
 
 interface SearchBarProps {
   translateSearch: SharedValue<number>;
@@ -58,10 +59,7 @@ const SearchBar = ({ translateSearch, tagsHeight }: SearchBarProps) => {
       <View className="my-4">
         <View className="flex-row flex-1 my-4">
           {/* Search Input */}
-          <TextInput
-            placeholder="type something.."
-            className="bg-white flex-1"
-          />
+          <SearchInput />
 
           {/* Cancel Button */}
           <TouchableOpacity
