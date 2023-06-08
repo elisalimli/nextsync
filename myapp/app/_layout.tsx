@@ -1,16 +1,15 @@
 import FontAwesome from "@expo/vector-icons/FontAwesome";
 import { useFonts } from "expo-font";
-import { SplashScreen, Stack, useRouter } from "expo-router";
+import { SplashScreen, Stack } from "expo-router";
 import React, { useEffect } from "react";
-import { useColorScheme } from "react-native";
 import { AuthProvider } from "../context/auth";
 
 export { ErrorBoundary } from "expo-router";
 
 import { ApolloProvider } from "@apollo/client";
 import RNFS from "react-native-fs";
-import { useInitializeClient } from "../src/graphql/client";
 import { constants } from "../src/constants";
+import { useApolloClient } from "../src/graphql/client";
 
 export const unstable_settings = {
   // Ensure that reloading on `/modal` keeps a back button present.
@@ -51,9 +50,7 @@ export default function RootLayout() {
 }
 
 function RootLayoutNav() {
-  const colorScheme = useColorScheme();
-  const router = useRouter();
-  const client = useInitializeClient();
+  const { client } = useApolloClient();
   if (!client) {
     return <SplashScreen />;
   }

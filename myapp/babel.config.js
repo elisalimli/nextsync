@@ -3,6 +3,7 @@ module.exports = function (api) {
   return {
     presets: ["babel-preset-expo"],
     plugins: [
+      ["relay", { artifactDirectory: "./src/__generated__" }],
       require.resolve("expo-router/babel"),
       "nativewind/babel",
       [

@@ -158,13 +158,14 @@ export type PostFile = {
 export type PostsInput = {
   cursor?: InputMaybe<Scalars['String']>;
   limit?: InputMaybe<Scalars['Int']>;
+  searchQuery?: InputMaybe<Scalars['String']>;
   tagIds?: InputMaybe<Array<Scalars['String']>>;
 };
 
 export type PostsResponse = {
   __typename?: 'PostsResponse';
   hasMore: Scalars['Boolean'];
-  posts?: Maybe<Array<Maybe<Post>>>;
+  posts: Array<Post>;
 };
 
 export type Query = {
@@ -300,10 +301,10 @@ export type PostsQueryVariables = Exact<{
 }>;
 
 
-export type PostsQuery = { __typename?: 'Query', posts: { __typename?: 'PostsResponse', hasMore: boolean, posts?: Array<(
+export type PostsQuery = { __typename?: 'Query', posts: { __typename?: 'PostsResponse', hasMore: boolean, posts: Array<(
       { __typename?: 'Post' }
       & { ' $fragmentRefs'?: { 'Post_FragmentFragment': Post_FragmentFragment } }
-    ) | null> | null } };
+    )> } };
 
 export type TagsQueryVariables = Exact<{ [key: string]: never; }>;
 
