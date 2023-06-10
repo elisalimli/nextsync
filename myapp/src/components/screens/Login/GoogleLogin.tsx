@@ -1,7 +1,7 @@
 import {
+  GOOGLE_ANDROID_CLIENT_ID,
   GOOGLE_IOS_CLIENT_ID,
   GOOGLE_WEB_CLIENT_ID,
-  GOOGLE_ANDROID_CLIENT_ID,
 } from "@env";
 import { useRouter } from "expo-router";
 import React, { useEffect } from "react";
@@ -10,31 +10,29 @@ import { useAuth } from "../../../../context/auth";
 import { saveAuthAccessToken } from "../../../auth/auth";
 import { googleLoginOrSignUpMutationDocument } from "../../../graphql/mutation/user/googleLoginOrSignup";
 
-import { useMutation } from "@apollo/client";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import * as Google from "expo-auth-session/providers/google";
 import * as WebBrowser from "expo-web-browser";
-import { updateMeCache } from "../../../graphql/updateMeCache";
 import { Text } from "../../Themed";
-import { useFragment } from "../../../gql";
-import { User_Fragment } from "../../../graphql/query/user/me";
-import { useSendOtp } from "./sendOtp";
-import { sendOtpMutation } from "../../../graphql/mutation/user/sendOtp";
+import { graphqlRequestClient } from "../../../graphql/requestClient";
 
 WebBrowser.maybeCompleteAuthSession();
 
 function GoogleLogin() {
+  const queryClient = useQueryClient();
   const router = useRouter();
-  const { token, setPhoneNumber } = useAuth();
+  const { token } = useAuth();
 
   const { setToken } = useAuth();
-  const [googleLoginOrSignUpMutate, { loading }] = useMutation(
-    googleLoginOrSignUpMutationDocument,
-    {
-      update(cache, { data }) {
-        updateMeCache(cache, data?.googleLoginOrSignUp?.user);
-      },
-    }
+
+  const mutation = useMutation(
+    () =>
+      graphqlRequestClient.request(googleLoginOrSignUpMutationDocument, {
+        input: { token },
+      }),
+    {}
   );
+
   const [_, response, promptAsync] = Google.useAuthRequest({
     androidClientId: GOOGLE_ANDROID_CLIENT_ID,
     expoClientId: GOOGLE_IOS_CLIENT_ID,
@@ -43,17 +41,15 @@ function GoogleLogin() {
   });
 
   useEffect(() => {
-    async function handleLogin(token: string) {
-      const res = await googleLoginOrSignUpMutate({
-        variables: {
-          input: { token },
-        },
-      });
-      const data = res?.data?.googleLoginOrSignUp;
+    async function handleLogin() {
+      const res = await mutation.mutateAsync();
+      const data = res?.googleLoginOrSignUp;
 
       // if response is ok, saving accessToken
       if (data?.ok && data?.authToken) {
         await saveAuthAccessToken(data?.authToken?.token);
+
+        queryClient.invalidateQueries({ queryKey: ["me"] });
       } else if (data?.ok && !data?.user) {
         // if user is not verified, we need to navigate the user to userDetails screen
         router.push("/userDetails");
@@ -62,12 +58,13 @@ function GoogleLogin() {
 
     if (response?.type === "success") {
       setToken(response?.authentication?.accessToken as string);
-      handleLogin(response?.authentication?.accessToken as string);
+      handleLogin();
     }
   }, [response]);
+
   return (
     <TouchableOpacity
-      disabled={loading}
+      disabled={mutation.isLoading}
       onPress={() => {
         promptAsync();
       }}

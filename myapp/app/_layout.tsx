@@ -6,10 +6,10 @@ import { AuthProvider } from "../context/auth";
 
 export { ErrorBoundary } from "expo-router";
 
-import { ApolloProvider } from "@apollo/client";
+import { PersistQueryClientProvider } from "@tanstack/react-query-persist-client";
 import RNFS from "react-native-fs";
 import { constants } from "../src/constants";
-import { useApolloClient } from "../src/graphql/client";
+import { asyncStoragePersister, queryClient } from "../src/graphql/client";
 
 export const unstable_settings = {
   // Ensure that reloading on `/modal` keeps a back button present.
@@ -50,24 +50,27 @@ export default function RootLayout() {
 }
 
 function RootLayoutNav() {
-  const { client } = useApolloClient();
-  if (!client) {
-    return <SplashScreen />;
-  }
   return (
-    <>
-      <ApolloProvider client={client}>
-        {/* <ThemeProvider */}
-        {/* value={colorScheme === "dark" ? DarkTheme : DefaultTheme} */}
-        {/* > */}
-        <AuthProvider>
-          <Stack screenOptions={{ headerShown: false }}>
-            <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-            <Stack.Screen name="modal" options={{ presentation: "modal" }} />
-          </Stack>
-        </AuthProvider>
-        {/* </ThemeProvider> */}
-      </ApolloProvider>
-    </>
+    <PersistQueryClientProvider
+      client={queryClient}
+      persistOptions={{
+        persister: asyncStoragePersister,
+        dehydrateOptions: {
+          shouldDehydrateQuery: (query) => !!query.state.data,
+        },
+      }}
+    >
+      {/* <ThemeProvider */}
+      {/* value={colorScheme === "dark" ? DarkTheme : DefaultTheme} */}
+
+      {/* > */}
+      <AuthProvider>
+        <Stack screenOptions={{ headerShown: false }}>
+          <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+          <Stack.Screen name="modal" options={{ presentation: "modal" }} />
+        </Stack>
+      </AuthProvider>
+      {/* </ThemeProvider> */}
+    </PersistQueryClientProvider>
   );
 }

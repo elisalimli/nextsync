@@ -1,4 +1,6 @@
-export const refreshTokenMutationDocument = `
+import { graphql } from "../../../gql";
+
+export const refreshTokenMutationDocument = graphql(`
   mutation RefreshToken {
     refreshToken {
       ok
@@ -12,4 +14,4 @@ export const refreshTokenMutationDocument = `
       }
     }
   }
-`;
+`);

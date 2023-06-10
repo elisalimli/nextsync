@@ -1,58 +1,50 @@
-import { useMutation } from "@apollo/client";
 import { ErrorMessage } from "@hookform/error-message";
+import { useMutation } from "@tanstack/react-query";
+import { useRouter } from "expo-router";
 import React from "react";
-import { useForm, FieldValues } from "react-hook-form";
+import { FieldValues, useForm } from "react-hook-form";
 import { SafeAreaView, Text, TouchableOpacity } from "react-native";
 import { useAuth } from "../../../../context/auth";
-import { useFragment } from "../../../gql";
+import { saveAuthAccessToken } from "../../../auth/auth";
 import {
   FieldError,
   GoogleLoginOrSignUpInput,
   SendOtpInput,
 } from "../../../gql/graphql";
 import { googleLoginOrSignUpMutationDocument } from "../../../graphql/mutation/user/googleLoginOrSignup";
-import { User_Fragment } from "../../../graphql/query/user/me";
 import Input from "../../Form/Input";
 import { setErrors } from "../../Form/setErrors";
-import { useSendOtp } from "./sendOtp";
-import { useRouter } from "expo-router";
-import { sendOtpMutation } from "../../../graphql/mutation/user/sendOtp";
-import { updateMeCache } from "../../../graphql/updateMeCache";
-import { saveAuthAccessToken } from "../../../auth/auth";
+import { graphqlRequestClient } from "../../../graphql/requestClient";
 
 const UserDetails = () => {
   const { token, setPhoneNumber } = useAuth();
   const router = useRouter();
 
-  const [sendOtpMutate] = useMutation(sendOtpMutation);
-
-  const [googleLoginOrSignUpMutate] = useMutation(
-    googleLoginOrSignUpMutationDocument,
-    {
-      update(cache, { data }) {
-        updateMeCache(cache, data?.googleLoginOrSignUp?.user);
-      },
-    }
-  );
   const {
     control,
     handleSubmit,
     setError,
     formState: { errors },
+    getValues,
   } = useForm<GoogleLoginOrSignUpInput & FieldValues>();
 
+  const mutation = useMutation(
+    () =>
+      graphqlRequestClient.request(googleLoginOrSignUpMutationDocument, {
+        input: {
+          token,
+          phoneNumber: getValues().phoneNumber,
+          username: getValues().username,
+        },
+      }),
+    {}
+  );
+
   const onSubmit = async (data: GoogleLoginOrSignUpInput & FieldValues) => {
-    const res = await googleLoginOrSignUpMutate({
-      variables: {
-        input: { ...data, token: token as string },
-      },
-    });
-    const resData = res?.data?.googleLoginOrSignUp;
+    const res = await mutation.mutateAsync();
+    const resData = res?.googleLoginOrSignUp;
     if (resData?.errors) {
-      setErrors<SendOtpInput>(
-        res!.data!.googleLoginOrSignUp!.errors as FieldError[],
-        setError
-      );
+      setErrors<SendOtpInput>(resData?.errors as FieldError[], setError);
     } else if (resData?.ok && resData?.authToken) {
       await saveAuthAccessToken(resData?.authToken?.token);
       router.replace("/");

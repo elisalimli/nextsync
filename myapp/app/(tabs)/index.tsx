@@ -1,27 +1,20 @@
-import { useQuery } from "@apollo/client";
 import { StatusBar } from "expo-status-bar";
-import React, { useEffect, useRef, useState } from "react";
+import React, { useRef } from "react";
 import { ActivityIndicator, FlatList, Text, View } from "react-native";
 import Animated from "react-native-reanimated";
+import { HEADER_HEIGHT_EXPANDED } from "../../src/animation/useAnimatedHeaderStyles";
 import HomeHeader from "../../src/components/screens/Home/HomeHeader";
+import HomeNoResults from "../../src/components/screens/Home/HomeNoResults";
 import ListHeader from "../../src/components/screens/Home/LIstHeader";
 import Post from "../../src/components/screens/Home/Post";
-import { constants } from "../../src/constants";
-import { useFragment } from "../../src/gql";
-import {
-  Post_Fragment,
-  postsQueryDocument,
-} from "../../src/graphql/query/post/posts";
-import { useSearchStore } from "../../src/stores/searchStore";
+import { useGetPosts } from "../../src/utils/hooks/useGetPosts";
 import { useScrollHandler } from "../../src/utils/hooks/usePostsScrollHandler";
-import { HEADER_HEIGHT_EXPANDED } from "../../src/animation/useAnimatedHeaderStyles";
-import { err } from "react-native-svg/lib/typescript/xml";
-import HomeNoResults from "../../src/components/screens/Home/HomeNoResults";
-const App = () => {
-  const { activeTagIds, loading: searchLoading } = useSearchStore();
-  const [isFilterTagsCalled, setFilterTagsCalled] = useState(false);
-  const flatListRef = useRef<FlatList>(null);
+import { useSearchPosts } from "../../src/utils/hooks/useSearchPosts";
 
+const App = () => {
+  const flatListRef = useRef<FlatList>(null);
+  const { allItems, lastPage, isLoading, error, refetch, handleOnEndReached } =
+    useGetPosts();
   const {
     translationY,
     translationDiffY,
@@ -30,60 +23,13 @@ const App = () => {
     scrollHandler,
   } = useScrollHandler();
 
-  const { data, loading, error, fetchMore, refetch } = useQuery(
-    postsQueryDocument,
-    {
-      variables: { input: { limit: constants.POSTS_QUERY_LIMIT } },
-    }
-  );
-
-  const isLoading = loading || searchLoading;
-
-  useEffect(() => {
-    // filtering posts when tags changed
-    if (activeTagIds?.length || isFilterTagsCalled) {
-      (async () => {
-        await refetch({
-          input: {
-            limit: constants.POSTS_QUERY_LIMIT,
-            tagIds: activeTagIds,
-          },
-        });
-        console.log("refetching");
-        // scrolling to top when data refetched
-        if (flatListRef?.current)
-          flatListRef.current.scrollToOffset({ animated: true, offset: 10 });
-      })();
-    } else setFilterTagsCalled(true);
-  }, [activeTagIds?.length]);
-
-  const handleEndReached = async () => {
-    if (data?.posts?.hasMore && data?.posts?.posts) {
-      const lastPost = useFragment(
-        Post_Fragment,
-        data.posts.posts[data.posts.posts.length - 1]
-      );
-      const cursor = lastPost!.createdAt;
-      await fetchMore({
-        variables: {
-          input: {
-            cursor,
-            limit: constants.POSTS_QUERY_LIMIT,
-            tagIds: activeTagIds,
-          },
-        },
-      });
-    }
-  };
-
+  useSearchPosts(refetch, flatListRef);
   let body = null;
 
   if (error) {
     console.log("error", error);
     body = <Text>Something went wrong while retrieving posts</Text>;
-  }
-
-  if (isLoading) {
+  } else if (isLoading) {
     body = (
       <View
         className="items-center flex-1"
@@ -94,42 +40,38 @@ const App = () => {
         <ActivityIndicator size="large" />
       </View>
     );
-  }
-  console.log(data?.posts?.posts?.length);
-  if (data?.posts?.posts && data?.posts?.posts?.length > 0 && !isLoading) {
+  } else if (lastPage?.posts?.posts?.length != 0 && !isLoading) {
     body = (
       // <Text>hello</Text>
       <Animated.FlatList
         ref={flatListRef as any}
         onScroll={scrollHandler}
         scrollEventThrottle={16}
-        contentContainerStyle={{ paddingTop: HEADER_HEIGHT_EXPANDED }}
+        // contentContainerStyle={{ paddingTop: HEADER_HEIGHT_EXPANDED }}
         ListHeaderComponent={ListHeader}
-        onEndReached={() => handleEndReached()}
+        onEndReached={handleOnEndReached}
         bounces={false}
         ListFooterComponent={() => {
-          return data?.posts?.hasMore && !error ? (
+          return lastPage?.posts?.hasMore ? (
             <ActivityIndicator className="my-4" size={"large"} />
           ) : null;
         }}
         onEndReachedThreshold={0.5}
         // onEndReachedThreshold={0.9}
-        // style={[
-        //   {
-        //     flexGrow: 1,
-        //   },
-        //   animatedHeaderStyles,
-        // ]}
+        style={[
+          {
+            flexGrow: 1,
+          },
+          animatedHeaderStyles,
+        ]}
         // data={data?.posts}
-        data={data?.posts?.posts}
+        data={allItems}
         // renderItem={({ item }) => <Post {...item} />}
         renderItem={({ item }) => <Post {...item} />}
         keyExtractor={(item: any) => item?.id}
       />
     );
-  }
-
-  if (data?.posts?.posts?.length === 0 && !isLoading) {
+  } else {
     body = <HomeNoResults />;
   }
 
@@ -145,9 +87,7 @@ const App = () => {
         className="bg-primary w-full z-20"
       />
 
-      <View style={{}} className="flex-1">
-        {body}
-      </View>
+      <View className="flex-1">{body}</View>
     </View>
   );
 };

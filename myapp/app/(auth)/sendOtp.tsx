@@ -1,4 +1,3 @@
-import { useMutation } from "@apollo/client";
 import { ErrorMessage } from "@hookform/error-message";
 import React, { useEffect } from "react";
 import { FieldValues, useForm } from "react-hook-form";
@@ -15,7 +14,7 @@ import { sendOtpMutation } from "../../src/graphql/mutation/user/sendOtp";
 import { useRouter } from "expo-router";
 
 const SendOtp = () => {
-  const [sendOtpMutate, { data }] = useMutation(sendOtpMutation);
+  // const [sendOtpMutate, { data }] = useMutation(sendOtpMutation);
   const router = useRouter();
   const {
     control,
@@ -25,18 +24,17 @@ const SendOtp = () => {
   } = useForm<SendOtpInput & FieldValues>();
 
   const onSubmit = async (data: SendOtpInput & FieldValues) => {
-    const response = await sendOtpMutate({ variables: { input: data } });
-    if (response?.data?.sendOtp?.errors) {
-      setErrors<SendOtpInput>(
-        response!.data!.sendOtp!.errors as FieldError[],
-        setError
-      );
-    }
-
-    // if response is ok, saving accessToken
-    if (response.data?.sendOtp.ok) {
-      router.push("/verifyOtp");
-    }
+    // const response = await sendOtpMutate({ variables: { input: data } });
+    // if (response?.data?.sendOtp?.errors) {
+    //   setErrors<SendOtpInput>(
+    //     response!.data!.sendOtp!.errors as FieldError[],
+    //     setError
+    //   );
+    // }
+    // // if response is ok, saving accessToken
+    // if (response.data?.sendOtp.ok) {
+    //   router.push("/verifyOtp");
+    // }
   };
 
   return (

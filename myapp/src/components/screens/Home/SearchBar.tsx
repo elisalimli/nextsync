@@ -1,4 +1,3 @@
-import { useQuery } from "@apollo/client";
 import * as React from "react";
 import {
   ScrollView,
@@ -19,6 +18,8 @@ import { useSearchStore } from "../../../stores/searchStore";
 import { useFragment } from "../../../gql";
 import { Tag_Fragment } from "../../../graphql/query/post/posts";
 import SearchInput from "./SearchInput";
+import { useQuery } from "@tanstack/react-query";
+import { graphqlRequestClient } from "../../../graphql/requestClient";
 
 interface SearchBarProps {
   translateSearch: SharedValue<number>;
@@ -26,17 +27,21 @@ interface SearchBarProps {
 }
 
 const SearchBar = ({ translateSearch, tagsHeight }: SearchBarProps) => {
-  const { data } = useQuery(tagsQueryDocument);
+  const { data } = useQuery({
+    queryKey: ["tags"],
+    queryFn: async () => graphqlRequestClient.request(tagsQueryDocument),
+    // networkMode: "offlineFirst",
+  });
   const tags = useFragment(Tag_Fragment, data?.tags) || [];
   const { activeTagIds } = useSearchStore();
 
   // Filter active tags
   const activeTagItems =
-    tags.filter((tag) => activeTagIds.includes(tag?.id)) || [];
+    tags.filter((tag) => (activeTagIds || []).includes(tag?.id)) || [];
 
   // Filter inactive tags
   const inactiveTagItems =
-    tags.filter((tag) => !activeTagIds.includes(tag?.id)) || [];
+    tags.filter((tag) => !(activeTagIds || []).includes(tag?.id)) || [];
 
   const searchBarAnimatedStyles = useAnimatedStyle(() => {
     return {
