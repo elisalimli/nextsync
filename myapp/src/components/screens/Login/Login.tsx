@@ -1,5 +1,5 @@
-import { useMutation } from "@apollo/client";
 import { ErrorMessage } from "@hookform/error-message";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import React from "react";
 import { FieldValues, useForm } from "react-hook-form";
 import { SafeAreaView, Text, TouchableOpacity } from "react-native";
@@ -9,35 +9,47 @@ import { loginMutationDocument } from "../../../graphql/mutation/user/login";
 import Input from "../../Form/Input";
 import { setErrors } from "../../Form/setErrors";
 import GoogleLogin from "./GoogleLogin";
-import { updateMeCache } from "../../../graphql/updateMeCache";
+import { graphqlRequestClient } from "../../../graphql/requestClient";
 
 const Login = () => {
+  const queryClient = useQueryClient();
   const {
     control,
     handleSubmit,
+    getValues,
     setError,
     formState: { errors },
   } = useForm<LoginInput & FieldValues>();
 
-  const [loginMutate, { loading }] = useMutation(loginMutationDocument, {
-    update(cache, { data }) {
-      updateMeCache(cache, data?.login?.user);
-    },
-  });
+  const mutation = useMutation(
+    () =>
+      graphqlRequestClient.request(loginMutationDocument, {
+        input: {
+          email: getValues().email,
+          password: getValues().password,
+        },
+      }),
+    {
+      onSuccess: async (data) => {
+        // Invalidate and refetch
+        if (data?.login?.ok && data?.login?.authToken) {
+          await saveAuthAccessToken(data?.login?.authToken?.token);
+          await queryClient.resetQueries();
+        }
+      },
+    }
+  );
 
   const onSubmit = async (data: LoginInput & FieldValues) => {
-    const response = await loginMutate({ variables: { input: data } });
+    const response = await mutation.mutateAsync();
     // setting errors
-    if (response?.data?.login?.errors) {
-      setErrors<LoginInput>(
-        response!.data!.login!.errors as FieldError[],
-        setError
-      );
+    if (response?.login?.errors) {
+      setErrors<LoginInput>(response!.login!.errors as FieldError[], setError);
     }
 
     // if response is ok, saving accessToken
-    if (response.data?.login.ok && response.data?.login?.authToken) {
-      await saveAuthAccessToken(response?.data?.login?.authToken?.token);
+    if (response.login.ok && response.login?.authToken) {
+      await saveAuthAccessToken(response?.login?.authToken?.token);
     }
   };
 
@@ -59,7 +71,10 @@ const Login = () => {
         name={"root.serverError"}
         render={({ message }) => <Text>{message}</Text>}
       />
-      <TouchableOpacity disabled={loading} onPress={handleSubmit(onSubmit)}>
+      <TouchableOpacity
+        disabled={mutation.isLoading}
+        onPress={handleSubmit(onSubmit)}
+      >
         <Text>Submit</Text>
       </TouchableOpacity>
       <GoogleLogin />

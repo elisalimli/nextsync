@@ -1,4 +1,3 @@
-import { useQuery } from "@apollo/client";
 import React from "react";
 import { StyleSheet } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -10,6 +9,8 @@ import { useAnimatedHeaderStyles } from "../../../animation/useAnimatedHeaderSty
 import HeaderGreeting from "./HeaderGreeting";
 import SearchBar from "./SearchBar";
 import HomeHeaderActions from "./HomeHeaderActions";
+import { useQuery } from "@tanstack/react-query";
+import { graphqlRequestClient } from "../../../graphql/requestClient";
 
 export interface HomeHeaderAnimatedProps {
   scrollY: SharedValue<number>;
@@ -18,10 +19,11 @@ export interface HomeHeaderAnimatedProps {
 type HomeHeaderProps = {} & HomeHeaderAnimatedProps;
 
 const HomeHeader = ({ scrollY, scrollDiffY }: HomeHeaderProps) => {
-  const { data } = useQuery(meQueryDocument, {
-    nextFetchPolicy: "cache-only", // Used for subsequent executions
+  const { data } = useQuery({
+    queryKey: ["me"],
+    queryFn: async () => graphqlRequestClient.request(meQueryDocument),
+    // networkMode: "offlineFirst",
   });
-
   const user = useFragment(User_Fragment, data?.me);
   const insets = useSafeAreaInsets();
   const { animatedHeaderStyles, tagsHeight, translateSearch } =

@@ -1,14 +1,11 @@
-import { useQuery } from "@apollo/client";
 import React, { useEffect } from "react";
 import { useController, useForm } from "react-hook-form";
 import { TextInput } from "react-native-gesture-handler";
-import { constants } from "../../../constants";
-import { postsQueryDocument } from "../../../graphql/query/post/posts";
-import { useDebounce } from "../../../utils/hooks/useDebounce";
 import { useSearchStore } from "../../../stores/searchStore";
+import { useDebounce } from "../../../utils/hooks/useDebounce";
 
 const SearchInput = () => {
-  const { setLoading } = useSearchStore();
+  const { setSearchQuery } = useSearchStore();
   const { control } = useForm();
   const { field } = useController({
     control,
@@ -17,23 +14,11 @@ const SearchInput = () => {
   });
   const debouncedValue = useDebounce<string>(field.value, 500);
 
-  const { refetch, loading } = useQuery(postsQueryDocument, {
-    variables: { input: { limit: constants.POSTS_QUERY_LIMIT } },
-    notifyOnNetworkStatusChange: true,
-    fetchPolicy: "cache-only",
-    nextFetchPolicy: "cache-first",
-  });
-
   useEffect(() => {
-    if (debouncedValue) {
-      refetch({
-        input: { limit: constants.POSTS_QUERY_LIMIT, searchQuery: field.value },
-      });
-      console.log("refetching");
-    }
+    setSearchQuery(debouncedValue);
   }, [debouncedValue]);
 
-  useEffect(() => setLoading(loading), [loading]);
+  // useEffect(() => setLoading(loading), [loading]);
 
   const handleChange = async (text: string) => field.onChange(text);
 

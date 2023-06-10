@@ -1,28 +1,28 @@
-import { useMutation } from "@apollo/client";
 import React from "react";
 import { View, TouchableOpacity, Text } from "react-native";
 import { clearAuthState } from "../../../auth/auth";
 import { logoutMutationDocument } from "../../../graphql/mutation/user/logout";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { graphqlRequestClient } from "../../../graphql/requestClient";
 
 function ListHeader() {
-  const [logout] = useMutation(logoutMutationDocument, {
-    update(cache) {
-      cache.modify({
-        fields: {
-          me() {
-            return null;
-          },
-        },
-      });
-    },
-  });
+  const queryClient = useQueryClient();
+  const mutation = useMutation(
+    () => graphqlRequestClient.request(logoutMutationDocument),
+    {
+      onSuccess: async (data) => {
+        if (data?.logout) {
+          await clearAuthState();
+          queryClient.resetQueries();
+        }
+      },
+    }
+  );
 
   const handleLogout = async () => {
-    const { data } = await logout({});
+    const data = await mutation.mutateAsync();
     // if logout is successful, we clear the auth state
-    if (data?.logout) {
-      await clearAuthState();
-    }
+    if (data?.logout) await clearAuthState();
   };
 
   return (

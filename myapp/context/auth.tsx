@@ -1,9 +1,9 @@
-import { useRouter, useSegments } from "expo-router";
+import { useQuery } from "@tanstack/react-query";
+import { SplashScreen, useRouter, useSegments } from "expo-router";
 import React from "react";
-import { User_Fragment, meQueryDocument } from "../src/graphql/query/user/me";
-import { User, User_FragmentFragment } from "../src/gql/graphql";
-import { FragmentType, useFragment } from "../src/gql";
-import { useQuery } from "@apollo/client";
+import { User_FragmentFragment } from "../src/gql/graphql";
+import { meQueryDocument } from "../src/graphql/query/user/me";
+import { graphqlRequestClient } from "../src/graphql/requestClient";
 
 interface AuthContextType {
   user: User_FragmentFragment | null;
@@ -27,24 +27,25 @@ export function useAuth() {
 }
 
 // This hook will protect the route access based on user authentication.
-function useProtectedRoute(user: User_FragmentFragment) {
+function useProtectedRoute(user: User_FragmentFragment, isLoading: boolean) {
   const segments = useSegments();
   const router = useRouter();
 
   React.useEffect(() => {
-    const inAuthGroup = segments[0] === "(auth)";
+    if (!isLoading) {
+      const inAuthGroup = segments[0] === "(auth)";
 
-    if (
-      // If the user is not signed in and the initial segment is not anything in the auth group.
-      !user &&
-      !inAuthGroup &&
-      segments[0] !== "[...missing]"
-    ) {
-      // Redirect to the sign-in page.
-      router.replace("/login");
-    } else if (user && inAuthGroup) {
-      // Redirect away from the sign-in page.
-      router.replace("/");
+      if (
+        // If the user is not signed in and the initial segment is not anything in the auth group.
+        !user &&
+        !inAuthGroup
+      ) {
+        // Redirect to the sign-in page.
+        router.replace("/login");
+      } else if (user && inAuthGroup) {
+        // Redirect away from the sign-in page.
+        router.replace("/");
+      }
     }
   }, [user, segments]);
 }
@@ -52,12 +53,18 @@ function useProtectedRoute(user: User_FragmentFragment) {
 export function AuthProvider(props: { children: React.ReactElement }) {
   const [token, setToken] = React.useState<string>("");
   const [phoneNumber, setPhoneNumber] = React.useState<string>("");
-  const { data } = useQuery(meQueryDocument, {
-    nextFetchPolicy: "cache-only", // Used for subsequent executions
-  });
-  useProtectedRoute(data?.me as any);
 
-  return (
+  const { isLoading, data } = useQuery({
+    queryKey: ["me"],
+    queryFn: async () => graphqlRequestClient.request(meQueryDocument),
+    retry: 1,
+    // networkMode: "offlineFirst",
+  });
+
+  useProtectedRoute(data?.me as any, isLoading);
+  return isLoading ? (
+    <SplashScreen />
+  ) : (
     <AuthContext.Provider
       value={{
         user: data?.me as User_FragmentFragment,
