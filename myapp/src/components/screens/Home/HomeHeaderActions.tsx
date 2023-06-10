@@ -2,8 +2,8 @@ import * as React from "react";
 import { Text, TouchableOpacity, View } from "react-native";
 import { SharedValue, withTiming } from "react-native-reanimated";
 import {
-  HEADER_TAGS_HEIGHT_EXPANDED,
   SEARCH_BAR_PADDING_HORIZONTAL,
+  TAGS_HEIGHT_EXPANDED,
 } from "../../../animation/useAnimatedHeaderStyles";
 
 interface HomeHeaderActionsProps {
@@ -24,7 +24,7 @@ const HomeHeaderActions = ({
       <Text className="text-white">NextSync</Text>
       <TouchableOpacity
         onPress={() => {
-          tagsHeight.value = withTiming(HEADER_TAGS_HEIGHT_EXPANDED);
+          tagsHeight.value = withTiming(TAGS_HEIGHT_EXPANDED);
           translateSearch.value = withTiming(SEARCH_BAR_PADDING_HORIZONTAL);
         }}
       >
