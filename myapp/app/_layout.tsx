@@ -10,6 +10,7 @@ import { PersistQueryClientProvider } from "@tanstack/react-query-persist-client
 import RNFS from "react-native-fs";
 import { constants } from "../src/constants";
 import { asyncStoragePersister, queryClient } from "../src/graphql/client";
+import { View } from "react-native";
 
 export const unstable_settings = {
   // Ensure that reloading on `/modal` keeps a back button present.

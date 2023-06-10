@@ -29,9 +29,6 @@ export const queryClient = new QueryClient({
         if (token) {
           await saveAuthAccessToken(token);
           queryClient.invalidateQueries({ queryKey: ["me"] });
-        } else {
-          // if could not get new access token, then reset cache
-          queryClient?.resetQueries();
         }
       }
     },
