@@ -47,7 +47,7 @@ const App = () => {
         ref={flatListRef as any}
         onScroll={scrollHandler}
         scrollEventThrottle={16}
-        // contentContainerStyle={{ paddingTop: HEADER_HEIGHT_EXPANDED }}
+        contentContainerStyle={{ paddingBottom: HEADER_HEIGHT_EXPANDED }}
         ListHeaderComponent={ListHeader}
         onEndReached={handleOnEndReached}
         bounces={false}
