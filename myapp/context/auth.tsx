@@ -4,6 +4,7 @@ import React from "react";
 import { User_FragmentFragment } from "../src/gql/graphql";
 import { meQueryDocument } from "../src/graphql/query/user/me";
 import { graphqlRequestClient } from "../src/graphql/requestClient";
+import { View } from "react-native";
 
 interface AuthContextType {
   user: User_FragmentFragment | null;
@@ -27,25 +28,23 @@ export function useAuth() {
 }
 
 // This hook will protect the route access based on user authentication.
-function useProtectedRoute(user: User_FragmentFragment, isLoading: boolean) {
+function useProtectedRoute(user: User_FragmentFragment) {
   const segments = useSegments();
   const router = useRouter();
 
   React.useEffect(() => {
-    if (!isLoading) {
-      const inAuthGroup = segments[0] === "(auth)";
+    const inAuthGroup = segments[0] === "(auth)";
 
-      if (
-        // If the user is not signed in and the initial segment is not anything in the auth group.
-        !user &&
-        !inAuthGroup
-      ) {
-        // Redirect to the sign-in page.
-        router.replace("/login");
-      } else if (user && inAuthGroup) {
-        // Redirect away from the sign-in page.
-        router.replace("/");
-      }
+    if (
+      // If the user is not signed in and the initial segment is not anything in the auth group.
+      !user &&
+      !inAuthGroup
+    ) {
+      // Redirect to the sign-in page.
+      router.replace("/login");
+    } else if (user && inAuthGroup) {
+      // Redirect away from the sign-in page.
+      router.replace("/");
     }
   }, [user, segments]);
 }
@@ -57,14 +56,22 @@ export function AuthProvider(props: { children: React.ReactElement }) {
   const { isLoading, data } = useQuery({
     queryKey: ["me"],
     queryFn: async () => graphqlRequestClient.request(meQueryDocument),
-    retry: 1,
+    retry: 0,
     // networkMode: "offlineFirst",
   });
 
-  useProtectedRoute(data?.me as any, isLoading);
-  return isLoading ? (
-    <SplashScreen />
-  ) : (
+  useProtectedRoute(data?.me as any);
+
+  if (isLoading) {
+    return (
+      <View>
+        <SplashScreen />
+        {props.children}
+      </View>
+    );
+  }
+
+  return (
     <AuthContext.Provider
       value={{
         user: data?.me as User_FragmentFragment,
