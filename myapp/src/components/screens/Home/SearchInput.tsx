@@ -22,7 +22,13 @@ const SearchInput = () => {
 
   const handleChange = async (text: string) => field.onChange(text);
 
-  return <TextInput className="bg-white flex-1" onChangeText={handleChange} />;
+  return (
+    <TextInput
+      placeholder="Nəsə axtarın."
+      className="bg-white flex-1 p-2 rounded-md"
+      onChangeText={handleChange}
+    />
+  );
 };
 
 export default SearchInput;

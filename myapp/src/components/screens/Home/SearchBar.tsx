@@ -20,6 +20,7 @@ import { Tag_Fragment } from "../../../graphql/query/post/posts";
 import SearchInput from "./SearchInput";
 import { useQuery } from "@tanstack/react-query";
 import { graphqlRequestClient } from "../../../graphql/requestClient";
+import { MaterialIcons } from "@expo/vector-icons";
 
 interface SearchBarProps {
   translateSearch: SharedValue<number>;
@@ -62,19 +63,23 @@ const SearchBar = ({ translateSearch, tagsHeight }: SearchBarProps) => {
       style={searchBarAnimatedStyles}
     >
       <View className="my-4">
-        <View className="flex-row flex-1 my-4">
+        <View className="flex-row justify-center items-center flex-1 w-full my-4">
           {/* Search Input */}
-          <SearchInput />
+          <View className="flex-[9]">
+            <SearchInput />
+          </View>
 
           {/* Cancel Button */}
-          <TouchableOpacity
-            onPress={() => {
-              tagsHeight.value = withTiming(0);
-              translateSearch.value = withTiming(constants.SCREEN_WIDTH);
-            }}
-          >
-            <Text>Cancel</Text>
-          </TouchableOpacity>
+          <View className="flex-[1] ml-1">
+            <TouchableOpacity
+              onPress={() => {
+                tagsHeight.value = withTiming(0);
+                translateSearch.value = withTiming(constants.SCREEN_WIDTH);
+              }}
+            >
+              <MaterialIcons name="cancel" size={24} color="white" />
+            </TouchableOpacity>
+          </View>
         </View>
         {/* Filter Tags */}
         <ScrollView
