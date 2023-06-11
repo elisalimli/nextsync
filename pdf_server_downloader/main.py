@@ -1,20 +1,12 @@
-import configparser
+
 import json
 import uuid
-import asyncio
-import pandas as pd
 import re
 import PyPDF2
 import pytesseract
-from PIL import Image
 from pdf2image import convert_from_path
-
 from telethon import TelegramClient
 from telethon.errors import SessionPasswordNeededError
-from telethon.tl.functions.channels import GetParticipantsRequest
-from telethon.tl.types import ChannelParticipantsSearch
-from telethon.tl.types import PeerChannel
-from telethon import functions, types
 import re
 import os
 
@@ -47,6 +39,7 @@ async def main(phone):
 
     data = []
     async for message in client.iter_messages("https://t.me/BirlikTeam1"):
+        print("message id : ",message.date)
         # if i < start_idx:
         # i += 1
         # continue

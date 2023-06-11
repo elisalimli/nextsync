@@ -1,0 +1,5 @@
+uuid
+PyPDF2
+pytesseract
+pdf2image
+telethon
