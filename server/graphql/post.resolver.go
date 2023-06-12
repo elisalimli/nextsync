@@ -6,11 +6,11 @@ import (
 	"fmt"
 
 	"github.com/99designs/gqlgen/graphql"
-	"github.com/elisalimli/go_graphql_template/domain"
-	"github.com/elisalimli/go_graphql_template/graphql/models"
-	customMiddleware "github.com/elisalimli/go_graphql_template/middleware"
-	"github.com/elisalimli/go_graphql_template/storage"
-	"github.com/elisalimli/go_graphql_template/validator"
+	"github.com/elisalimli/nextsync/server/domain"
+	"github.com/elisalimli/nextsync/server/graphql/models"
+	customMiddleware "github.com/elisalimli/nextsync/server/middleware"
+	"github.com/elisalimli/nextsync/server/storage"
+	"github.com/elisalimli/nextsync/server/validator"
 	"github.com/uptrace/bun"
 	"github.com/vektah/gqlparser/v2/gqlerror"
 )

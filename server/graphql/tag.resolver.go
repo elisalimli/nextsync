@@ -5,8 +5,8 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/elisalimli/go_graphql_template/domain"
-	"github.com/elisalimli/go_graphql_template/graphql/models"
+	"github.com/elisalimli/nextsync/server/domain"
+	"github.com/elisalimli/nextsync/server/graphql/models"
 )
 
 func (r *queryResolver) Tags(ctx context.Context) ([]*models.Tag, error) {

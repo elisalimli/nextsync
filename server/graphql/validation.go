@@ -3,7 +3,7 @@ package graphql
 import (
 	"context"
 
-	"github.com/elisalimli/go_graphql_template/validator"
+	"github.com/elisalimli/nextsync/server/validator"
 )
 
 func validation(ctx context.Context, v validator.Validation) (bool, []*validator.FieldError) {

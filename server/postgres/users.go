@@ -3,7 +3,7 @@ package postgres
 import (
 	"context"
 
-	"github.com/elisalimli/go_graphql_template/graphql/models"
+	"github.com/elisalimli/nextsync/server/graphql/models"
 	"github.com/redis/go-redis/v9"
 	"github.com/uptrace/bun"
 )

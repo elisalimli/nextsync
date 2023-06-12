@@ -7,7 +7,7 @@ import (
 	"os"
 	"time"
 
-	myContext "github.com/elisalimli/go_graphql_template/context"
+	myContext "github.com/elisalimli/nextsync/server/context"
 
 	"github.com/golang-jwt/jwt"
 	"golang.org/x/crypto/bcrypt"

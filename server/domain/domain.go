@@ -1,9 +1,9 @@
 package domain
 
 import (
-	"github.com/elisalimli/go_graphql_template/graphql/models"
-	"github.com/elisalimli/go_graphql_template/postgres"
-	"github.com/elisalimli/go_graphql_template/validator"
+	"github.com/elisalimli/nextsync/server/graphql/models"
+	"github.com/elisalimli/nextsync/server/postgres"
+	"github.com/elisalimli/nextsync/server/validator"
 )
 
 var (

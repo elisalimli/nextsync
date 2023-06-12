@@ -4,7 +4,7 @@ import (
 	"context"
 	"net/http"
 
-	myContext "github.com/elisalimli/go_graphql_template/context"
+	myContext "github.com/elisalimli/nextsync/server/context"
 )
 
 func ContextMiddleware(next http.Handler) http.Handler {
