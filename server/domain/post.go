@@ -14,9 +14,9 @@ import (
 	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/s3"
-	"github.com/elisalimli/go_graphql_template/graphql/models"
-	customMiddleware "github.com/elisalimli/go_graphql_template/middleware"
-	"github.com/elisalimli/go_graphql_template/validator"
+	"github.com/elisalimli/nextsync/server/graphql/models"
+	customMiddleware "github.com/elisalimli/nextsync/server/middleware"
+	"github.com/elisalimli/nextsync/server/validator"
 	"github.com/google/uuid"
 )
 

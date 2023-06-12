@@ -5,7 +5,7 @@ import (
 	"log"
 	"os"
 
-	"github.com/elisalimli/go_graphql_template/graphql/models"
+	"github.com/elisalimli/nextsync/server/graphql/models"
 	"github.com/uptrace/bun"
 	"github.com/uptrace/bun/dialect/pgdialect"
 	"github.com/uptrace/bun/driver/pgdriver"

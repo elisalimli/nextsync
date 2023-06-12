@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"github.com/99designs/gqlgen/graphql"
-	"github.com/elisalimli/go_graphql_template/validator"
+	"github.com/elisalimli/nextsync/server/validator"
 )
 
 type IFormResponse interface {

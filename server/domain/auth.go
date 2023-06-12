@@ -11,9 +11,9 @@ import (
 
 	// "net/http"
 
-	myContext "github.com/elisalimli/go_graphql_template/context"
-	"github.com/elisalimli/go_graphql_template/graphql/models"
-	"github.com/elisalimli/go_graphql_template/validator"
+	myContext "github.com/elisalimli/nextsync/server/context"
+	"github.com/elisalimli/nextsync/server/graphql/models"
+	"github.com/elisalimli/nextsync/server/validator"
 	"github.com/golang-jwt/jwt"
 	"github.com/joho/godotenv"
 	openapi "github.com/twilio/twilio-go/rest/verify/v2"

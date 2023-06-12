@@ -3,7 +3,7 @@
 package graphql
 
 import (
-	"github.com/elisalimli/go_graphql_template/domain"
+	"github.com/elisalimli/nextsync/server/domain"
 )
 
 type Resolver struct {

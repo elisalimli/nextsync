@@ -1,4 +1,4 @@
-package cron
+package main
 
 import (
 	"context"
@@ -10,11 +10,11 @@ import (
 	"time"
 
 	"github.com/PuerkitoBio/goquery"
-	"github.com/elisalimli/go_graphql_template/graphql/models"
-	"github.com/elisalimli/go_graphql_template/initializers"
+	"github.com/elisalimli/nextsync/server/graphql/models"
+	"github.com/elisalimli/nextsync/server/initializers"
 )
 
-func ScrapeNews() {
+func main() {
 	ctx := context.Background()
 	res, err := http.Get("https://www.dim.gov.az/news/index.php?arFilterNews_ff%5BDETAIL_TEXT%5D=&arFilterNews_pf%5BDIRECTION_ACTIVITY%5D=114&arFilterNews_pf%5BTYPE_EVENT%5D=171&set_filter=Y&PAGEN_1=1")
 	if err != nil {

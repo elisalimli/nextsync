@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/elisalimli/go_graphql_template/graphql/models"
+	"github.com/elisalimli/nextsync/server/graphql/models"
 	"github.com/graph-gophers/dataloader"
 	"github.com/uptrace/bun"
 )

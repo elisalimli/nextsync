@@ -1,4 +1,4 @@
-module github.com/elisalimli/go_graphql_template
+module github.com/elisalimli/nextsync/server
 
 go 1.20
 

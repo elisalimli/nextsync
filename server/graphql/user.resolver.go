@@ -15,11 +15,11 @@ import (
 	"os"
 
 	"github.com/99designs/gqlgen/graphql"
-	myContext "github.com/elisalimli/go_graphql_template/context"
-	"github.com/elisalimli/go_graphql_template/domain"
-	"github.com/elisalimli/go_graphql_template/graphql/models"
-	customMiddleware "github.com/elisalimli/go_graphql_template/middleware"
-	"github.com/elisalimli/go_graphql_template/validator"
+	myContext "github.com/elisalimli/nextsync/server/context"
+	"github.com/elisalimli/nextsync/server/domain"
+	"github.com/elisalimli/nextsync/server/graphql/models"
+	customMiddleware "github.com/elisalimli/nextsync/server/middleware"
+	"github.com/elisalimli/nextsync/server/validator"
 
 	"github.com/vektah/gqlparser/v2/gqlerror"
 )

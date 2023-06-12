@@ -7,9 +7,9 @@ import (
 	"log"
 	"os"
 
-	"github.com/elisalimli/go_graphql_template/domain"
-	"github.com/elisalimli/go_graphql_template/graphql/models"
-	"github.com/elisalimli/go_graphql_template/initializers"
+	"github.com/elisalimli/nextsync/server/domain"
+	"github.com/elisalimli/nextsync/server/graphql/models"
+	"github.com/elisalimli/nextsync/server/initializers"
 	"github.com/uptrace/bun"
 )
 
