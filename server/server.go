@@ -25,13 +25,6 @@ import (
 func init() {
 	initializers.LoadEnvVariables()
 	initializers.ConnectToDatabase()
-	// if err := Migrations.Discover(sqlMigrations); err != nil {
-	// panic(err)
-	// }
-	// if err := Migrations.Discover(sqlMigrations); err != nil {
-	// panic(err)
-	// }
-
 }
 
 const defaultPort = "4000"
