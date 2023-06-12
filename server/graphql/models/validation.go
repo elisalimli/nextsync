@@ -1,6 +1,6 @@
 package models
 
-import "github.com/elisalimli/go_graphql_template/validator"
+import "github.com/elisalimli/nextsync/server/validator"
 
 func (r RegisterInput) Validate() (bool, map[string]string) {
 	v := validator.New()

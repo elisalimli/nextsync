@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/elisalimli/go_graphql_template/graphql/models"
+	"github.com/elisalimli/nextsync/server/graphql/models"
 	"github.com/graph-gophers/dataloader"
 	"github.com/uptrace/bun"
 )
@@ -40,7 +40,6 @@ func (u *UserReader) GetUsers(ctx context.Context, keys dataloader.Keys) []*data
 		userIDs[ix] = key.String()
 	}
 	err := u.conn.NewSelect().Model(&users).Where("id in (?)", bun.In(userIDs)).Scan(context.Background())
-	fmt.Println("user loader: ")
 
 	if err != nil {
 		return nil
@@ -78,7 +77,6 @@ func (p *PostFilesReader) GetPostsFiles(ctx context.Context, keys dataloader.Key
 		postIDs[ix] = postID
 	}
 	err := p.conn.NewSelect().Model(&postFiles).Where("post_id in (?)", bun.In(postIDs)).Scan(context.Background())
-	fmt.Println("postFiles loader: ")
 
 	if err != nil {
 		return nil
@@ -98,8 +96,8 @@ func (p *PostFilesReader) GetPostsFiles(ctx context.Context, keys dataloader.Key
 		if ok {
 			output[index] = &dataloader.Result{Data: files, Error: nil}
 		} else {
-			err := fmt.Errorf("postFiles not found for post ID %v", postID)
-			output[index] = &dataloader.Result{Data: nil, Error: err}
+			fmt.Printf("postFiles not found for post ID %v", postID)
+			output[index] = &dataloader.Result{Data: []*models.PostFile{}, Error: nil}
 		}
 	}
 	return output

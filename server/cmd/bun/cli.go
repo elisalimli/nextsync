@@ -6,8 +6,8 @@ import (
 	"os"
 	"strings"
 
-	"github.com/elisalimli/go_graphql_template/initializers"
-	"github.com/elisalimli/go_graphql_template/migrations"
+	"github.com/elisalimli/nextsync/server/initializers"
+	"github.com/elisalimli/nextsync/server/migrations"
 	"github.com/uptrace/bun/migrate"
 	"github.com/urfave/cli/v2"
 )

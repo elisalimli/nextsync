@@ -15,22 +15,22 @@ model:
 
 models:
   User:
-    model: github.com/elisalimli/go_graphql_template/graphql/models.User
+    model: github.com/elisalimli/nextsync/server/graphql/models.User
   Post:
-    model: github.com/elisalimli/go_graphql_template/graphql/models.Post
+    model: github.com/elisalimli/nextsync/server/graphql/models.Post
     fields:
       creator:
         resolver: true
       files:
         resolver: true
   PostFile:
-    model: github.com/elisalimli/go_graphql_template/graphql/models.PostFile
+    model: github.com/elisalimli/nextsync/server/graphql/models.PostFile
   Tag:
-    model: github.com/elisalimli/go_graphql_template/graphql/models.Tag
+    model: github.com/elisalimli/nextsync/server/graphql/models.Tag
   Catalog:
-    model: github.com/elisalimli/go_graphql_template/graphql/models.Catalog
+    model: github.com/elisalimli/nextsync/server/graphql/models.Catalog
   FieldError:
-    model: github.com/elisalimli/go_graphql_template/validator.FieldError
+    model: github.com/elisalimli/nextsync/server/validator.FieldError
 
 
 # Where should the resolver implementations go?

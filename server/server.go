@@ -10,13 +10,13 @@ import (
 	"github.com/99designs/gqlgen/graphql/handler/lru"
 	"github.com/99designs/gqlgen/graphql/handler/transport"
 	"github.com/99designs/gqlgen/graphql/playground"
-	"github.com/elisalimli/go_graphql_template/domain"
-	"github.com/elisalimli/go_graphql_template/graphql"
-	"github.com/elisalimli/go_graphql_template/initializers"
-	"github.com/elisalimli/go_graphql_template/storage"
+	"github.com/elisalimli/nextsync/server/domain"
+	"github.com/elisalimli/nextsync/server/graphql"
+	"github.com/elisalimli/nextsync/server/initializers"
+	"github.com/elisalimli/nextsync/server/storage"
 
-	customMiddleware "github.com/elisalimli/go_graphql_template/middleware"
-	"github.com/elisalimli/go_graphql_template/postgres"
+	customMiddleware "github.com/elisalimli/nextsync/server/middleware"
+	"github.com/elisalimli/nextsync/server/postgres"
 	"github.com/go-chi/chi"
 	"github.com/go-chi/chi/middleware"
 	"github.com/rs/cors"
@@ -25,14 +25,6 @@ import (
 func init() {
 	initializers.LoadEnvVariables()
 	initializers.ConnectToDatabase()
-
-	// if err := Migrations.Discover(sqlMigrations); err != nil {
-	// panic(err)
-	// }
-	// if err := Migrations.Discover(sqlMigrations); err != nil {
-	// panic(err)
-	// }
-
 }
 
 const defaultPort = "4000"

@@ -15,8 +15,8 @@ import (
 
 	"github.com/99designs/gqlgen/graphql"
 	"github.com/99designs/gqlgen/graphql/introspection"
-	"github.com/elisalimli/go_graphql_template/graphql/models"
-	"github.com/elisalimli/go_graphql_template/validator"
+	"github.com/elisalimli/nextsync/server/graphql/models"
+	"github.com/elisalimli/nextsync/server/validator"
 	gqlparser "github.com/vektah/gqlparser/v2"
 	"github.com/vektah/gqlparser/v2/ast"
 )
@@ -105,6 +105,7 @@ type ComplexityRoot struct {
 		Creator     func(childComplexity int) int
 		Description func(childComplexity int) int
 		Files       func(childComplexity int) int
+		HtmlContent func(childComplexity int) int
 		Id          func(childComplexity int) int
 		Tags        func(childComplexity int) int
 		Title       func(childComplexity int) int
@@ -445,6 +446,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Post.Files(childComplexity), true
 
+	case "Post.htmlContent":
+		if e.complexity.Post.HtmlContent == nil {
+			break
+		}
+
+		return e.complexity.Post.HtmlContent(childComplexity), true
+
 	case "Post.id":
 		if e.complexity.Post.Id == nil {
 			break
@@ -761,7 +769,7 @@ func (ec *executionContext) field_Mutation_createPost_args(ctx context.Context, 
 	var arg0 models.CreatePostInput
 	if tmp, ok := rawArgs["input"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
-		arg0, err = ec.unmarshalNCreatePostInput2githubᚗcomᚋelisalimliᚋgo_graphql_templateᚋgraphqlᚋmodelsᚐCreatePostInput(ctx, tmp)
+		arg0, err = ec.unmarshalNCreatePostInput2githubᚗcomᚋelisalimliᚋserverᚋgraphqlᚋmodelsᚐCreatePostInput(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -776,7 +784,7 @@ func (ec *executionContext) field_Mutation_googleLoginOrSignUp_args(ctx context.
 	var arg0 models.GoogleLoginOrSignUpInput
 	if tmp, ok := rawArgs["input"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
-		arg0, err = ec.unmarshalNGoogleLoginOrSignUpInput2githubᚗcomᚋelisalimliᚋgo_graphql_templateᚋgraphqlᚋmodelsᚐGoogleLoginOrSignUpInput(ctx, tmp)
+		arg0, err = ec.unmarshalNGoogleLoginOrSignUpInput2githubᚗcomᚋelisalimliᚋserverᚋgraphqlᚋmodelsᚐGoogleLoginOrSignUpInput(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -791,7 +799,7 @@ func (ec *executionContext) field_Mutation_login_args(ctx context.Context, rawAr
 	var arg0 models.LoginInput
 	if tmp, ok := rawArgs["input"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
-		arg0, err = ec.unmarshalNLoginInput2githubᚗcomᚋelisalimliᚋgo_graphql_templateᚋgraphqlᚋmodelsᚐLoginInput(ctx, tmp)
+		arg0, err = ec.unmarshalNLoginInput2githubᚗcomᚋelisalimliᚋserverᚋgraphqlᚋmodelsᚐLoginInput(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -806,7 +814,7 @@ func (ec *executionContext) field_Mutation_register_args(ctx context.Context, ra
 	var arg0 models.RegisterInput
 	if tmp, ok := rawArgs["input"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
-		arg0, err = ec.unmarshalNRegisterInput2githubᚗcomᚋelisalimliᚋgo_graphql_templateᚋgraphqlᚋmodelsᚐRegisterInput(ctx, tmp)
+		arg0, err = ec.unmarshalNRegisterInput2githubᚗcomᚋelisalimliᚋserverᚋgraphqlᚋmodelsᚐRegisterInput(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -821,7 +829,7 @@ func (ec *executionContext) field_Mutation_sendOtp_args(ctx context.Context, raw
 	var arg0 models.SendOtpInput
 	if tmp, ok := rawArgs["input"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
-		arg0, err = ec.unmarshalNSendOtpInput2githubᚗcomᚋelisalimliᚋgo_graphql_templateᚋgraphqlᚋmodelsᚐSendOtpInput(ctx, tmp)
+		arg0, err = ec.unmarshalNSendOtpInput2githubᚗcomᚋelisalimliᚋserverᚋgraphqlᚋmodelsᚐSendOtpInput(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -836,7 +844,7 @@ func (ec *executionContext) field_Mutation_verifyOtp_args(ctx context.Context, r
 	var arg0 models.VerifyOtpInput
 	if tmp, ok := rawArgs["input"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
-		arg0, err = ec.unmarshalNVerifyOtpInput2githubᚗcomᚋelisalimliᚋgo_graphql_templateᚋgraphqlᚋmodelsᚐVerifyOtpInput(ctx, tmp)
+		arg0, err = ec.unmarshalNVerifyOtpInput2githubᚗcomᚋelisalimliᚋserverᚋgraphqlᚋmodelsᚐVerifyOtpInput(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -866,7 +874,7 @@ func (ec *executionContext) field_Query_posts_args(ctx context.Context, rawArgs 
 	var arg0 models.PostsInput
 	if tmp, ok := rawArgs["input"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
-		arg0, err = ec.unmarshalNPostsInput2githubᚗcomᚋelisalimliᚋgo_graphql_templateᚋgraphqlᚋmodelsᚐPostsInput(ctx, tmp)
+		arg0, err = ec.unmarshalNPostsInput2githubᚗcomᚋelisalimliᚋserverᚋgraphqlᚋmodelsᚐPostsInput(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -982,7 +990,7 @@ func (ec *executionContext) _AuthResponse_errors(ctx context.Context, field grap
 	}
 	res := resTmp.([]*validator.FieldError)
 	fc.Result = res
-	return ec.marshalOFieldError2ᚕᚖgithubᚗcomᚋelisalimliᚋgo_graphql_templateᚋvalidatorᚐFieldError(ctx, field.Selections, res)
+	return ec.marshalOFieldError2ᚕᚖgithubᚗcomᚋelisalimliᚋserverᚋvalidatorᚐFieldError(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_AuthResponse_errors(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -1029,7 +1037,7 @@ func (ec *executionContext) _AuthResponse_authToken(ctx context.Context, field g
 	}
 	res := resTmp.(*models.AuthToken)
 	fc.Result = res
-	return ec.marshalOAuthToken2ᚖgithubᚗcomᚋelisalimliᚋgo_graphql_templateᚋgraphqlᚋmodelsᚐAuthToken(ctx, field.Selections, res)
+	return ec.marshalOAuthToken2ᚖgithubᚗcomᚋelisalimliᚋserverᚋgraphqlᚋmodelsᚐAuthToken(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_AuthResponse_authToken(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -1076,7 +1084,7 @@ func (ec *executionContext) _AuthResponse_user(ctx context.Context, field graphq
 	}
 	res := resTmp.(*models.User)
 	fc.Result = res
-	return ec.marshalOUser2ᚖgithubᚗcomᚋelisalimliᚋgo_graphql_templateᚋgraphqlᚋmodelsᚐUser(ctx, field.Selections, res)
+	return ec.marshalOUser2ᚖgithubᚗcomᚋelisalimliᚋserverᚋgraphqlᚋmodelsᚐUser(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_AuthResponse_user(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -1397,7 +1405,7 @@ func (ec *executionContext) _CreatePostResponse_errors(ctx context.Context, fiel
 	}
 	res := resTmp.([]*validator.FieldError)
 	fc.Result = res
-	return ec.marshalOFieldError2ᚕᚖgithubᚗcomᚋelisalimliᚋgo_graphql_templateᚋvalidatorᚐFieldError(ctx, field.Selections, res)
+	return ec.marshalOFieldError2ᚕᚖgithubᚗcomᚋelisalimliᚋserverᚋvalidatorᚐFieldError(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_CreatePostResponse_errors(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -1444,7 +1452,7 @@ func (ec *executionContext) _CreatePostResponse_post(ctx context.Context, field 
 	}
 	res := resTmp.(*models.Post)
 	fc.Result = res
-	return ec.marshalOPost2ᚖgithubᚗcomᚋelisalimliᚋgo_graphql_templateᚋgraphqlᚋmodelsᚐPost(ctx, field.Selections, res)
+	return ec.marshalOPost2ᚖgithubᚗcomᚋelisalimliᚋserverᚋgraphqlᚋmodelsᚐPost(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_CreatePostResponse_post(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -1461,6 +1469,8 @@ func (ec *executionContext) fieldContext_CreatePostResponse_post(ctx context.Con
 				return ec.fieldContext_Post_title(ctx, field)
 			case "description":
 				return ec.fieldContext_Post_description(ctx, field)
+			case "htmlContent":
+				return ec.fieldContext_Post_htmlContent(ctx, field)
 			case "files":
 				return ec.fieldContext_Post_files(ctx, field)
 			case "tags":
@@ -1813,7 +1823,7 @@ func (ec *executionContext) _FormResponse_errors(ctx context.Context, field grap
 	}
 	res := resTmp.([]*validator.FieldError)
 	fc.Result = res
-	return ec.marshalOFieldError2ᚕᚖgithubᚗcomᚋelisalimliᚋgo_graphql_templateᚋvalidatorᚐFieldError(ctx, field.Selections, res)
+	return ec.marshalOFieldError2ᚕᚖgithubᚗcomᚋelisalimliᚋserverᚋvalidatorᚐFieldError(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_FormResponse_errors(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -1863,7 +1873,7 @@ func (ec *executionContext) _Mutation_register(ctx context.Context, field graphq
 	}
 	res := resTmp.(*models.AuthResponse)
 	fc.Result = res
-	return ec.marshalNAuthResponse2ᚖgithubᚗcomᚋelisalimliᚋgo_graphql_templateᚋgraphqlᚋmodelsᚐAuthResponse(ctx, field.Selections, res)
+	return ec.marshalNAuthResponse2ᚖgithubᚗcomᚋelisalimliᚋserverᚋgraphqlᚋmodelsᚐAuthResponse(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Mutation_register(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -1928,7 +1938,7 @@ func (ec *executionContext) _Mutation_login(ctx context.Context, field graphql.C
 	}
 	res := resTmp.(*models.AuthResponse)
 	fc.Result = res
-	return ec.marshalNAuthResponse2ᚖgithubᚗcomᚋelisalimliᚋgo_graphql_templateᚋgraphqlᚋmodelsᚐAuthResponse(ctx, field.Selections, res)
+	return ec.marshalNAuthResponse2ᚖgithubᚗcomᚋelisalimliᚋserverᚋgraphqlᚋmodelsᚐAuthResponse(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Mutation_login(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -1993,7 +2003,7 @@ func (ec *executionContext) _Mutation_googleLoginOrSignUp(ctx context.Context, f
 	}
 	res := resTmp.(*models.AuthResponse)
 	fc.Result = res
-	return ec.marshalNAuthResponse2ᚖgithubᚗcomᚋelisalimliᚋgo_graphql_templateᚋgraphqlᚋmodelsᚐAuthResponse(ctx, field.Selections, res)
+	return ec.marshalNAuthResponse2ᚖgithubᚗcomᚋelisalimliᚋserverᚋgraphqlᚋmodelsᚐAuthResponse(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Mutation_googleLoginOrSignUp(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -2102,7 +2112,7 @@ func (ec *executionContext) _Mutation_refreshToken(ctx context.Context, field gr
 	}
 	res := resTmp.(*models.AuthResponse)
 	fc.Result = res
-	return ec.marshalNAuthResponse2ᚖgithubᚗcomᚋelisalimliᚋgo_graphql_templateᚋgraphqlᚋmodelsᚐAuthResponse(ctx, field.Selections, res)
+	return ec.marshalNAuthResponse2ᚖgithubᚗcomᚋelisalimliᚋserverᚋgraphqlᚋmodelsᚐAuthResponse(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Mutation_refreshToken(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -2156,7 +2166,7 @@ func (ec *executionContext) _Mutation_sendOtp(ctx context.Context, field graphql
 	}
 	res := resTmp.(*models.FormResponse)
 	fc.Result = res
-	return ec.marshalNFormResponse2ᚖgithubᚗcomᚋelisalimliᚋgo_graphql_templateᚋgraphqlᚋmodelsᚐFormResponse(ctx, field.Selections, res)
+	return ec.marshalNFormResponse2ᚖgithubᚗcomᚋelisalimliᚋserverᚋgraphqlᚋmodelsᚐFormResponse(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Mutation_sendOtp(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -2217,7 +2227,7 @@ func (ec *executionContext) _Mutation_verifyOtp(ctx context.Context, field graph
 	}
 	res := resTmp.(*models.AuthResponse)
 	fc.Result = res
-	return ec.marshalNAuthResponse2ᚖgithubᚗcomᚋelisalimliᚋgo_graphql_templateᚋgraphqlᚋmodelsᚐAuthResponse(ctx, field.Selections, res)
+	return ec.marshalNAuthResponse2ᚖgithubᚗcomᚋelisalimliᚋserverᚋgraphqlᚋmodelsᚐAuthResponse(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Mutation_verifyOtp(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -2282,7 +2292,7 @@ func (ec *executionContext) _Mutation_createPost(ctx context.Context, field grap
 	}
 	res := resTmp.(*models.CreatePostResponse)
 	fc.Result = res
-	return ec.marshalNCreatePostResponse2ᚖgithubᚗcomᚋelisalimliᚋgo_graphql_templateᚋgraphqlᚋmodelsᚐCreatePostResponse(ctx, field.Selections, res)
+	return ec.marshalNCreatePostResponse2ᚖgithubᚗcomᚋelisalimliᚋserverᚋgraphqlᚋmodelsᚐCreatePostResponse(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Mutation_createPost(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -2446,6 +2456,47 @@ func (ec *executionContext) fieldContext_Post_description(ctx context.Context, f
 	return fc, nil
 }
 
+func (ec *executionContext) _Post_htmlContent(ctx context.Context, field graphql.CollectedField, obj *models.Post) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Post_htmlContent(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.HtmlContent, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Post_htmlContent(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Post",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Post_files(ctx context.Context, field graphql.CollectedField, obj *models.Post) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Post_files(ctx, field)
 	if err != nil {
@@ -2467,14 +2518,11 @@ func (ec *executionContext) _Post_files(ctx context.Context, field graphql.Colle
 		return graphql.Null
 	}
 	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
 		return graphql.Null
 	}
 	res := resTmp.([]*models.PostFile)
 	fc.Result = res
-	return ec.marshalNPostFile2ᚕᚖgithubᚗcomᚋelisalimliᚋgo_graphql_templateᚋgraphqlᚋmodelsᚐPostFileᚄ(ctx, field.Selections, res)
+	return ec.marshalOPostFile2ᚕᚖgithubᚗcomᚋelisalimliᚋserverᚋgraphqlᚋmodelsᚐPostFile(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Post_files(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -2532,7 +2580,7 @@ func (ec *executionContext) _Post_tags(ctx context.Context, field graphql.Collec
 	}
 	res := resTmp.([]models.Tag)
 	fc.Result = res
-	return ec.marshalNTag2ᚕgithubᚗcomᚋelisalimliᚋgo_graphql_templateᚋgraphqlᚋmodelsᚐTagᚄ(ctx, field.Selections, res)
+	return ec.marshalNTag2ᚕgithubᚗcomᚋelisalimliᚋserverᚋgraphqlᚋmodelsᚐTagᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Post_tags(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -2588,7 +2636,7 @@ func (ec *executionContext) _Post_creator(ctx context.Context, field graphql.Col
 	}
 	res := resTmp.(*models.User)
 	fc.Result = res
-	return ec.marshalNUser2ᚖgithubᚗcomᚋelisalimliᚋgo_graphql_templateᚋgraphqlᚋmodelsᚐUser(ctx, field.Selections, res)
+	return ec.marshalNUser2ᚖgithubᚗcomᚋelisalimliᚋserverᚋgraphqlᚋmodelsᚐUser(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Post_creator(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -3088,7 +3136,7 @@ func (ec *executionContext) _PostsResponse_posts(ctx context.Context, field grap
 	}
 	res := resTmp.([]*models.Post)
 	fc.Result = res
-	return ec.marshalNPost2ᚕᚖgithubᚗcomᚋelisalimliᚋgo_graphql_templateᚋgraphqlᚋmodelsᚐPostᚄ(ctx, field.Selections, res)
+	return ec.marshalNPost2ᚕᚖgithubᚗcomᚋelisalimliᚋserverᚋgraphqlᚋmodelsᚐPostᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_PostsResponse_posts(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -3105,6 +3153,8 @@ func (ec *executionContext) fieldContext_PostsResponse_posts(ctx context.Context
 				return ec.fieldContext_Post_title(ctx, field)
 			case "description":
 				return ec.fieldContext_Post_description(ctx, field)
+			case "htmlContent":
+				return ec.fieldContext_Post_htmlContent(ctx, field)
 			case "files":
 				return ec.fieldContext_Post_files(ctx, field)
 			case "tags":
@@ -3152,7 +3202,7 @@ func (ec *executionContext) _Query_users(ctx context.Context, field graphql.Coll
 	}
 	res := resTmp.([]*models.User)
 	fc.Result = res
-	return ec.marshalNUser2ᚕᚖgithubᚗcomᚋelisalimliᚋgo_graphql_templateᚋgraphqlᚋmodelsᚐUserᚄ(ctx, field.Selections, res)
+	return ec.marshalNUser2ᚕᚖgithubᚗcomᚋelisalimliᚋserverᚋgraphqlᚋmodelsᚐUserᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Query_users(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -3212,7 +3262,7 @@ func (ec *executionContext) _Query_posts(ctx context.Context, field graphql.Coll
 	}
 	res := resTmp.(*models.PostsResponse)
 	fc.Result = res
-	return ec.marshalNPostsResponse2ᚖgithubᚗcomᚋelisalimliᚋgo_graphql_templateᚋgraphqlᚋmodelsᚐPostsResponse(ctx, field.Selections, res)
+	return ec.marshalNPostsResponse2ᚖgithubᚗcomᚋelisalimliᚋserverᚋgraphqlᚋmodelsᚐPostsResponse(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Query_posts(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -3273,7 +3323,7 @@ func (ec *executionContext) _Query_tags(ctx context.Context, field graphql.Colle
 	}
 	res := resTmp.([]*models.Tag)
 	fc.Result = res
-	return ec.marshalNTag2ᚕᚖgithubᚗcomᚋelisalimliᚋgo_graphql_templateᚋgraphqlᚋmodelsᚐTagᚄ(ctx, field.Selections, res)
+	return ec.marshalNTag2ᚕᚖgithubᚗcomᚋelisalimliᚋserverᚋgraphqlᚋmodelsᚐTagᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Query_tags(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -3326,7 +3376,7 @@ func (ec *executionContext) _Query_me(ctx context.Context, field graphql.Collect
 	}
 	res := resTmp.(*models.User)
 	fc.Result = res
-	return ec.marshalOUser2ᚖgithubᚗcomᚋelisalimliᚋgo_graphql_templateᚋgraphqlᚋmodelsᚐUser(ctx, field.Selections, res)
+	return ec.marshalOUser2ᚖgithubᚗcomᚋelisalimliᚋserverᚋgraphqlᚋmodelsᚐUser(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Query_me(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -3732,7 +3782,7 @@ func (ec *executionContext) _Tag_catalog(ctx context.Context, field graphql.Coll
 	}
 	res := resTmp.(*models.Catalog)
 	fc.Result = res
-	return ec.marshalOCatalog2ᚖgithubᚗcomᚋelisalimliᚋgo_graphql_templateᚋgraphqlᚋmodelsᚐCatalog(ctx, field.Selections, res)
+	return ec.marshalOCatalog2ᚖgithubᚗcomᚋelisalimliᚋserverᚋgraphqlᚋmodelsᚐCatalog(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Tag_catalog(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -5855,7 +5905,7 @@ func (ec *executionContext) unmarshalInputCreatePostInput(ctx context.Context, o
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("files"))
-			it.Files, err = ec.unmarshalOUploadFile2ᚕᚖgithubᚗcomᚋelisalimliᚋgo_graphql_templateᚋgraphqlᚋmodelsᚐUploadFile(ctx, v)
+			it.Files, err = ec.unmarshalOUploadFile2ᚕᚖgithubᚗcomᚋelisalimliᚋserverᚋgraphqlᚋmodelsᚐUploadFile(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -6619,6 +6669,10 @@ func (ec *executionContext) _Post(ctx context.Context, sel ast.SelectionSet, obj
 
 			out.Values[i] = ec._Post_description(ctx, field, obj)
 
+		case "htmlContent":
+
+			out.Values[i] = ec._Post_htmlContent(ctx, field, obj)
+
 		case "files":
 			field := field
 
@@ -6629,9 +6683,6 @@ func (ec *executionContext) _Post(ctx context.Context, sel ast.SelectionSet, obj
 					}
 				}()
 				res = ec._Post_files(ctx, field, obj)
-				if res == graphql.Null {
-					atomic.AddUint32(&invalids, 1)
-				}
 				return res
 			}
 
@@ -7391,11 +7442,11 @@ func (ec *executionContext) ___Type(ctx context.Context, sel ast.SelectionSet, o
 
 // region    ***************************** type.gotpl *****************************
 
-func (ec *executionContext) marshalNAuthResponse2githubᚗcomᚋelisalimliᚋgo_graphql_templateᚋgraphqlᚋmodelsᚐAuthResponse(ctx context.Context, sel ast.SelectionSet, v models.AuthResponse) graphql.Marshaler {
+func (ec *executionContext) marshalNAuthResponse2githubᚗcomᚋelisalimliᚋserverᚋgraphqlᚋmodelsᚐAuthResponse(ctx context.Context, sel ast.SelectionSet, v models.AuthResponse) graphql.Marshaler {
 	return ec._AuthResponse(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNAuthResponse2ᚖgithubᚗcomᚋelisalimliᚋgo_graphql_templateᚋgraphqlᚋmodelsᚐAuthResponse(ctx context.Context, sel ast.SelectionSet, v *models.AuthResponse) graphql.Marshaler {
+func (ec *executionContext) marshalNAuthResponse2ᚖgithubᚗcomᚋelisalimliᚋserverᚋgraphqlᚋmodelsᚐAuthResponse(ctx context.Context, sel ast.SelectionSet, v *models.AuthResponse) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
@@ -7420,16 +7471,16 @@ func (ec *executionContext) marshalNBoolean2bool(ctx context.Context, sel ast.Se
 	return res
 }
 
-func (ec *executionContext) unmarshalNCreatePostInput2githubᚗcomᚋelisalimliᚋgo_graphql_templateᚋgraphqlᚋmodelsᚐCreatePostInput(ctx context.Context, v interface{}) (models.CreatePostInput, error) {
+func (ec *executionContext) unmarshalNCreatePostInput2githubᚗcomᚋelisalimliᚋserverᚋgraphqlᚋmodelsᚐCreatePostInput(ctx context.Context, v interface{}) (models.CreatePostInput, error) {
 	res, err := ec.unmarshalInputCreatePostInput(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalNCreatePostResponse2githubᚗcomᚋelisalimliᚋgo_graphql_templateᚋgraphqlᚋmodelsᚐCreatePostResponse(ctx context.Context, sel ast.SelectionSet, v models.CreatePostResponse) graphql.Marshaler {
+func (ec *executionContext) marshalNCreatePostResponse2githubᚗcomᚋelisalimliᚋserverᚋgraphqlᚋmodelsᚐCreatePostResponse(ctx context.Context, sel ast.SelectionSet, v models.CreatePostResponse) graphql.Marshaler {
 	return ec._CreatePostResponse(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNCreatePostResponse2ᚖgithubᚗcomᚋelisalimliᚋgo_graphql_templateᚋgraphqlᚋmodelsᚐCreatePostResponse(ctx context.Context, sel ast.SelectionSet, v *models.CreatePostResponse) graphql.Marshaler {
+func (ec *executionContext) marshalNCreatePostResponse2ᚖgithubᚗcomᚋelisalimliᚋserverᚋgraphqlᚋmodelsᚐCreatePostResponse(ctx context.Context, sel ast.SelectionSet, v *models.CreatePostResponse) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
@@ -7439,11 +7490,11 @@ func (ec *executionContext) marshalNCreatePostResponse2ᚖgithubᚗcomᚋelisali
 	return ec._CreatePostResponse(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalNFormResponse2githubᚗcomᚋelisalimliᚋgo_graphql_templateᚋgraphqlᚋmodelsᚐFormResponse(ctx context.Context, sel ast.SelectionSet, v models.FormResponse) graphql.Marshaler {
+func (ec *executionContext) marshalNFormResponse2githubᚗcomᚋelisalimliᚋserverᚋgraphqlᚋmodelsᚐFormResponse(ctx context.Context, sel ast.SelectionSet, v models.FormResponse) graphql.Marshaler {
 	return ec._FormResponse(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNFormResponse2ᚖgithubᚗcomᚋelisalimliᚋgo_graphql_templateᚋgraphqlᚋmodelsᚐFormResponse(ctx context.Context, sel ast.SelectionSet, v *models.FormResponse) graphql.Marshaler {
+func (ec *executionContext) marshalNFormResponse2ᚖgithubᚗcomᚋelisalimliᚋserverᚋgraphqlᚋmodelsᚐFormResponse(ctx context.Context, sel ast.SelectionSet, v *models.FormResponse) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
@@ -7453,7 +7504,7 @@ func (ec *executionContext) marshalNFormResponse2ᚖgithubᚗcomᚋelisalimliᚋ
 	return ec._FormResponse(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalNGoogleLoginOrSignUpInput2githubᚗcomᚋelisalimliᚋgo_graphql_templateᚋgraphqlᚋmodelsᚐGoogleLoginOrSignUpInput(ctx context.Context, v interface{}) (models.GoogleLoginOrSignUpInput, error) {
+func (ec *executionContext) unmarshalNGoogleLoginOrSignUpInput2githubᚗcomᚋelisalimliᚋserverᚋgraphqlᚋmodelsᚐGoogleLoginOrSignUpInput(ctx context.Context, v interface{}) (models.GoogleLoginOrSignUpInput, error) {
 	res, err := ec.unmarshalInputGoogleLoginOrSignUpInput(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
@@ -7488,12 +7539,12 @@ func (ec *executionContext) marshalNInt2int64(ctx context.Context, sel ast.Selec
 	return res
 }
 
-func (ec *executionContext) unmarshalNLoginInput2githubᚗcomᚋelisalimliᚋgo_graphql_templateᚋgraphqlᚋmodelsᚐLoginInput(ctx context.Context, v interface{}) (models.LoginInput, error) {
+func (ec *executionContext) unmarshalNLoginInput2githubᚗcomᚋelisalimliᚋserverᚋgraphqlᚋmodelsᚐLoginInput(ctx context.Context, v interface{}) (models.LoginInput, error) {
 	res, err := ec.unmarshalInputLoginInput(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalNPost2ᚕᚖgithubᚗcomᚋelisalimliᚋgo_graphql_templateᚋgraphqlᚋmodelsᚐPostᚄ(ctx context.Context, sel ast.SelectionSet, v []*models.Post) graphql.Marshaler {
+func (ec *executionContext) marshalNPost2ᚕᚖgithubᚗcomᚋelisalimliᚋserverᚋgraphqlᚋmodelsᚐPostᚄ(ctx context.Context, sel ast.SelectionSet, v []*models.Post) graphql.Marshaler {
 	ret := make(graphql.Array, len(v))
 	var wg sync.WaitGroup
 	isLen1 := len(v) == 1
@@ -7517,7 +7568,7 @@ func (ec *executionContext) marshalNPost2ᚕᚖgithubᚗcomᚋelisalimliᚋgo_gr
 			if !isLen1 {
 				defer wg.Done()
 			}
-			ret[i] = ec.marshalNPost2ᚖgithubᚗcomᚋelisalimliᚋgo_graphql_templateᚋgraphqlᚋmodelsᚐPost(ctx, sel, v[i])
+			ret[i] = ec.marshalNPost2ᚖgithubᚗcomᚋelisalimliᚋserverᚋgraphqlᚋmodelsᚐPost(ctx, sel, v[i])
 		}
 		if isLen1 {
 			f(i)
@@ -7537,7 +7588,7 @@ func (ec *executionContext) marshalNPost2ᚕᚖgithubᚗcomᚋelisalimliᚋgo_gr
 	return ret
 }
 
-func (ec *executionContext) marshalNPost2ᚖgithubᚗcomᚋelisalimliᚋgo_graphql_templateᚋgraphqlᚋmodelsᚐPost(ctx context.Context, sel ast.SelectionSet, v *models.Post) graphql.Marshaler {
+func (ec *executionContext) marshalNPost2ᚖgithubᚗcomᚋelisalimliᚋserverᚋgraphqlᚋmodelsᚐPost(ctx context.Context, sel ast.SelectionSet, v *models.Post) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
@@ -7547,70 +7598,16 @@ func (ec *executionContext) marshalNPost2ᚖgithubᚗcomᚋelisalimliᚋgo_graph
 	return ec._Post(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalNPostFile2ᚕᚖgithubᚗcomᚋelisalimliᚋgo_graphql_templateᚋgraphqlᚋmodelsᚐPostFileᚄ(ctx context.Context, sel ast.SelectionSet, v []*models.PostFile) graphql.Marshaler {
-	ret := make(graphql.Array, len(v))
-	var wg sync.WaitGroup
-	isLen1 := len(v) == 1
-	if !isLen1 {
-		wg.Add(len(v))
-	}
-	for i := range v {
-		i := i
-		fc := &graphql.FieldContext{
-			Index:  &i,
-			Result: &v[i],
-		}
-		ctx := graphql.WithFieldContext(ctx, fc)
-		f := func(i int) {
-			defer func() {
-				if r := recover(); r != nil {
-					ec.Error(ctx, ec.Recover(ctx, r))
-					ret = nil
-				}
-			}()
-			if !isLen1 {
-				defer wg.Done()
-			}
-			ret[i] = ec.marshalNPostFile2ᚖgithubᚗcomᚋelisalimliᚋgo_graphql_templateᚋgraphqlᚋmodelsᚐPostFile(ctx, sel, v[i])
-		}
-		if isLen1 {
-			f(i)
-		} else {
-			go f(i)
-		}
-
-	}
-	wg.Wait()
-
-	for _, e := range ret {
-		if e == graphql.Null {
-			return graphql.Null
-		}
-	}
-
-	return ret
-}
-
-func (ec *executionContext) marshalNPostFile2ᚖgithubᚗcomᚋelisalimliᚋgo_graphql_templateᚋgraphqlᚋmodelsᚐPostFile(ctx context.Context, sel ast.SelectionSet, v *models.PostFile) graphql.Marshaler {
-	if v == nil {
-		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
-			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
-		}
-		return graphql.Null
-	}
-	return ec._PostFile(ctx, sel, v)
-}
-
-func (ec *executionContext) unmarshalNPostsInput2githubᚗcomᚋelisalimliᚋgo_graphql_templateᚋgraphqlᚋmodelsᚐPostsInput(ctx context.Context, v interface{}) (models.PostsInput, error) {
+func (ec *executionContext) unmarshalNPostsInput2githubᚗcomᚋelisalimliᚋserverᚋgraphqlᚋmodelsᚐPostsInput(ctx context.Context, v interface{}) (models.PostsInput, error) {
 	res, err := ec.unmarshalInputPostsInput(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalNPostsResponse2githubᚗcomᚋelisalimliᚋgo_graphql_templateᚋgraphqlᚋmodelsᚐPostsResponse(ctx context.Context, sel ast.SelectionSet, v models.PostsResponse) graphql.Marshaler {
+func (ec *executionContext) marshalNPostsResponse2githubᚗcomᚋelisalimliᚋserverᚋgraphqlᚋmodelsᚐPostsResponse(ctx context.Context, sel ast.SelectionSet, v models.PostsResponse) graphql.Marshaler {
 	return ec._PostsResponse(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNPostsResponse2ᚖgithubᚗcomᚋelisalimliᚋgo_graphql_templateᚋgraphqlᚋmodelsᚐPostsResponse(ctx context.Context, sel ast.SelectionSet, v *models.PostsResponse) graphql.Marshaler {
+func (ec *executionContext) marshalNPostsResponse2ᚖgithubᚗcomᚋelisalimliᚋserverᚋgraphqlᚋmodelsᚐPostsResponse(ctx context.Context, sel ast.SelectionSet, v *models.PostsResponse) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
@@ -7620,12 +7617,12 @@ func (ec *executionContext) marshalNPostsResponse2ᚖgithubᚗcomᚋelisalimli�
 	return ec._PostsResponse(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalNRegisterInput2githubᚗcomᚋelisalimliᚋgo_graphql_templateᚋgraphqlᚋmodelsᚐRegisterInput(ctx context.Context, v interface{}) (models.RegisterInput, error) {
+func (ec *executionContext) unmarshalNRegisterInput2githubᚗcomᚋelisalimliᚋserverᚋgraphqlᚋmodelsᚐRegisterInput(ctx context.Context, v interface{}) (models.RegisterInput, error) {
 	res, err := ec.unmarshalInputRegisterInput(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalNSendOtpInput2githubᚗcomᚋelisalimliᚋgo_graphql_templateᚋgraphqlᚋmodelsᚐSendOtpInput(ctx context.Context, v interface{}) (models.SendOtpInput, error) {
+func (ec *executionContext) unmarshalNSendOtpInput2githubᚗcomᚋelisalimliᚋserverᚋgraphqlᚋmodelsᚐSendOtpInput(ctx context.Context, v interface{}) (models.SendOtpInput, error) {
 	res, err := ec.unmarshalInputSendOtpInput(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
@@ -7645,11 +7642,11 @@ func (ec *executionContext) marshalNString2string(ctx context.Context, sel ast.S
 	return res
 }
 
-func (ec *executionContext) marshalNTag2githubᚗcomᚋelisalimliᚋgo_graphql_templateᚋgraphqlᚋmodelsᚐTag(ctx context.Context, sel ast.SelectionSet, v models.Tag) graphql.Marshaler {
+func (ec *executionContext) marshalNTag2githubᚗcomᚋelisalimliᚋserverᚋgraphqlᚋmodelsᚐTag(ctx context.Context, sel ast.SelectionSet, v models.Tag) graphql.Marshaler {
 	return ec._Tag(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNTag2ᚕgithubᚗcomᚋelisalimliᚋgo_graphql_templateᚋgraphqlᚋmodelsᚐTagᚄ(ctx context.Context, sel ast.SelectionSet, v []models.Tag) graphql.Marshaler {
+func (ec *executionContext) marshalNTag2ᚕgithubᚗcomᚋelisalimliᚋserverᚋgraphqlᚋmodelsᚐTagᚄ(ctx context.Context, sel ast.SelectionSet, v []models.Tag) graphql.Marshaler {
 	ret := make(graphql.Array, len(v))
 	var wg sync.WaitGroup
 	isLen1 := len(v) == 1
@@ -7673,7 +7670,7 @@ func (ec *executionContext) marshalNTag2ᚕgithubᚗcomᚋelisalimliᚋgo_graphq
 			if !isLen1 {
 				defer wg.Done()
 			}
-			ret[i] = ec.marshalNTag2githubᚗcomᚋelisalimliᚋgo_graphql_templateᚋgraphqlᚋmodelsᚐTag(ctx, sel, v[i])
+			ret[i] = ec.marshalNTag2githubᚗcomᚋelisalimliᚋserverᚋgraphqlᚋmodelsᚐTag(ctx, sel, v[i])
 		}
 		if isLen1 {
 			f(i)
@@ -7693,7 +7690,7 @@ func (ec *executionContext) marshalNTag2ᚕgithubᚗcomᚋelisalimliᚋgo_graphq
 	return ret
 }
 
-func (ec *executionContext) marshalNTag2ᚕᚖgithubᚗcomᚋelisalimliᚋgo_graphql_templateᚋgraphqlᚋmodelsᚐTagᚄ(ctx context.Context, sel ast.SelectionSet, v []*models.Tag) graphql.Marshaler {
+func (ec *executionContext) marshalNTag2ᚕᚖgithubᚗcomᚋelisalimliᚋserverᚋgraphqlᚋmodelsᚐTagᚄ(ctx context.Context, sel ast.SelectionSet, v []*models.Tag) graphql.Marshaler {
 	ret := make(graphql.Array, len(v))
 	var wg sync.WaitGroup
 	isLen1 := len(v) == 1
@@ -7717,7 +7714,7 @@ func (ec *executionContext) marshalNTag2ᚕᚖgithubᚗcomᚋelisalimliᚋgo_gra
 			if !isLen1 {
 				defer wg.Done()
 			}
-			ret[i] = ec.marshalNTag2ᚖgithubᚗcomᚋelisalimliᚋgo_graphql_templateᚋgraphqlᚋmodelsᚐTag(ctx, sel, v[i])
+			ret[i] = ec.marshalNTag2ᚖgithubᚗcomᚋelisalimliᚋserverᚋgraphqlᚋmodelsᚐTag(ctx, sel, v[i])
 		}
 		if isLen1 {
 			f(i)
@@ -7737,7 +7734,7 @@ func (ec *executionContext) marshalNTag2ᚕᚖgithubᚗcomᚋelisalimliᚋgo_gra
 	return ret
 }
 
-func (ec *executionContext) marshalNTag2ᚖgithubᚗcomᚋelisalimliᚋgo_graphql_templateᚋgraphqlᚋmodelsᚐTag(ctx context.Context, sel ast.SelectionSet, v *models.Tag) graphql.Marshaler {
+func (ec *executionContext) marshalNTag2ᚖgithubᚗcomᚋelisalimliᚋserverᚋgraphqlᚋmodelsᚐTag(ctx context.Context, sel ast.SelectionSet, v *models.Tag) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
@@ -7798,11 +7795,11 @@ func (ec *executionContext) marshalNUpload2githubᚗcomᚋ99designsᚋgqlgenᚋg
 	return res
 }
 
-func (ec *executionContext) marshalNUser2githubᚗcomᚋelisalimliᚋgo_graphql_templateᚋgraphqlᚋmodelsᚐUser(ctx context.Context, sel ast.SelectionSet, v models.User) graphql.Marshaler {
+func (ec *executionContext) marshalNUser2githubᚗcomᚋelisalimliᚋserverᚋgraphqlᚋmodelsᚐUser(ctx context.Context, sel ast.SelectionSet, v models.User) graphql.Marshaler {
 	return ec._User(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNUser2ᚕᚖgithubᚗcomᚋelisalimliᚋgo_graphql_templateᚋgraphqlᚋmodelsᚐUserᚄ(ctx context.Context, sel ast.SelectionSet, v []*models.User) graphql.Marshaler {
+func (ec *executionContext) marshalNUser2ᚕᚖgithubᚗcomᚋelisalimliᚋserverᚋgraphqlᚋmodelsᚐUserᚄ(ctx context.Context, sel ast.SelectionSet, v []*models.User) graphql.Marshaler {
 	ret := make(graphql.Array, len(v))
 	var wg sync.WaitGroup
 	isLen1 := len(v) == 1
@@ -7826,7 +7823,7 @@ func (ec *executionContext) marshalNUser2ᚕᚖgithubᚗcomᚋelisalimliᚋgo_gr
 			if !isLen1 {
 				defer wg.Done()
 			}
-			ret[i] = ec.marshalNUser2ᚖgithubᚗcomᚋelisalimliᚋgo_graphql_templateᚋgraphqlᚋmodelsᚐUser(ctx, sel, v[i])
+			ret[i] = ec.marshalNUser2ᚖgithubᚗcomᚋelisalimliᚋserverᚋgraphqlᚋmodelsᚐUser(ctx, sel, v[i])
 		}
 		if isLen1 {
 			f(i)
@@ -7846,7 +7843,7 @@ func (ec *executionContext) marshalNUser2ᚕᚖgithubᚗcomᚋelisalimliᚋgo_gr
 	return ret
 }
 
-func (ec *executionContext) marshalNUser2ᚖgithubᚗcomᚋelisalimliᚋgo_graphql_templateᚋgraphqlᚋmodelsᚐUser(ctx context.Context, sel ast.SelectionSet, v *models.User) graphql.Marshaler {
+func (ec *executionContext) marshalNUser2ᚖgithubᚗcomᚋelisalimliᚋserverᚋgraphqlᚋmodelsᚐUser(ctx context.Context, sel ast.SelectionSet, v *models.User) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
@@ -7856,7 +7853,7 @@ func (ec *executionContext) marshalNUser2ᚖgithubᚗcomᚋelisalimliᚋgo_graph
 	return ec._User(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalNVerifyOtpInput2githubᚗcomᚋelisalimliᚋgo_graphql_templateᚋgraphqlᚋmodelsᚐVerifyOtpInput(ctx context.Context, v interface{}) (models.VerifyOtpInput, error) {
+func (ec *executionContext) unmarshalNVerifyOtpInput2githubᚗcomᚋelisalimliᚋserverᚋgraphqlᚋmodelsᚐVerifyOtpInput(ctx context.Context, v interface{}) (models.VerifyOtpInput, error) {
 	res, err := ec.unmarshalInputVerifyOtpInput(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
@@ -8114,7 +8111,7 @@ func (ec *executionContext) marshalN__TypeKind2string(ctx context.Context, sel a
 	return res
 }
 
-func (ec *executionContext) marshalOAuthToken2ᚖgithubᚗcomᚋelisalimliᚋgo_graphql_templateᚋgraphqlᚋmodelsᚐAuthToken(ctx context.Context, sel ast.SelectionSet, v *models.AuthToken) graphql.Marshaler {
+func (ec *executionContext) marshalOAuthToken2ᚖgithubᚗcomᚋelisalimliᚋserverᚋgraphqlᚋmodelsᚐAuthToken(ctx context.Context, sel ast.SelectionSet, v *models.AuthToken) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
@@ -8147,14 +8144,14 @@ func (ec *executionContext) marshalOBoolean2ᚖbool(ctx context.Context, sel ast
 	return res
 }
 
-func (ec *executionContext) marshalOCatalog2ᚖgithubᚗcomᚋelisalimliᚋgo_graphql_templateᚋgraphqlᚋmodelsᚐCatalog(ctx context.Context, sel ast.SelectionSet, v *models.Catalog) graphql.Marshaler {
+func (ec *executionContext) marshalOCatalog2ᚖgithubᚗcomᚋelisalimliᚋserverᚋgraphqlᚋmodelsᚐCatalog(ctx context.Context, sel ast.SelectionSet, v *models.Catalog) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
 	return ec._Catalog(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalOFieldError2ᚕᚖgithubᚗcomᚋelisalimliᚋgo_graphql_templateᚋvalidatorᚐFieldError(ctx context.Context, sel ast.SelectionSet, v []*validator.FieldError) graphql.Marshaler {
+func (ec *executionContext) marshalOFieldError2ᚕᚖgithubᚗcomᚋelisalimliᚋserverᚋvalidatorᚐFieldError(ctx context.Context, sel ast.SelectionSet, v []*validator.FieldError) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
@@ -8181,7 +8178,7 @@ func (ec *executionContext) marshalOFieldError2ᚕᚖgithubᚗcomᚋelisalimli�
 			if !isLen1 {
 				defer wg.Done()
 			}
-			ret[i] = ec.marshalOFieldError2ᚖgithubᚗcomᚋelisalimliᚋgo_graphql_templateᚋvalidatorᚐFieldError(ctx, sel, v[i])
+			ret[i] = ec.marshalOFieldError2ᚖgithubᚗcomᚋelisalimliᚋserverᚋvalidatorᚐFieldError(ctx, sel, v[i])
 		}
 		if isLen1 {
 			f(i)
@@ -8195,7 +8192,7 @@ func (ec *executionContext) marshalOFieldError2ᚕᚖgithubᚗcomᚋelisalimli�
 	return ret
 }
 
-func (ec *executionContext) marshalOFieldError2ᚖgithubᚗcomᚋelisalimliᚋgo_graphql_templateᚋvalidatorᚐFieldError(ctx context.Context, sel ast.SelectionSet, v *validator.FieldError) graphql.Marshaler {
+func (ec *executionContext) marshalOFieldError2ᚖgithubᚗcomᚋelisalimliᚋserverᚋvalidatorᚐFieldError(ctx context.Context, sel ast.SelectionSet, v *validator.FieldError) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
@@ -8218,11 +8215,59 @@ func (ec *executionContext) marshalOInt2ᚖint(ctx context.Context, sel ast.Sele
 	return res
 }
 
-func (ec *executionContext) marshalOPost2ᚖgithubᚗcomᚋelisalimliᚋgo_graphql_templateᚋgraphqlᚋmodelsᚐPost(ctx context.Context, sel ast.SelectionSet, v *models.Post) graphql.Marshaler {
+func (ec *executionContext) marshalOPost2ᚖgithubᚗcomᚋelisalimliᚋserverᚋgraphqlᚋmodelsᚐPost(ctx context.Context, sel ast.SelectionSet, v *models.Post) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
 	return ec._Post(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalOPostFile2ᚕᚖgithubᚗcomᚋelisalimliᚋserverᚋgraphqlᚋmodelsᚐPostFile(ctx context.Context, sel ast.SelectionSet, v []*models.PostFile) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalOPostFile2ᚖgithubᚗcomᚋelisalimliᚋserverᚋgraphqlᚋmodelsᚐPostFile(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+
+	return ret
+}
+
+func (ec *executionContext) marshalOPostFile2ᚖgithubᚗcomᚋelisalimliᚋserverᚋgraphqlᚋmodelsᚐPostFile(ctx context.Context, sel ast.SelectionSet, v *models.PostFile) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._PostFile(ctx, sel, v)
 }
 
 func (ec *executionContext) unmarshalOString2ᚕstringᚄ(ctx context.Context, v interface{}) ([]string, error) {
@@ -8279,7 +8324,7 @@ func (ec *executionContext) marshalOString2ᚖstring(ctx context.Context, sel as
 	return res
 }
 
-func (ec *executionContext) unmarshalOUploadFile2ᚕᚖgithubᚗcomᚋelisalimliᚋgo_graphql_templateᚋgraphqlᚋmodelsᚐUploadFile(ctx context.Context, v interface{}) ([]*models.UploadFile, error) {
+func (ec *executionContext) unmarshalOUploadFile2ᚕᚖgithubᚗcomᚋelisalimliᚋserverᚋgraphqlᚋmodelsᚐUploadFile(ctx context.Context, v interface{}) ([]*models.UploadFile, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -8291,7 +8336,7 @@ func (ec *executionContext) unmarshalOUploadFile2ᚕᚖgithubᚗcomᚋelisalimli
 	res := make([]*models.UploadFile, len(vSlice))
 	for i := range vSlice {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
-		res[i], err = ec.unmarshalOUploadFile2ᚖgithubᚗcomᚋelisalimliᚋgo_graphql_templateᚋgraphqlᚋmodelsᚐUploadFile(ctx, vSlice[i])
+		res[i], err = ec.unmarshalOUploadFile2ᚖgithubᚗcomᚋelisalimliᚋserverᚋgraphqlᚋmodelsᚐUploadFile(ctx, vSlice[i])
 		if err != nil {
 			return nil, err
 		}
@@ -8299,7 +8344,7 @@ func (ec *executionContext) unmarshalOUploadFile2ᚕᚖgithubᚗcomᚋelisalimli
 	return res, nil
 }
 
-func (ec *executionContext) unmarshalOUploadFile2ᚖgithubᚗcomᚋelisalimliᚋgo_graphql_templateᚋgraphqlᚋmodelsᚐUploadFile(ctx context.Context, v interface{}) (*models.UploadFile, error) {
+func (ec *executionContext) unmarshalOUploadFile2ᚖgithubᚗcomᚋelisalimliᚋserverᚋgraphqlᚋmodelsᚐUploadFile(ctx context.Context, v interface{}) (*models.UploadFile, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -8307,7 +8352,7 @@ func (ec *executionContext) unmarshalOUploadFile2ᚖgithubᚗcomᚋelisalimliᚋ
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalOUser2ᚖgithubᚗcomᚋelisalimliᚋgo_graphql_templateᚋgraphqlᚋmodelsᚐUser(ctx context.Context, sel ast.SelectionSet, v *models.User) graphql.Marshaler {
+func (ec *executionContext) marshalOUser2ᚖgithubᚗcomᚋelisalimliᚋserverᚋgraphqlᚋmodelsᚐUser(ctx context.Context, sel ast.SelectionSet, v *models.User) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}

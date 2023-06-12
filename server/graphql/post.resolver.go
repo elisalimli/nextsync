@@ -6,11 +6,11 @@ import (
 	"fmt"
 
 	"github.com/99designs/gqlgen/graphql"
-	"github.com/elisalimli/go_graphql_template/domain"
-	"github.com/elisalimli/go_graphql_template/graphql/models"
-	customMiddleware "github.com/elisalimli/go_graphql_template/middleware"
-	"github.com/elisalimli/go_graphql_template/storage"
-	"github.com/elisalimli/go_graphql_template/validator"
+	"github.com/elisalimli/nextsync/server/domain"
+	"github.com/elisalimli/nextsync/server/graphql/models"
+	customMiddleware "github.com/elisalimli/nextsync/server/middleware"
+	"github.com/elisalimli/nextsync/server/storage"
+	"github.com/elisalimli/nextsync/server/validator"
 	"github.com/uptrace/bun"
 	"github.com/vektah/gqlparser/v2/gqlerror"
 )
@@ -60,7 +60,7 @@ func (r *queryResolver) Posts(ctx context.Context, input models.PostsInput) (*mo
 	realLimitPlusOne := *input.Limit + 1
 	posts := make([]*models.Post, 0)
 	q := r.Domain.PostsRepo.DB.NewSelect().Model(&posts).
-		ColumnExpr("post.id, post.title, post.description, post.user_id, post.created_at, post.updated_at").
+		ColumnExpr("post.id, post.title, post.description, post.html_content, post.user_id, post.created_at, post.updated_at").
 		ColumnExpr(`json_agg(json_build_object(
 			'id', t.id,
 			'name', t.name,

@@ -63,7 +63,8 @@ type Post {
   id: String!
   title: String!
   description: String
-  files: [PostFile!]!
+  htmlContent: String
+  files: [PostFile]
   tags: [Tag!]!
   creator: User!
   userId: String!

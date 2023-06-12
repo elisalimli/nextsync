@@ -7,9 +7,9 @@ import (
 	"log"
 	"os"
 
-	"github.com/elisalimli/go_graphql_template/domain"
-	"github.com/elisalimli/go_graphql_template/graphql/models"
-	"github.com/elisalimli/go_graphql_template/initializers"
+	"github.com/elisalimli/nextsync/server/domain"
+	"github.com/elisalimli/nextsync/server/graphql/models"
+	"github.com/elisalimli/nextsync/server/initializers"
 	"github.com/uptrace/bun"
 )
 
@@ -47,10 +47,10 @@ func init() {
 	Migrations.MustRegister(func(ctx context.Context, db *bun.DB) error {
 		user := models.User{
 			Username:       "admin",
-			Email:          os.Getenv("USER_ADMIN_Email"),
+			Email:          os.Getenv("USER_ADMIN_EMAIL"),
 			SocialLogin:    false,
 			SocialProvider: "Google",
-			PhoneNumber:    os.Getenv("USER_ADMIN_PhoneNumber"),
+			PhoneNumber:    os.Getenv("USER_ADMIN_PHONE_NUMBER"),
 		}
 		err := user.HashPassword("admin")
 		if err != nil {
