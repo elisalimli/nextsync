@@ -10,6 +10,7 @@ import (
 	"github.com/99designs/gqlgen/graphql/handler/lru"
 	"github.com/99designs/gqlgen/graphql/handler/transport"
 	"github.com/99designs/gqlgen/graphql/playground"
+	"github.com/elisalimli/go_graphql_template/cron"
 	"github.com/elisalimli/go_graphql_template/domain"
 	"github.com/elisalimli/go_graphql_template/graphql"
 	"github.com/elisalimli/go_graphql_template/initializers"
@@ -25,6 +26,7 @@ import (
 func init() {
 	initializers.LoadEnvVariables()
 	initializers.ConnectToDatabase()
+	go cron.ScrapeNews()
 
 	// if err := Migrations.Discover(sqlMigrations); err != nil {
 	// panic(err)

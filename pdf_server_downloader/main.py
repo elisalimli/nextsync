@@ -1,10 +1,10 @@
-
 import json
 import uuid
 import re
 import PyPDF2
 import pytesseract
 from pdf2image import convert_from_path
+
 from telethon import TelegramClient
 from telethon.errors import SessionPasswordNeededError
 import re
@@ -34,12 +34,9 @@ async def main(phone):
 
     me = await client.get_me()
     i = 1
-    start_idx = 0 + 100
-    end_idx = 100
 
     data = []
     async for message in client.iter_messages("https://t.me/BirlikTeam1"):
-        print("message id : ",message.date)
         # if i < start_idx:
         # i += 1
         # continue
@@ -166,21 +163,3 @@ async def main(phone):
 
 with client:
     client.loop.run_until_complete(main(phone))
-
-
-# # Open the PDF file.
-# with open("./documents/kainat9.pdf", "rb") as file:
-#     # Load the PDF document.
-#     pdf = PyPDF2.PdfReader(file)
-
-#     # Extract the middle page of the PDF document.
-#     # ÷page = pdf.getPage(pdf.getNumPages() // 2)
-#     page = len(pdf.pages) // 2
-#     images_from_path = convert_from_path(
-#         "./documents/kainat9.pdf", fmt="jpeg", first_page=page
-#     )
-#     # Apply OCR to the image to extract the text.
-#     text = pytesseract.image_to_string(images_from_path[2])
-
-
-#     print(text)

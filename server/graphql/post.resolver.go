@@ -60,7 +60,7 @@ func (r *queryResolver) Posts(ctx context.Context, input models.PostsInput) (*mo
 	realLimitPlusOne := *input.Limit + 1
 	posts := make([]*models.Post, 0)
 	q := r.Domain.PostsRepo.DB.NewSelect().Model(&posts).
-		ColumnExpr("post.id, post.title, post.description, post.user_id, post.created_at, post.updated_at").
+		ColumnExpr("post.id, post.title, post.description, post.html_content, post.user_id, post.created_at, post.updated_at").
 		ColumnExpr(`json_agg(json_build_object(
 			'id', t.id,
 			'name', t.name,
