@@ -34,6 +34,7 @@ export const Post_Fragment = graphql(/* GraphQL */ `
     id
     title
     description
+    htmlContent
     tags {
       ...Tag_Fragment
     }
