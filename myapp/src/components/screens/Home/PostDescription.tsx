@@ -1,5 +1,7 @@
 import React from "react";
 import { Text } from "react-native";
+import RenderHtml from "react-native-render-html";
+import { constants } from "../../../constants";
 
 const formatText = (text: string) => {
   const formattedText = [];
@@ -82,11 +84,23 @@ const formatText = (text: string) => {
 };
 
 interface PostDescriptionProps {
-  text: string | null | undefined;
+  description: string | null | undefined;
+  htmlContent: string | null | undefined;
 }
 
-const PostDescription: React.FC<PostDescriptionProps> = ({ text }) => {
-  return <Text>{text && formatText(text)}</Text>;
+const PostDescription: React.FC<PostDescriptionProps> = ({
+  description,
+  htmlContent,
+}) => {
+  if (htmlContent) {
+    const source = {
+      html: htmlContent,
+    };
+
+    return <RenderHtml contentWidth={constants.SCREEN_WIDTH} source={source} />;
+  }
+
+  return <Text>{description && formatText(description)}</Text>;
 };
 
 export default PostDescription;
