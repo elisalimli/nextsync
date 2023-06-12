@@ -2,6 +2,7 @@ CREATE TEXT SEARCH CONFIGURATION turkish (COPY = pg_catalog.simple);
 
 CREATE EXTENSION IF NOT EXISTS unaccent;
 
+
 ALTER TEXT SEARCH CONFIGURATION turkish ALTER MAPPING FOR asciiword,
 asciihword,
 hword_asciipart,
@@ -26,7 +27,7 @@ ADD
         setweight(
             custom_to_tsvector (COALESCE(title, '')),
             'A'
-        ) || ' ' || setweight(custom_to_tsvector (COALESCE(description, '')), 'B') :: tsvector
+        ) || ' ' || setweight(custom_to_tsvector (COALESCE(description, '')), 'B') || ' ' || setweight(custom_to_tsvector (COALESCE(html_content, '')), 'C') :: tsvector
     ) stored;
 
 CREATE INDEX idx_search ON posts USING GIN (search);
