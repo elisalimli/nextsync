@@ -96,7 +96,6 @@ func (p *PostFilesReader) GetPostsFiles(ctx context.Context, keys dataloader.Key
 		if ok {
 			output[index] = &dataloader.Result{Data: files, Error: nil}
 		} else {
-			fmt.Printf("postFiles not found for post ID %v", postID)
 			output[index] = &dataloader.Result{Data: []*models.PostFile{}, Error: nil}
 		}
 	}
