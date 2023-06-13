@@ -91,7 +91,7 @@ const formatText = (text: string) => {
 };
 
 type PostDescriptionProps = {
-  post: Post_FragmentFragment | null | undefined;
+  post: Post_FragmentFragment;
   truncate?: boolean;
 };
 

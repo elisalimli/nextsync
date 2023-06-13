@@ -10,6 +10,7 @@ import (
 	"github.com/elisalimli/nextsync/server/domain"
 	"github.com/elisalimli/nextsync/server/graphql/models"
 	"github.com/elisalimli/nextsync/server/initializers"
+	"github.com/elisalimli/nextsync/server/postgres"
 	"github.com/uptrace/bun"
 )
 
@@ -27,15 +28,15 @@ type Document struct {
 	FileSize    int64   `json:"fileSize"`
 }
 
-func createPostTag(code string, post models.Post, ctx context.Context) {
-	tag := models.Tag{}
-	err := initializers.DB.NewSelect().ColumnExpr("id").Model(&tag).Where("? = ?", bun.Ident("code"), code).Scan(ctx)
-	if err != nil {
-		fmt.Printf("error occured: %v", err)
-	}
+func CreatePostTag(db *bun.DB, ctx context.Context, code string, post *models.Post) {
+	tagsRepo := postgres.TagsRepo{DB: db}
 
-	newPostTag := models.PostTag{PostId: post.Id, TagId: tag.Id}
-	_, err = initializers.DB.NewInsert().Model(&newPostTag).Returning("NULL").Exec(ctx)
+	tag, err := tagsRepo.GetTagId(ctx, "code", code)
+	if err != nil {
+		fmt.Println("Database error get tag", err)
+	}
+	postTag := models.PostTag{PostId: post.Id, TagId: tag.Id}
+	_, err = initializers.DB.NewInsert().Model(&postTag).Returning("NULL").Exec(ctx)
 
 	if err != nil {
 		fmt.Println("Error occured", err)
@@ -106,15 +107,15 @@ func init() {
 			}
 
 			if document.CodeGrade != nil && document.Grade != nil {
-				createPostTag(*document.CodeGrade, post, ctx)
+				CreatePostTag(db, ctx, *document.CodeGrade, &post)
 			}
 
 			if document.CodeType != nil && document.Type != nil {
-				createPostTag(*document.CodeType, post, ctx)
+				CreatePostTag(db, ctx, *document.CodeType, &post)
 			}
 
 			if document.CodeVariant != nil && document.Variant != nil {
-				createPostTag(*document.CodeVariant, post, ctx)
+				CreatePostTag(db, ctx, *document.CodeVariant, &post)
 			}
 
 			imageUrls := []models.PostFile{{URL: fmt.Sprintf("https://%s.s3.%s.amazonaws.com/", domain.BucketName, domain.BucketRegion) + document.FileName, PostId: post.Id, FileSize: document.FileSize, ContentType: document.ContentType, FileName: "sinaq.pdf"}}

@@ -13,6 +13,7 @@ import (
 	"github.com/PuerkitoBio/goquery"
 	"github.com/elisalimli/nextsync/server/graphql/models"
 	"github.com/elisalimli/nextsync/server/initializers"
+	"github.com/elisalimli/nextsync/server/postgres"
 	"github.com/go-co-op/gocron"
 )
 
@@ -46,6 +47,21 @@ func SavePost(title string, htmlContent *string) {
 		fmt.Println("Error Creating Post ", err)
 		return
 	}
+	tagsRepo := postgres.TagsRepo{DB: initializers.DB}
+	// postsTagsRepo := postgres.PostTagsRepo{DB: db}
+
+	tag, err := tagsRepo.GetTagId(ctx, "code", "NEWS")
+	fmt.Println("sql result", tag)
+	if err != nil {
+		fmt.Println("Database error get tag", err)
+	}
+	postTag := models.PostTag{PostId: post.Id, TagId: tag.Id}
+	_, err = initializers.DB.NewInsert().Model(&postTag).Returning("NULL").Exec(ctx)
+	if err != nil {
+		fmt.Println("Database error creating post tag", err)
+	}
+
+	// postsTagsRepo.CreatePostTag(ctx, &postTag)
 
 }
 

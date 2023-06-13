@@ -3,6 +3,18 @@ INSERT INTO
     tags (name, code, catalog_id)
 VALUES
     (
+        'Xəbər',
+        'NEWS',
+        (
+            SELECT
+                id
+            FROM
+                catalogs
+            WHERE
+                code = 'type'
+        )
+    ),
+    (
         'I Qrup',
         'BLOK1',
         (
