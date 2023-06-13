@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"crypto/tls"
 	"fmt"
 	"log"
 	"net/http"
@@ -23,6 +24,13 @@ func init() {
 var (
 	ctx, scrapedPostCount, layout, previousPostCreatedAt = context.Background(), 0, "02.01.2006 15:04", time.Time{}
 )
+
+// Create a custom http.Client with InsecureSkipVerify set to true
+var client = &http.Client{
+	Transport: &http.Transport{
+		TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+	},
+}
 
 func SavePost(title string, htmlContent *string) {
 	user := models.User{Email: os.Getenv("USER_ADMIN_EMAIL")}
@@ -92,7 +100,7 @@ func ExtractDataFromPage(i int, s *goquery.Selection) bool {
 		if ok {
 			newsUrl := "https://dim.gov.az" + newHref
 			fmt.Println(newsUrl)
-			res, err := http.Get(newsUrl)
+			res, err := client.Get(newsUrl)
 
 			if err != nil {
 				log.Fatal(err)
@@ -134,7 +142,7 @@ func PaginatePages(pageNums int) {
 	shouldEnd := false
 	for i := 1; i <= pageNums; i++ {
 		paginatedUrl := "https://www.dim.gov.az/news/index.php?arFilterNews_ff%5BDETAIL_TEXT%5D=&arFilterNews_pf%5BDIRECTION_ACTIVITY%5D=114&arFilterNews_pf%5BTYPE_EVENT%5D=171&set_filter=Y&PAGEN_1=" + strconv.Itoa(i)
-		res, err := http.Get(paginatedUrl)
+		res, err := client.Get(paginatedUrl)
 
 		if err != nil {
 			log.Fatal(err)
@@ -154,7 +162,6 @@ func PaginatePages(pageNums int) {
 			shouldEnd =
 				ExtractDataFromPage(i, s)
 		})
-		fmt.Println(shouldEnd)
 		if shouldEnd {
 			break
 		}
@@ -166,7 +173,7 @@ func ScrapePosts() {
 	previousPostCreatedAt, _ = GetLastScrapedCreatedAt()
 
 	fmt.Println("----start----")
-	res, err := http.Get("https://www.dim.gov.az/news/index.php?arFilterNews_ff%5BDETAIL_TEXT%5D=&arFilterNews_pf%5BDIRECTION_ACTIVITY%5D=114&arFilterNews_pf%5BTYPE_EVENT%5D=171&set_filter=Y&PAGEN_1=1")
+	res, err := client.Get("https://www.dim.gov.az/news/index.php?arFilterNews_ff%5BDETAIL_TEXT%5D=&arFilterNews_pf%5BDIRECTION_ACTIVITY%5D=114&arFilterNews_pf%5BTYPE_EVENT%5D=171&set_filter=Y&PAGEN_1=1")
 	if err != nil {
 		log.Fatal(err)
 	}

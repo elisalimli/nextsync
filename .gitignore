@@ -2,3 +2,5 @@ tmp/
 .env
 *.rdb
 elisalimli.session
+
+vendor/

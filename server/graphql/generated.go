@@ -188,7 +188,7 @@ func (e *executableSchema) Schema() *ast.Schema {
 }
 
 func (e *executableSchema) Complexity(typeName, field string, childComplexity int, rawArgs map[string]interface{}) (int, bool) {
-	ec := executionContext{nil, e}
+	ec := executionContext{nil, e, 0, 0, nil}
 	_ = ec
 	switch typeName + "." + field {
 
@@ -674,7 +674,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 	rc := graphql.GetOperationContext(ctx)
-	ec := executionContext{rc, e}
+	ec := executionContext{rc, e, 0, 0, make(chan graphql.DeferredResult)}
 	inputUnmarshalMap := graphql.BuildUnmarshalerMap(
 		ec.unmarshalInputCreatePostInput,
 		ec.unmarshalInputGoogleLoginOrSignUpInput,
@@ -690,18 +690,33 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 	switch rc.Operation.Operation {
 	case ast.Query:
 		return func(ctx context.Context) *graphql.Response {
-			if !first {
-				return nil
+			var response graphql.Response
+			var data graphql.Marshaler
+			if first {
+				first = false
+				ctx = graphql.WithUnmarshalerMap(ctx, inputUnmarshalMap)
+				data = ec._Query(ctx, rc.Operation.SelectionSet)
+			} else {
+				if atomic.LoadInt32(&ec.pendingDeferred) > 0 {
+					result := <-ec.deferredResults
+					atomic.AddInt32(&ec.pendingDeferred, -1)
+					data = result.Result
+					response.Path = result.Path
+					response.Label = result.Label
+					response.Errors = result.Errors
+				} else {
+					return nil
+				}
 			}
-			first = false
-			ctx = graphql.WithUnmarshalerMap(ctx, inputUnmarshalMap)
-			data := ec._Query(ctx, rc.Operation.SelectionSet)
 			var buf bytes.Buffer
 			data.MarshalGQL(&buf)
-
-			return &graphql.Response{
-				Data: buf.Bytes(),
+			response.Data = buf.Bytes()
+			if atomic.LoadInt32(&ec.deferred) > 0 {
+				hasNext := atomic.LoadInt32(&ec.pendingDeferred) > 0
+				response.HasNext = &hasNext
 			}
+
+			return &response
 		}
 	case ast.Mutation:
 		return func(ctx context.Context) *graphql.Response {
@@ -727,6 +742,28 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 type executionContext struct {
 	*graphql.OperationContext
 	*executableSchema
+	deferred        int32
+	pendingDeferred int32
+	deferredResults chan graphql.DeferredResult
+}
+
+func (ec *executionContext) processDeferredGroup(dg graphql.DeferredGroup) {
+	atomic.AddInt32(&ec.pendingDeferred, 1)
+	go func() {
+		ctx := graphql.WithFreshResponseContext(dg.Context)
+		dg.FieldSet.Dispatch(ctx)
+		ds := graphql.DeferredResult{
+			Path:   dg.Path,
+			Label:  dg.Label,
+			Result: dg.FieldSet,
+			Errors: graphql.GetErrors(ctx),
+		}
+		// null fields should bubble up
+		if dg.FieldSet.Invalids > 0 {
+			ds.Result = graphql.Null
+		}
+		ec.deferredResults <- ds
+	}()
 }
 
 func (ec *executionContext) introspectSchema() (*introspection.Schema, error) {
@@ -769,7 +806,7 @@ func (ec *executionContext) field_Mutation_createPost_args(ctx context.Context, 
 	var arg0 models.CreatePostInput
 	if tmp, ok := rawArgs["input"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
-		arg0, err = ec.unmarshalNCreatePostInput2githubᚗcomᚋelisalimliᚋserverᚋgraphqlᚋmodelsᚐCreatePostInput(ctx, tmp)
+		arg0, err = ec.unmarshalNCreatePostInput2githubᚗcomᚋelisalimliᚋnextsyncᚋserverᚋgraphqlᚋmodelsᚐCreatePostInput(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -784,7 +821,7 @@ func (ec *executionContext) field_Mutation_googleLoginOrSignUp_args(ctx context.
 	var arg0 models.GoogleLoginOrSignUpInput
 	if tmp, ok := rawArgs["input"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
-		arg0, err = ec.unmarshalNGoogleLoginOrSignUpInput2githubᚗcomᚋelisalimliᚋserverᚋgraphqlᚋmodelsᚐGoogleLoginOrSignUpInput(ctx, tmp)
+		arg0, err = ec.unmarshalNGoogleLoginOrSignUpInput2githubᚗcomᚋelisalimliᚋnextsyncᚋserverᚋgraphqlᚋmodelsᚐGoogleLoginOrSignUpInput(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -799,7 +836,7 @@ func (ec *executionContext) field_Mutation_login_args(ctx context.Context, rawAr
 	var arg0 models.LoginInput
 	if tmp, ok := rawArgs["input"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
-		arg0, err = ec.unmarshalNLoginInput2githubᚗcomᚋelisalimliᚋserverᚋgraphqlᚋmodelsᚐLoginInput(ctx, tmp)
+		arg0, err = ec.unmarshalNLoginInput2githubᚗcomᚋelisalimliᚋnextsyncᚋserverᚋgraphqlᚋmodelsᚐLoginInput(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -814,7 +851,7 @@ func (ec *executionContext) field_Mutation_register_args(ctx context.Context, ra
 	var arg0 models.RegisterInput
 	if tmp, ok := rawArgs["input"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
-		arg0, err = ec.unmarshalNRegisterInput2githubᚗcomᚋelisalimliᚋserverᚋgraphqlᚋmodelsᚐRegisterInput(ctx, tmp)
+		arg0, err = ec.unmarshalNRegisterInput2githubᚗcomᚋelisalimliᚋnextsyncᚋserverᚋgraphqlᚋmodelsᚐRegisterInput(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -829,7 +866,7 @@ func (ec *executionContext) field_Mutation_sendOtp_args(ctx context.Context, raw
 	var arg0 models.SendOtpInput
 	if tmp, ok := rawArgs["input"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
-		arg0, err = ec.unmarshalNSendOtpInput2githubᚗcomᚋelisalimliᚋserverᚋgraphqlᚋmodelsᚐSendOtpInput(ctx, tmp)
+		arg0, err = ec.unmarshalNSendOtpInput2githubᚗcomᚋelisalimliᚋnextsyncᚋserverᚋgraphqlᚋmodelsᚐSendOtpInput(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -844,7 +881,7 @@ func (ec *executionContext) field_Mutation_verifyOtp_args(ctx context.Context, r
 	var arg0 models.VerifyOtpInput
 	if tmp, ok := rawArgs["input"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
-		arg0, err = ec.unmarshalNVerifyOtpInput2githubᚗcomᚋelisalimliᚋserverᚋgraphqlᚋmodelsᚐVerifyOtpInput(ctx, tmp)
+		arg0, err = ec.unmarshalNVerifyOtpInput2githubᚗcomᚋelisalimliᚋnextsyncᚋserverᚋgraphqlᚋmodelsᚐVerifyOtpInput(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -874,7 +911,7 @@ func (ec *executionContext) field_Query_posts_args(ctx context.Context, rawArgs 
 	var arg0 models.PostsInput
 	if tmp, ok := rawArgs["input"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
-		arg0, err = ec.unmarshalNPostsInput2githubᚗcomᚋelisalimliᚋserverᚋgraphqlᚋmodelsᚐPostsInput(ctx, tmp)
+		arg0, err = ec.unmarshalNPostsInput2githubᚗcomᚋelisalimliᚋnextsyncᚋserverᚋgraphqlᚋmodelsᚐPostsInput(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -990,7 +1027,7 @@ func (ec *executionContext) _AuthResponse_errors(ctx context.Context, field grap
 	}
 	res := resTmp.([]*validator.FieldError)
 	fc.Result = res
-	return ec.marshalOFieldError2ᚕᚖgithubᚗcomᚋelisalimliᚋserverᚋvalidatorᚐFieldError(ctx, field.Selections, res)
+	return ec.marshalOFieldError2ᚕᚖgithubᚗcomᚋelisalimliᚋnextsyncᚋserverᚋvalidatorᚐFieldError(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_AuthResponse_errors(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -1037,7 +1074,7 @@ func (ec *executionContext) _AuthResponse_authToken(ctx context.Context, field g
 	}
 	res := resTmp.(*models.AuthToken)
 	fc.Result = res
-	return ec.marshalOAuthToken2ᚖgithubᚗcomᚋelisalimliᚋserverᚋgraphqlᚋmodelsᚐAuthToken(ctx, field.Selections, res)
+	return ec.marshalOAuthToken2ᚖgithubᚗcomᚋelisalimliᚋnextsyncᚋserverᚋgraphqlᚋmodelsᚐAuthToken(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_AuthResponse_authToken(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -1084,7 +1121,7 @@ func (ec *executionContext) _AuthResponse_user(ctx context.Context, field graphq
 	}
 	res := resTmp.(*models.User)
 	fc.Result = res
-	return ec.marshalOUser2ᚖgithubᚗcomᚋelisalimliᚋserverᚋgraphqlᚋmodelsᚐUser(ctx, field.Selections, res)
+	return ec.marshalOUser2ᚖgithubᚗcomᚋelisalimliᚋnextsyncᚋserverᚋgraphqlᚋmodelsᚐUser(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_AuthResponse_user(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -1405,7 +1442,7 @@ func (ec *executionContext) _CreatePostResponse_errors(ctx context.Context, fiel
 	}
 	res := resTmp.([]*validator.FieldError)
 	fc.Result = res
-	return ec.marshalOFieldError2ᚕᚖgithubᚗcomᚋelisalimliᚋserverᚋvalidatorᚐFieldError(ctx, field.Selections, res)
+	return ec.marshalOFieldError2ᚕᚖgithubᚗcomᚋelisalimliᚋnextsyncᚋserverᚋvalidatorᚐFieldError(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_CreatePostResponse_errors(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -1452,7 +1489,7 @@ func (ec *executionContext) _CreatePostResponse_post(ctx context.Context, field 
 	}
 	res := resTmp.(*models.Post)
 	fc.Result = res
-	return ec.marshalOPost2ᚖgithubᚗcomᚋelisalimliᚋserverᚋgraphqlᚋmodelsᚐPost(ctx, field.Selections, res)
+	return ec.marshalOPost2ᚖgithubᚗcomᚋelisalimliᚋnextsyncᚋserverᚋgraphqlᚋmodelsᚐPost(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_CreatePostResponse_post(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -1823,7 +1860,7 @@ func (ec *executionContext) _FormResponse_errors(ctx context.Context, field grap
 	}
 	res := resTmp.([]*validator.FieldError)
 	fc.Result = res
-	return ec.marshalOFieldError2ᚕᚖgithubᚗcomᚋelisalimliᚋserverᚋvalidatorᚐFieldError(ctx, field.Selections, res)
+	return ec.marshalOFieldError2ᚕᚖgithubᚗcomᚋelisalimliᚋnextsyncᚋserverᚋvalidatorᚐFieldError(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_FormResponse_errors(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -1873,7 +1910,7 @@ func (ec *executionContext) _Mutation_register(ctx context.Context, field graphq
 	}
 	res := resTmp.(*models.AuthResponse)
 	fc.Result = res
-	return ec.marshalNAuthResponse2ᚖgithubᚗcomᚋelisalimliᚋserverᚋgraphqlᚋmodelsᚐAuthResponse(ctx, field.Selections, res)
+	return ec.marshalNAuthResponse2ᚖgithubᚗcomᚋelisalimliᚋnextsyncᚋserverᚋgraphqlᚋmodelsᚐAuthResponse(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Mutation_register(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -1938,7 +1975,7 @@ func (ec *executionContext) _Mutation_login(ctx context.Context, field graphql.C
 	}
 	res := resTmp.(*models.AuthResponse)
 	fc.Result = res
-	return ec.marshalNAuthResponse2ᚖgithubᚗcomᚋelisalimliᚋserverᚋgraphqlᚋmodelsᚐAuthResponse(ctx, field.Selections, res)
+	return ec.marshalNAuthResponse2ᚖgithubᚗcomᚋelisalimliᚋnextsyncᚋserverᚋgraphqlᚋmodelsᚐAuthResponse(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Mutation_login(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -2003,7 +2040,7 @@ func (ec *executionContext) _Mutation_googleLoginOrSignUp(ctx context.Context, f
 	}
 	res := resTmp.(*models.AuthResponse)
 	fc.Result = res
-	return ec.marshalNAuthResponse2ᚖgithubᚗcomᚋelisalimliᚋserverᚋgraphqlᚋmodelsᚐAuthResponse(ctx, field.Selections, res)
+	return ec.marshalNAuthResponse2ᚖgithubᚗcomᚋelisalimliᚋnextsyncᚋserverᚋgraphqlᚋmodelsᚐAuthResponse(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Mutation_googleLoginOrSignUp(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -2112,7 +2149,7 @@ func (ec *executionContext) _Mutation_refreshToken(ctx context.Context, field gr
 	}
 	res := resTmp.(*models.AuthResponse)
 	fc.Result = res
-	return ec.marshalNAuthResponse2ᚖgithubᚗcomᚋelisalimliᚋserverᚋgraphqlᚋmodelsᚐAuthResponse(ctx, field.Selections, res)
+	return ec.marshalNAuthResponse2ᚖgithubᚗcomᚋelisalimliᚋnextsyncᚋserverᚋgraphqlᚋmodelsᚐAuthResponse(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Mutation_refreshToken(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -2166,7 +2203,7 @@ func (ec *executionContext) _Mutation_sendOtp(ctx context.Context, field graphql
 	}
 	res := resTmp.(*models.FormResponse)
 	fc.Result = res
-	return ec.marshalNFormResponse2ᚖgithubᚗcomᚋelisalimliᚋserverᚋgraphqlᚋmodelsᚐFormResponse(ctx, field.Selections, res)
+	return ec.marshalNFormResponse2ᚖgithubᚗcomᚋelisalimliᚋnextsyncᚋserverᚋgraphqlᚋmodelsᚐFormResponse(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Mutation_sendOtp(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -2227,7 +2264,7 @@ func (ec *executionContext) _Mutation_verifyOtp(ctx context.Context, field graph
 	}
 	res := resTmp.(*models.AuthResponse)
 	fc.Result = res
-	return ec.marshalNAuthResponse2ᚖgithubᚗcomᚋelisalimliᚋserverᚋgraphqlᚋmodelsᚐAuthResponse(ctx, field.Selections, res)
+	return ec.marshalNAuthResponse2ᚖgithubᚗcomᚋelisalimliᚋnextsyncᚋserverᚋgraphqlᚋmodelsᚐAuthResponse(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Mutation_verifyOtp(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -2292,7 +2329,7 @@ func (ec *executionContext) _Mutation_createPost(ctx context.Context, field grap
 	}
 	res := resTmp.(*models.CreatePostResponse)
 	fc.Result = res
-	return ec.marshalNCreatePostResponse2ᚖgithubᚗcomᚋelisalimliᚋserverᚋgraphqlᚋmodelsᚐCreatePostResponse(ctx, field.Selections, res)
+	return ec.marshalNCreatePostResponse2ᚖgithubᚗcomᚋelisalimliᚋnextsyncᚋserverᚋgraphqlᚋmodelsᚐCreatePostResponse(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Mutation_createPost(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -2522,7 +2559,7 @@ func (ec *executionContext) _Post_files(ctx context.Context, field graphql.Colle
 	}
 	res := resTmp.([]*models.PostFile)
 	fc.Result = res
-	return ec.marshalOPostFile2ᚕᚖgithubᚗcomᚋelisalimliᚋserverᚋgraphqlᚋmodelsᚐPostFile(ctx, field.Selections, res)
+	return ec.marshalOPostFile2ᚕᚖgithubᚗcomᚋelisalimliᚋnextsyncᚋserverᚋgraphqlᚋmodelsᚐPostFile(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Post_files(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -2580,7 +2617,7 @@ func (ec *executionContext) _Post_tags(ctx context.Context, field graphql.Collec
 	}
 	res := resTmp.([]models.Tag)
 	fc.Result = res
-	return ec.marshalNTag2ᚕgithubᚗcomᚋelisalimliᚋserverᚋgraphqlᚋmodelsᚐTagᚄ(ctx, field.Selections, res)
+	return ec.marshalNTag2ᚕgithubᚗcomᚋelisalimliᚋnextsyncᚋserverᚋgraphqlᚋmodelsᚐTagᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Post_tags(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -2636,7 +2673,7 @@ func (ec *executionContext) _Post_creator(ctx context.Context, field graphql.Col
 	}
 	res := resTmp.(*models.User)
 	fc.Result = res
-	return ec.marshalNUser2ᚖgithubᚗcomᚋelisalimliᚋserverᚋgraphqlᚋmodelsᚐUser(ctx, field.Selections, res)
+	return ec.marshalNUser2ᚖgithubᚗcomᚋelisalimliᚋnextsyncᚋserverᚋgraphqlᚋmodelsᚐUser(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Post_creator(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -3136,7 +3173,7 @@ func (ec *executionContext) _PostsResponse_posts(ctx context.Context, field grap
 	}
 	res := resTmp.([]*models.Post)
 	fc.Result = res
-	return ec.marshalNPost2ᚕᚖgithubᚗcomᚋelisalimliᚋserverᚋgraphqlᚋmodelsᚐPostᚄ(ctx, field.Selections, res)
+	return ec.marshalNPost2ᚕᚖgithubᚗcomᚋelisalimliᚋnextsyncᚋserverᚋgraphqlᚋmodelsᚐPostᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_PostsResponse_posts(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -3202,7 +3239,7 @@ func (ec *executionContext) _Query_users(ctx context.Context, field graphql.Coll
 	}
 	res := resTmp.([]*models.User)
 	fc.Result = res
-	return ec.marshalNUser2ᚕᚖgithubᚗcomᚋelisalimliᚋserverᚋgraphqlᚋmodelsᚐUserᚄ(ctx, field.Selections, res)
+	return ec.marshalNUser2ᚕᚖgithubᚗcomᚋelisalimliᚋnextsyncᚋserverᚋgraphqlᚋmodelsᚐUserᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Query_users(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -3262,7 +3299,7 @@ func (ec *executionContext) _Query_posts(ctx context.Context, field graphql.Coll
 	}
 	res := resTmp.(*models.PostsResponse)
 	fc.Result = res
-	return ec.marshalNPostsResponse2ᚖgithubᚗcomᚋelisalimliᚋserverᚋgraphqlᚋmodelsᚐPostsResponse(ctx, field.Selections, res)
+	return ec.marshalNPostsResponse2ᚖgithubᚗcomᚋelisalimliᚋnextsyncᚋserverᚋgraphqlᚋmodelsᚐPostsResponse(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Query_posts(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -3323,7 +3360,7 @@ func (ec *executionContext) _Query_tags(ctx context.Context, field graphql.Colle
 	}
 	res := resTmp.([]*models.Tag)
 	fc.Result = res
-	return ec.marshalNTag2ᚕᚖgithubᚗcomᚋelisalimliᚋserverᚋgraphqlᚋmodelsᚐTagᚄ(ctx, field.Selections, res)
+	return ec.marshalNTag2ᚕᚖgithubᚗcomᚋelisalimliᚋnextsyncᚋserverᚋgraphqlᚋmodelsᚐTagᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Query_tags(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -3376,7 +3413,7 @@ func (ec *executionContext) _Query_me(ctx context.Context, field graphql.Collect
 	}
 	res := resTmp.(*models.User)
 	fc.Result = res
-	return ec.marshalOUser2ᚖgithubᚗcomᚋelisalimliᚋserverᚋgraphqlᚋmodelsᚐUser(ctx, field.Selections, res)
+	return ec.marshalOUser2ᚖgithubᚗcomᚋelisalimliᚋnextsyncᚋserverᚋgraphqlᚋmodelsᚐUser(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Query_me(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -3782,7 +3819,7 @@ func (ec *executionContext) _Tag_catalog(ctx context.Context, field graphql.Coll
 	}
 	res := resTmp.(*models.Catalog)
 	fc.Result = res
-	return ec.marshalOCatalog2ᚖgithubᚗcomᚋelisalimliᚋserverᚋgraphqlᚋmodelsᚐCatalog(ctx, field.Selections, res)
+	return ec.marshalOCatalog2ᚖgithubᚗcomᚋelisalimliᚋnextsyncᚋserverᚋgraphqlᚋmodelsᚐCatalog(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Tag_catalog(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -5905,26 +5942,29 @@ func (ec *executionContext) unmarshalInputCreatePostInput(ctx context.Context, o
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("files"))
-			it.Files, err = ec.unmarshalOUploadFile2ᚕᚖgithubᚗcomᚋelisalimliᚋserverᚋgraphqlᚋmodelsᚐUploadFile(ctx, v)
+			data, err := ec.unmarshalOUploadFile2ᚕᚖgithubᚗcomᚋelisalimliᚋnextsyncᚋserverᚋgraphqlᚋmodelsᚐUploadFile(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.Files = data
 		case "title":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("title"))
-			it.Title, err = ec.unmarshalNString2string(ctx, v)
+			data, err := ec.unmarshalNString2string(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.Title = data
 		case "description":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("description"))
-			it.Description, err = ec.unmarshalNString2string(ctx, v)
+			data, err := ec.unmarshalNString2string(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.Description = data
 		}
 	}
 
@@ -5949,26 +5989,29 @@ func (ec *executionContext) unmarshalInputGoogleLoginOrSignUpInput(ctx context.C
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("token"))
-			it.Token, err = ec.unmarshalNString2string(ctx, v)
+			data, err := ec.unmarshalNString2string(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.Token = data
 		case "username":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("username"))
-			it.Username, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.Username = data
 		case "phoneNumber":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("phoneNumber"))
-			it.PhoneNumber, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.PhoneNumber = data
 		}
 	}
 
@@ -5993,18 +6036,20 @@ func (ec *executionContext) unmarshalInputLoginInput(ctx context.Context, obj in
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("email"))
-			it.Email, err = ec.unmarshalNString2string(ctx, v)
+			data, err := ec.unmarshalNString2string(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.Email = data
 		case "password":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("password"))
-			it.Password, err = ec.unmarshalNString2string(ctx, v)
+			data, err := ec.unmarshalNString2string(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.Password = data
 		}
 	}
 
@@ -6029,34 +6074,38 @@ func (ec *executionContext) unmarshalInputPostsInput(ctx context.Context, obj in
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("cursor"))
-			it.Cursor, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.Cursor = data
 		case "limit":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("limit"))
-			it.Limit, err = ec.unmarshalOInt2ᚖint(ctx, v)
+			data, err := ec.unmarshalOInt2ᚖint(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.Limit = data
 		case "searchQuery":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("searchQuery"))
-			it.SearchQuery, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.SearchQuery = data
 		case "tagIds":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("tagIds"))
-			it.TagIds, err = ec.unmarshalOString2ᚕstringᚄ(ctx, v)
+			data, err := ec.unmarshalOString2ᚕstringᚄ(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.TagIds = data
 		}
 	}
 
@@ -6081,58 +6130,65 @@ func (ec *executionContext) unmarshalInputRegisterInput(ctx context.Context, obj
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("username"))
-			it.Username, err = ec.unmarshalNString2string(ctx, v)
+			data, err := ec.unmarshalNString2string(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.Username = data
 		case "email":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("email"))
-			it.Email, err = ec.unmarshalNString2string(ctx, v)
+			data, err := ec.unmarshalNString2string(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.Email = data
 		case "password":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("password"))
-			it.Password, err = ec.unmarshalNString2string(ctx, v)
+			data, err := ec.unmarshalNString2string(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.Password = data
 		case "confirmPassword":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("confirmPassword"))
-			it.ConfirmPassword, err = ec.unmarshalNString2string(ctx, v)
+			data, err := ec.unmarshalNString2string(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.ConfirmPassword = data
 		case "firstName":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("firstName"))
-			it.FirstName, err = ec.unmarshalNString2string(ctx, v)
+			data, err := ec.unmarshalNString2string(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.FirstName = data
 		case "lastName":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("lastName"))
-			it.LastName, err = ec.unmarshalNString2string(ctx, v)
+			data, err := ec.unmarshalNString2string(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.LastName = data
 		case "phoneNumber":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("phoneNumber"))
-			it.PhoneNumber, err = ec.unmarshalNString2string(ctx, v)
+			data, err := ec.unmarshalNString2string(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.PhoneNumber = data
 		}
 	}
 
@@ -6157,10 +6213,11 @@ func (ec *executionContext) unmarshalInputSendOtpInput(ctx context.Context, obj 
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("to"))
-			it.To, err = ec.unmarshalNString2string(ctx, v)
+			data, err := ec.unmarshalNString2string(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.To = data
 		}
 	}
 
@@ -6185,18 +6242,20 @@ func (ec *executionContext) unmarshalInputUploadFile(ctx context.Context, obj in
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
-			it.ID, err = ec.unmarshalNInt2int(ctx, v)
+			data, err := ec.unmarshalNInt2int(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.ID = data
 		case "file":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("file"))
-			it.File, err = ec.unmarshalNUpload2githubᚗcomᚋ99designsᚋgqlgenᚋgraphqlᚐUpload(ctx, v)
+			data, err := ec.unmarshalNUpload2githubᚗcomᚋ99designsᚋgqlgenᚋgraphqlᚐUpload(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.File = data
 		}
 	}
 
@@ -6221,18 +6280,20 @@ func (ec *executionContext) unmarshalInputVerifyOtpInput(ctx context.Context, ob
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("to"))
-			it.To, err = ec.unmarshalNString2string(ctx, v)
+			data, err := ec.unmarshalNString2string(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.To = data
 		case "code":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("code"))
-			it.Code, err = ec.unmarshalNString2string(ctx, v)
+			data, err := ec.unmarshalNString2string(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.Code = data
 		}
 	}
 
@@ -6274,39 +6335,44 @@ var authResponseImplementors = []string{"AuthResponse", "IFormResponse"}
 
 func (ec *executionContext) _AuthResponse(ctx context.Context, sel ast.SelectionSet, obj *models.AuthResponse) graphql.Marshaler {
 	fields := graphql.CollectFields(ec.OperationContext, sel, authResponseImplementors)
+
 	out := graphql.NewFieldSet(fields)
-	var invalids uint32
+	deferred := make(map[string]*graphql.FieldSet)
 	for i, field := range fields {
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("AuthResponse")
 		case "ok":
-
 			out.Values[i] = ec._AuthResponse_ok(ctx, field, obj)
-
 			if out.Values[i] == graphql.Null {
-				invalids++
+				out.Invalids++
 			}
 		case "errors":
-
 			out.Values[i] = ec._AuthResponse_errors(ctx, field, obj)
-
 		case "authToken":
-
 			out.Values[i] = ec._AuthResponse_authToken(ctx, field, obj)
-
 		case "user":
-
 			out.Values[i] = ec._AuthResponse_user(ctx, field, obj)
-
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
 	}
-	out.Dispatch()
-	if invalids > 0 {
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
 		return graphql.Null
 	}
+
+	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.processDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
 	return out
 }
 
@@ -6314,34 +6380,43 @@ var authTokenImplementors = []string{"AuthToken"}
 
 func (ec *executionContext) _AuthToken(ctx context.Context, sel ast.SelectionSet, obj *models.AuthToken) graphql.Marshaler {
 	fields := graphql.CollectFields(ec.OperationContext, sel, authTokenImplementors)
+
 	out := graphql.NewFieldSet(fields)
-	var invalids uint32
+	deferred := make(map[string]*graphql.FieldSet)
 	for i, field := range fields {
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("AuthToken")
 		case "token":
-
 			out.Values[i] = ec._AuthToken_token(ctx, field, obj)
-
 			if out.Values[i] == graphql.Null {
-				invalids++
+				out.Invalids++
 			}
 		case "expiredAt":
-
 			out.Values[i] = ec._AuthToken_expiredAt(ctx, field, obj)
-
 			if out.Values[i] == graphql.Null {
-				invalids++
+				out.Invalids++
 			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
 	}
-	out.Dispatch()
-	if invalids > 0 {
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
 		return graphql.Null
 	}
+
+	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.processDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
 	return out
 }
 
@@ -6349,41 +6424,48 @@ var catalogImplementors = []string{"Catalog"}
 
 func (ec *executionContext) _Catalog(ctx context.Context, sel ast.SelectionSet, obj *models.Catalog) graphql.Marshaler {
 	fields := graphql.CollectFields(ec.OperationContext, sel, catalogImplementors)
+
 	out := graphql.NewFieldSet(fields)
-	var invalids uint32
+	deferred := make(map[string]*graphql.FieldSet)
 	for i, field := range fields {
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("Catalog")
 		case "id":
-
 			out.Values[i] = ec._Catalog_id(ctx, field, obj)
-
 			if out.Values[i] == graphql.Null {
-				invalids++
+				out.Invalids++
 			}
 		case "name":
-
 			out.Values[i] = ec._Catalog_name(ctx, field, obj)
-
 			if out.Values[i] == graphql.Null {
-				invalids++
+				out.Invalids++
 			}
 		case "code":
-
 			out.Values[i] = ec._Catalog_code(ctx, field, obj)
-
 			if out.Values[i] == graphql.Null {
-				invalids++
+				out.Invalids++
 			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
 	}
-	out.Dispatch()
-	if invalids > 0 {
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
 		return graphql.Null
 	}
+
+	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.processDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
 	return out
 }
 
@@ -6391,35 +6473,42 @@ var createPostResponseImplementors = []string{"CreatePostResponse", "IFormRespon
 
 func (ec *executionContext) _CreatePostResponse(ctx context.Context, sel ast.SelectionSet, obj *models.CreatePostResponse) graphql.Marshaler {
 	fields := graphql.CollectFields(ec.OperationContext, sel, createPostResponseImplementors)
+
 	out := graphql.NewFieldSet(fields)
-	var invalids uint32
+	deferred := make(map[string]*graphql.FieldSet)
 	for i, field := range fields {
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("CreatePostResponse")
 		case "ok":
-
 			out.Values[i] = ec._CreatePostResponse_ok(ctx, field, obj)
-
 			if out.Values[i] == graphql.Null {
-				invalids++
+				out.Invalids++
 			}
 		case "errors":
-
 			out.Values[i] = ec._CreatePostResponse_errors(ctx, field, obj)
-
 		case "post":
-
 			out.Values[i] = ec._CreatePostResponse_post(ctx, field, obj)
-
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
 	}
-	out.Dispatch()
-	if invalids > 0 {
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
 		return graphql.Null
 	}
+
+	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.processDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
 	return out
 }
 
@@ -6427,34 +6516,43 @@ var fieldErrorImplementors = []string{"FieldError"}
 
 func (ec *executionContext) _FieldError(ctx context.Context, sel ast.SelectionSet, obj *validator.FieldError) graphql.Marshaler {
 	fields := graphql.CollectFields(ec.OperationContext, sel, fieldErrorImplementors)
+
 	out := graphql.NewFieldSet(fields)
-	var invalids uint32
+	deferred := make(map[string]*graphql.FieldSet)
 	for i, field := range fields {
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("FieldError")
 		case "message":
-
 			out.Values[i] = ec._FieldError_message(ctx, field, obj)
-
 			if out.Values[i] == graphql.Null {
-				invalids++
+				out.Invalids++
 			}
 		case "field":
-
 			out.Values[i] = ec._FieldError_field(ctx, field, obj)
-
 			if out.Values[i] == graphql.Null {
-				invalids++
+				out.Invalids++
 			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
 	}
-	out.Dispatch()
-	if invalids > 0 {
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
 		return graphql.Null
 	}
+
+	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.processDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
 	return out
 }
 
@@ -6462,48 +6560,53 @@ var fileImplementors = []string{"File"}
 
 func (ec *executionContext) _File(ctx context.Context, sel ast.SelectionSet, obj *models.File) graphql.Marshaler {
 	fields := graphql.CollectFields(ec.OperationContext, sel, fileImplementors)
+
 	out := graphql.NewFieldSet(fields)
-	var invalids uint32
+	deferred := make(map[string]*graphql.FieldSet)
 	for i, field := range fields {
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("File")
 		case "id":
-
 			out.Values[i] = ec._File_id(ctx, field, obj)
-
 			if out.Values[i] == graphql.Null {
-				invalids++
+				out.Invalids++
 			}
 		case "name":
-
 			out.Values[i] = ec._File_name(ctx, field, obj)
-
 			if out.Values[i] == graphql.Null {
-				invalids++
+				out.Invalids++
 			}
 		case "content":
-
 			out.Values[i] = ec._File_content(ctx, field, obj)
-
 			if out.Values[i] == graphql.Null {
-				invalids++
+				out.Invalids++
 			}
 		case "contentType":
-
 			out.Values[i] = ec._File_contentType(ctx, field, obj)
-
 			if out.Values[i] == graphql.Null {
-				invalids++
+				out.Invalids++
 			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
 	}
-	out.Dispatch()
-	if invalids > 0 {
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
 		return graphql.Null
 	}
+
+	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.processDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
 	return out
 }
 
@@ -6511,31 +6614,40 @@ var formResponseImplementors = []string{"FormResponse"}
 
 func (ec *executionContext) _FormResponse(ctx context.Context, sel ast.SelectionSet, obj *models.FormResponse) graphql.Marshaler {
 	fields := graphql.CollectFields(ec.OperationContext, sel, formResponseImplementors)
+
 	out := graphql.NewFieldSet(fields)
-	var invalids uint32
+	deferred := make(map[string]*graphql.FieldSet)
 	for i, field := range fields {
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("FormResponse")
 		case "ok":
-
 			out.Values[i] = ec._FormResponse_ok(ctx, field, obj)
-
 			if out.Values[i] == graphql.Null {
-				invalids++
+				out.Invalids++
 			}
 		case "errors":
-
 			out.Values[i] = ec._FormResponse_errors(ctx, field, obj)
-
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
 	}
-	out.Dispatch()
-	if invalids > 0 {
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
 		return graphql.Null
 	}
+
+	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.processDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
 	return out
 }
 
@@ -6548,7 +6660,7 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 	})
 
 	out := graphql.NewFieldSet(fields)
-	var invalids uint32
+	deferred := make(map[string]*graphql.FieldSet)
 	for i, field := range fields {
 		innerCtx := graphql.WithRootFieldContext(ctx, &graphql.RootFieldContext{
 			Object: field.Name,
@@ -6559,85 +6671,81 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("Mutation")
 		case "register":
-
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._Mutation_register(ctx, field)
 			})
-
 			if out.Values[i] == graphql.Null {
-				invalids++
+				out.Invalids++
 			}
 		case "login":
-
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._Mutation_login(ctx, field)
 			})
-
 			if out.Values[i] == graphql.Null {
-				invalids++
+				out.Invalids++
 			}
 		case "googleLoginOrSignUp":
-
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._Mutation_googleLoginOrSignUp(ctx, field)
 			})
-
 			if out.Values[i] == graphql.Null {
-				invalids++
+				out.Invalids++
 			}
 		case "logout":
-
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._Mutation_logout(ctx, field)
 			})
-
 			if out.Values[i] == graphql.Null {
-				invalids++
+				out.Invalids++
 			}
 		case "refreshToken":
-
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._Mutation_refreshToken(ctx, field)
 			})
-
 			if out.Values[i] == graphql.Null {
-				invalids++
+				out.Invalids++
 			}
 		case "sendOtp":
-
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._Mutation_sendOtp(ctx, field)
 			})
-
 			if out.Values[i] == graphql.Null {
-				invalids++
+				out.Invalids++
 			}
 		case "verifyOtp":
-
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._Mutation_verifyOtp(ctx, field)
 			})
-
 			if out.Values[i] == graphql.Null {
-				invalids++
+				out.Invalids++
 			}
 		case "createPost":
-
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._Mutation_createPost(ctx, field)
 			})
-
 			if out.Values[i] == graphql.Null {
-				invalids++
+				out.Invalids++
 			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
 	}
-	out.Dispatch()
-	if invalids > 0 {
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
 		return graphql.Null
 	}
+
+	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.processDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
 	return out
 }
 
@@ -6645,38 +6753,31 @@ var postImplementors = []string{"Post"}
 
 func (ec *executionContext) _Post(ctx context.Context, sel ast.SelectionSet, obj *models.Post) graphql.Marshaler {
 	fields := graphql.CollectFields(ec.OperationContext, sel, postImplementors)
+
 	out := graphql.NewFieldSet(fields)
-	var invalids uint32
+	deferred := make(map[string]*graphql.FieldSet)
 	for i, field := range fields {
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("Post")
 		case "id":
-
 			out.Values[i] = ec._Post_id(ctx, field, obj)
-
 			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&invalids, 1)
+				atomic.AddUint32(&out.Invalids, 1)
 			}
 		case "title":
-
 			out.Values[i] = ec._Post_title(ctx, field, obj)
-
 			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&invalids, 1)
+				atomic.AddUint32(&out.Invalids, 1)
 			}
 		case "description":
-
 			out.Values[i] = ec._Post_description(ctx, field, obj)
-
 		case "htmlContent":
-
 			out.Values[i] = ec._Post_htmlContent(ctx, field, obj)
-
 		case "files":
 			field := field
 
-			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
 				defer func() {
 					if r := recover(); r != nil {
 						ec.Error(ctx, ec.Recover(ctx, r))
@@ -6686,21 +6787,35 @@ func (ec *executionContext) _Post(ctx context.Context, sel ast.SelectionSet, obj
 				return res
 			}
 
-			out.Concurrently(i, func() graphql.Marshaler {
-				return innerFunc(ctx)
+			if field.Deferrable != nil {
+				dfs, ok := deferred[field.Deferrable.Label]
+				di := 0
+				if ok {
+					dfs.AddField(field)
+					di = len(dfs.Values) - 1
+				} else {
+					dfs = graphql.NewFieldSet([]graphql.CollectedField{field})
+					deferred[field.Deferrable.Label] = dfs
+				}
+				dfs.Concurrently(di, func(ctx context.Context) graphql.Marshaler {
+					return innerFunc(ctx, dfs)
+				})
 
-			})
+				// don't run the out.Concurrently() call below
+				out.Values[i] = graphql.Null
+				continue
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
 		case "tags":
-
 			out.Values[i] = ec._Post_tags(ctx, field, obj)
-
 			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&invalids, 1)
+				atomic.AddUint32(&out.Invalids, 1)
 			}
 		case "creator":
 			field := field
 
-			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
 				defer func() {
 					if r := recover(); r != nil {
 						ec.Error(ctx, ec.Recover(ctx, r))
@@ -6708,44 +6823,66 @@ func (ec *executionContext) _Post(ctx context.Context, sel ast.SelectionSet, obj
 				}()
 				res = ec._Post_creator(ctx, field, obj)
 				if res == graphql.Null {
-					atomic.AddUint32(&invalids, 1)
+					atomic.AddUint32(&fs.Invalids, 1)
 				}
 				return res
 			}
 
-			out.Concurrently(i, func() graphql.Marshaler {
-				return innerFunc(ctx)
+			if field.Deferrable != nil {
+				dfs, ok := deferred[field.Deferrable.Label]
+				di := 0
+				if ok {
+					dfs.AddField(field)
+					di = len(dfs.Values) - 1
+				} else {
+					dfs = graphql.NewFieldSet([]graphql.CollectedField{field})
+					deferred[field.Deferrable.Label] = dfs
+				}
+				dfs.Concurrently(di, func(ctx context.Context) graphql.Marshaler {
+					return innerFunc(ctx, dfs)
+				})
 
-			})
+				// don't run the out.Concurrently() call below
+				out.Values[i] = graphql.Null
+				continue
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
 		case "userId":
-
 			out.Values[i] = ec._Post_userId(ctx, field, obj)
-
 			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&invalids, 1)
+				atomic.AddUint32(&out.Invalids, 1)
 			}
 		case "createdAt":
-
 			out.Values[i] = ec._Post_createdAt(ctx, field, obj)
-
 			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&invalids, 1)
+				atomic.AddUint32(&out.Invalids, 1)
 			}
 		case "updatedAt":
-
 			out.Values[i] = ec._Post_updatedAt(ctx, field, obj)
-
 			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&invalids, 1)
+				atomic.AddUint32(&out.Invalids, 1)
 			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
 	}
-	out.Dispatch()
-	if invalids > 0 {
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
 		return graphql.Null
 	}
+
+	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.processDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
 	return out
 }
 
@@ -6753,62 +6890,63 @@ var postFileImplementors = []string{"PostFile"}
 
 func (ec *executionContext) _PostFile(ctx context.Context, sel ast.SelectionSet, obj *models.PostFile) graphql.Marshaler {
 	fields := graphql.CollectFields(ec.OperationContext, sel, postFileImplementors)
+
 	out := graphql.NewFieldSet(fields)
-	var invalids uint32
+	deferred := make(map[string]*graphql.FieldSet)
 	for i, field := range fields {
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("PostFile")
 		case "id":
-
 			out.Values[i] = ec._PostFile_id(ctx, field, obj)
-
 			if out.Values[i] == graphql.Null {
-				invalids++
+				out.Invalids++
 			}
 		case "postId":
-
 			out.Values[i] = ec._PostFile_postId(ctx, field, obj)
-
 			if out.Values[i] == graphql.Null {
-				invalids++
+				out.Invalids++
 			}
 		case "url":
-
 			out.Values[i] = ec._PostFile_url(ctx, field, obj)
-
 			if out.Values[i] == graphql.Null {
-				invalids++
+				out.Invalids++
 			}
 		case "contentType":
-
 			out.Values[i] = ec._PostFile_contentType(ctx, field, obj)
-
 			if out.Values[i] == graphql.Null {
-				invalids++
+				out.Invalids++
 			}
 		case "fileSize":
-
 			out.Values[i] = ec._PostFile_fileSize(ctx, field, obj)
-
 			if out.Values[i] == graphql.Null {
-				invalids++
+				out.Invalids++
 			}
 		case "fileName":
-
 			out.Values[i] = ec._PostFile_fileName(ctx, field, obj)
-
 			if out.Values[i] == graphql.Null {
-				invalids++
+				out.Invalids++
 			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
 	}
-	out.Dispatch()
-	if invalids > 0 {
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
 		return graphql.Null
 	}
+
+	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.processDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
 	return out
 }
 
@@ -6816,34 +6954,43 @@ var postsResponseImplementors = []string{"PostsResponse"}
 
 func (ec *executionContext) _PostsResponse(ctx context.Context, sel ast.SelectionSet, obj *models.PostsResponse) graphql.Marshaler {
 	fields := graphql.CollectFields(ec.OperationContext, sel, postsResponseImplementors)
+
 	out := graphql.NewFieldSet(fields)
-	var invalids uint32
+	deferred := make(map[string]*graphql.FieldSet)
 	for i, field := range fields {
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("PostsResponse")
 		case "hasMore":
-
 			out.Values[i] = ec._PostsResponse_hasMore(ctx, field, obj)
-
 			if out.Values[i] == graphql.Null {
-				invalids++
+				out.Invalids++
 			}
 		case "posts":
-
 			out.Values[i] = ec._PostsResponse_posts(ctx, field, obj)
-
 			if out.Values[i] == graphql.Null {
-				invalids++
+				out.Invalids++
 			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
 	}
-	out.Dispatch()
-	if invalids > 0 {
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
 		return graphql.Null
 	}
+
+	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.processDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
 	return out
 }
 
@@ -6856,7 +7003,7 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 	})
 
 	out := graphql.NewFieldSet(fields)
-	var invalids uint32
+	deferred := make(map[string]*graphql.FieldSet)
 	for i, field := range fields {
 		innerCtx := graphql.WithRootFieldContext(ctx, &graphql.RootFieldContext{
 			Object: field.Name,
@@ -6869,7 +7016,7 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 		case "users":
 			field := field
 
-			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
 				defer func() {
 					if r := recover(); r != nil {
 						ec.Error(ctx, ec.Recover(ctx, r))
@@ -6877,22 +7024,21 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 				}()
 				res = ec._Query_users(ctx, field)
 				if res == graphql.Null {
-					atomic.AddUint32(&invalids, 1)
+					atomic.AddUint32(&fs.Invalids, 1)
 				}
 				return res
 			}
 
 			rrm := func(ctx context.Context) graphql.Marshaler {
-				return ec.OperationContext.RootResolverMiddleware(ctx, innerFunc)
+				return ec.OperationContext.RootResolverMiddleware(ctx,
+					func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
 			}
 
-			out.Concurrently(i, func() graphql.Marshaler {
-				return rrm(innerCtx)
-			})
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
 		case "posts":
 			field := field
 
-			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
 				defer func() {
 					if r := recover(); r != nil {
 						ec.Error(ctx, ec.Recover(ctx, r))
@@ -6900,22 +7046,21 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 				}()
 				res = ec._Query_posts(ctx, field)
 				if res == graphql.Null {
-					atomic.AddUint32(&invalids, 1)
+					atomic.AddUint32(&fs.Invalids, 1)
 				}
 				return res
 			}
 
 			rrm := func(ctx context.Context) graphql.Marshaler {
-				return ec.OperationContext.RootResolverMiddleware(ctx, innerFunc)
+				return ec.OperationContext.RootResolverMiddleware(ctx,
+					func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
 			}
 
-			out.Concurrently(i, func() graphql.Marshaler {
-				return rrm(innerCtx)
-			})
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
 		case "tags":
 			field := field
 
-			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
 				defer func() {
 					if r := recover(); r != nil {
 						ec.Error(ctx, ec.Recover(ctx, r))
@@ -6923,22 +7068,21 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 				}()
 				res = ec._Query_tags(ctx, field)
 				if res == graphql.Null {
-					atomic.AddUint32(&invalids, 1)
+					atomic.AddUint32(&fs.Invalids, 1)
 				}
 				return res
 			}
 
 			rrm := func(ctx context.Context) graphql.Marshaler {
-				return ec.OperationContext.RootResolverMiddleware(ctx, innerFunc)
+				return ec.OperationContext.RootResolverMiddleware(ctx,
+					func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
 			}
 
-			out.Concurrently(i, func() graphql.Marshaler {
-				return rrm(innerCtx)
-			})
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
 		case "me":
 			field := field
 
-			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
 				defer func() {
 					if r := recover(); r != nil {
 						ec.Error(ctx, ec.Recover(ctx, r))
@@ -6949,16 +7093,15 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 			}
 
 			rrm := func(ctx context.Context) graphql.Marshaler {
-				return ec.OperationContext.RootResolverMiddleware(ctx, innerFunc)
+				return ec.OperationContext.RootResolverMiddleware(ctx,
+					func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
 			}
 
-			out.Concurrently(i, func() graphql.Marshaler {
-				return rrm(innerCtx)
-			})
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
 		case "hello":
 			field := field
 
-			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
 				defer func() {
 					if r := recover(); r != nil {
 						ec.Error(ctx, ec.Recover(ctx, r))
@@ -6966,38 +7109,45 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 				}()
 				res = ec._Query_hello(ctx, field)
 				if res == graphql.Null {
-					atomic.AddUint32(&invalids, 1)
+					atomic.AddUint32(&fs.Invalids, 1)
 				}
 				return res
 			}
 
 			rrm := func(ctx context.Context) graphql.Marshaler {
-				return ec.OperationContext.RootResolverMiddleware(ctx, innerFunc)
+				return ec.OperationContext.RootResolverMiddleware(ctx,
+					func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
 			}
 
-			out.Concurrently(i, func() graphql.Marshaler {
-				return rrm(innerCtx)
-			})
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
 		case "__type":
-
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._Query___type(ctx, field)
 			})
-
 		case "__schema":
-
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._Query___schema(ctx, field)
 			})
-
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
 	}
-	out.Dispatch()
-	if invalids > 0 {
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
 		return graphql.Null
 	}
+
+	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.processDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
 	return out
 }
 
@@ -7005,52 +7155,55 @@ var tagImplementors = []string{"Tag"}
 
 func (ec *executionContext) _Tag(ctx context.Context, sel ast.SelectionSet, obj *models.Tag) graphql.Marshaler {
 	fields := graphql.CollectFields(ec.OperationContext, sel, tagImplementors)
+
 	out := graphql.NewFieldSet(fields)
-	var invalids uint32
+	deferred := make(map[string]*graphql.FieldSet)
 	for i, field := range fields {
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("Tag")
 		case "id":
-
 			out.Values[i] = ec._Tag_id(ctx, field, obj)
-
 			if out.Values[i] == graphql.Null {
-				invalids++
+				out.Invalids++
 			}
 		case "name":
-
 			out.Values[i] = ec._Tag_name(ctx, field, obj)
-
 			if out.Values[i] == graphql.Null {
-				invalids++
+				out.Invalids++
 			}
 		case "code":
-
 			out.Values[i] = ec._Tag_code(ctx, field, obj)
-
 			if out.Values[i] == graphql.Null {
-				invalids++
+				out.Invalids++
 			}
 		case "catalogId":
-
 			out.Values[i] = ec._Tag_catalogId(ctx, field, obj)
-
 			if out.Values[i] == graphql.Null {
-				invalids++
+				out.Invalids++
 			}
 		case "catalog":
-
 			out.Values[i] = ec._Tag_catalog(ctx, field, obj)
-
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
 	}
-	out.Dispatch()
-	if invalids > 0 {
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
 		return graphql.Null
 	}
+
+	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.processDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
 	return out
 }
 
@@ -7058,69 +7211,68 @@ var userImplementors = []string{"User"}
 
 func (ec *executionContext) _User(ctx context.Context, sel ast.SelectionSet, obj *models.User) graphql.Marshaler {
 	fields := graphql.CollectFields(ec.OperationContext, sel, userImplementors)
+
 	out := graphql.NewFieldSet(fields)
-	var invalids uint32
+	deferred := make(map[string]*graphql.FieldSet)
 	for i, field := range fields {
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("User")
 		case "id":
-
 			out.Values[i] = ec._User_id(ctx, field, obj)
-
 			if out.Values[i] == graphql.Null {
-				invalids++
+				out.Invalids++
 			}
 		case "username":
-
 			out.Values[i] = ec._User_username(ctx, field, obj)
-
 			if out.Values[i] == graphql.Null {
-				invalids++
+				out.Invalids++
 			}
 		case "email":
-
 			out.Values[i] = ec._User_email(ctx, field, obj)
-
 			if out.Values[i] == graphql.Null {
-				invalids++
+				out.Invalids++
 			}
 		case "phoneNumber":
-
 			out.Values[i] = ec._User_phoneNumber(ctx, field, obj)
-
 			if out.Values[i] == graphql.Null {
-				invalids++
+				out.Invalids++
 			}
 		case "verified":
-
 			out.Values[i] = ec._User_verified(ctx, field, obj)
-
 			if out.Values[i] == graphql.Null {
-				invalids++
+				out.Invalids++
 			}
 		case "createdAt":
-
 			out.Values[i] = ec._User_createdAt(ctx, field, obj)
-
 			if out.Values[i] == graphql.Null {
-				invalids++
+				out.Invalids++
 			}
 		case "updatedAt":
-
 			out.Values[i] = ec._User_updatedAt(ctx, field, obj)
-
 			if out.Values[i] == graphql.Null {
-				invalids++
+				out.Invalids++
 			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
 	}
-	out.Dispatch()
-	if invalids > 0 {
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
 		return graphql.Null
 	}
+
+	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.processDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
 	return out
 }
 
@@ -7128,52 +7280,55 @@ var __DirectiveImplementors = []string{"__Directive"}
 
 func (ec *executionContext) ___Directive(ctx context.Context, sel ast.SelectionSet, obj *introspection.Directive) graphql.Marshaler {
 	fields := graphql.CollectFields(ec.OperationContext, sel, __DirectiveImplementors)
+
 	out := graphql.NewFieldSet(fields)
-	var invalids uint32
+	deferred := make(map[string]*graphql.FieldSet)
 	for i, field := range fields {
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("__Directive")
 		case "name":
-
 			out.Values[i] = ec.___Directive_name(ctx, field, obj)
-
 			if out.Values[i] == graphql.Null {
-				invalids++
+				out.Invalids++
 			}
 		case "description":
-
 			out.Values[i] = ec.___Directive_description(ctx, field, obj)
-
 		case "locations":
-
 			out.Values[i] = ec.___Directive_locations(ctx, field, obj)
-
 			if out.Values[i] == graphql.Null {
-				invalids++
+				out.Invalids++
 			}
 		case "args":
-
 			out.Values[i] = ec.___Directive_args(ctx, field, obj)
-
 			if out.Values[i] == graphql.Null {
-				invalids++
+				out.Invalids++
 			}
 		case "isRepeatable":
-
 			out.Values[i] = ec.___Directive_isRepeatable(ctx, field, obj)
-
 			if out.Values[i] == graphql.Null {
-				invalids++
+				out.Invalids++
 			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
 	}
-	out.Dispatch()
-	if invalids > 0 {
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
 		return graphql.Null
 	}
+
+	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.processDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
 	return out
 }
 
@@ -7181,42 +7336,47 @@ var __EnumValueImplementors = []string{"__EnumValue"}
 
 func (ec *executionContext) ___EnumValue(ctx context.Context, sel ast.SelectionSet, obj *introspection.EnumValue) graphql.Marshaler {
 	fields := graphql.CollectFields(ec.OperationContext, sel, __EnumValueImplementors)
+
 	out := graphql.NewFieldSet(fields)
-	var invalids uint32
+	deferred := make(map[string]*graphql.FieldSet)
 	for i, field := range fields {
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("__EnumValue")
 		case "name":
-
 			out.Values[i] = ec.___EnumValue_name(ctx, field, obj)
-
 			if out.Values[i] == graphql.Null {
-				invalids++
+				out.Invalids++
 			}
 		case "description":
-
 			out.Values[i] = ec.___EnumValue_description(ctx, field, obj)
-
 		case "isDeprecated":
-
 			out.Values[i] = ec.___EnumValue_isDeprecated(ctx, field, obj)
-
 			if out.Values[i] == graphql.Null {
-				invalids++
+				out.Invalids++
 			}
 		case "deprecationReason":
-
 			out.Values[i] = ec.___EnumValue_deprecationReason(ctx, field, obj)
-
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
 	}
-	out.Dispatch()
-	if invalids > 0 {
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
 		return graphql.Null
 	}
+
+	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.processDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
 	return out
 }
 
@@ -7224,56 +7384,57 @@ var __FieldImplementors = []string{"__Field"}
 
 func (ec *executionContext) ___Field(ctx context.Context, sel ast.SelectionSet, obj *introspection.Field) graphql.Marshaler {
 	fields := graphql.CollectFields(ec.OperationContext, sel, __FieldImplementors)
+
 	out := graphql.NewFieldSet(fields)
-	var invalids uint32
+	deferred := make(map[string]*graphql.FieldSet)
 	for i, field := range fields {
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("__Field")
 		case "name":
-
 			out.Values[i] = ec.___Field_name(ctx, field, obj)
-
 			if out.Values[i] == graphql.Null {
-				invalids++
+				out.Invalids++
 			}
 		case "description":
-
 			out.Values[i] = ec.___Field_description(ctx, field, obj)
-
 		case "args":
-
 			out.Values[i] = ec.___Field_args(ctx, field, obj)
-
 			if out.Values[i] == graphql.Null {
-				invalids++
+				out.Invalids++
 			}
 		case "type":
-
 			out.Values[i] = ec.___Field_type(ctx, field, obj)
-
 			if out.Values[i] == graphql.Null {
-				invalids++
+				out.Invalids++
 			}
 		case "isDeprecated":
-
 			out.Values[i] = ec.___Field_isDeprecated(ctx, field, obj)
-
 			if out.Values[i] == graphql.Null {
-				invalids++
+				out.Invalids++
 			}
 		case "deprecationReason":
-
 			out.Values[i] = ec.___Field_deprecationReason(ctx, field, obj)
-
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
 	}
-	out.Dispatch()
-	if invalids > 0 {
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
 		return graphql.Null
 	}
+
+	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.processDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
 	return out
 }
 
@@ -7281,42 +7442,47 @@ var __InputValueImplementors = []string{"__InputValue"}
 
 func (ec *executionContext) ___InputValue(ctx context.Context, sel ast.SelectionSet, obj *introspection.InputValue) graphql.Marshaler {
 	fields := graphql.CollectFields(ec.OperationContext, sel, __InputValueImplementors)
+
 	out := graphql.NewFieldSet(fields)
-	var invalids uint32
+	deferred := make(map[string]*graphql.FieldSet)
 	for i, field := range fields {
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("__InputValue")
 		case "name":
-
 			out.Values[i] = ec.___InputValue_name(ctx, field, obj)
-
 			if out.Values[i] == graphql.Null {
-				invalids++
+				out.Invalids++
 			}
 		case "description":
-
 			out.Values[i] = ec.___InputValue_description(ctx, field, obj)
-
 		case "type":
-
 			out.Values[i] = ec.___InputValue_type(ctx, field, obj)
-
 			if out.Values[i] == graphql.Null {
-				invalids++
+				out.Invalids++
 			}
 		case "defaultValue":
-
 			out.Values[i] = ec.___InputValue_defaultValue(ctx, field, obj)
-
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
 	}
-	out.Dispatch()
-	if invalids > 0 {
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
 		return graphql.Null
 	}
+
+	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.processDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
 	return out
 }
 
@@ -7324,53 +7490,54 @@ var __SchemaImplementors = []string{"__Schema"}
 
 func (ec *executionContext) ___Schema(ctx context.Context, sel ast.SelectionSet, obj *introspection.Schema) graphql.Marshaler {
 	fields := graphql.CollectFields(ec.OperationContext, sel, __SchemaImplementors)
+
 	out := graphql.NewFieldSet(fields)
-	var invalids uint32
+	deferred := make(map[string]*graphql.FieldSet)
 	for i, field := range fields {
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("__Schema")
 		case "description":
-
 			out.Values[i] = ec.___Schema_description(ctx, field, obj)
-
 		case "types":
-
 			out.Values[i] = ec.___Schema_types(ctx, field, obj)
-
 			if out.Values[i] == graphql.Null {
-				invalids++
+				out.Invalids++
 			}
 		case "queryType":
-
 			out.Values[i] = ec.___Schema_queryType(ctx, field, obj)
-
 			if out.Values[i] == graphql.Null {
-				invalids++
+				out.Invalids++
 			}
 		case "mutationType":
-
 			out.Values[i] = ec.___Schema_mutationType(ctx, field, obj)
-
 		case "subscriptionType":
-
 			out.Values[i] = ec.___Schema_subscriptionType(ctx, field, obj)
-
 		case "directives":
-
 			out.Values[i] = ec.___Schema_directives(ctx, field, obj)
-
 			if out.Values[i] == graphql.Null {
-				invalids++
+				out.Invalids++
 			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
 	}
-	out.Dispatch()
-	if invalids > 0 {
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
 		return graphql.Null
 	}
+
+	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.processDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
 	return out
 }
 
@@ -7378,63 +7545,56 @@ var __TypeImplementors = []string{"__Type"}
 
 func (ec *executionContext) ___Type(ctx context.Context, sel ast.SelectionSet, obj *introspection.Type) graphql.Marshaler {
 	fields := graphql.CollectFields(ec.OperationContext, sel, __TypeImplementors)
+
 	out := graphql.NewFieldSet(fields)
-	var invalids uint32
+	deferred := make(map[string]*graphql.FieldSet)
 	for i, field := range fields {
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("__Type")
 		case "kind":
-
 			out.Values[i] = ec.___Type_kind(ctx, field, obj)
-
 			if out.Values[i] == graphql.Null {
-				invalids++
+				out.Invalids++
 			}
 		case "name":
-
 			out.Values[i] = ec.___Type_name(ctx, field, obj)
-
 		case "description":
-
 			out.Values[i] = ec.___Type_description(ctx, field, obj)
-
 		case "fields":
-
 			out.Values[i] = ec.___Type_fields(ctx, field, obj)
-
 		case "interfaces":
-
 			out.Values[i] = ec.___Type_interfaces(ctx, field, obj)
-
 		case "possibleTypes":
-
 			out.Values[i] = ec.___Type_possibleTypes(ctx, field, obj)
-
 		case "enumValues":
-
 			out.Values[i] = ec.___Type_enumValues(ctx, field, obj)
-
 		case "inputFields":
-
 			out.Values[i] = ec.___Type_inputFields(ctx, field, obj)
-
 		case "ofType":
-
 			out.Values[i] = ec.___Type_ofType(ctx, field, obj)
-
 		case "specifiedByURL":
-
 			out.Values[i] = ec.___Type_specifiedByURL(ctx, field, obj)
-
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
 	}
-	out.Dispatch()
-	if invalids > 0 {
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
 		return graphql.Null
 	}
+
+	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.processDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
 	return out
 }
 
@@ -7442,11 +7602,11 @@ func (ec *executionContext) ___Type(ctx context.Context, sel ast.SelectionSet, o
 
 // region    ***************************** type.gotpl *****************************
 
-func (ec *executionContext) marshalNAuthResponse2githubᚗcomᚋelisalimliᚋserverᚋgraphqlᚋmodelsᚐAuthResponse(ctx context.Context, sel ast.SelectionSet, v models.AuthResponse) graphql.Marshaler {
+func (ec *executionContext) marshalNAuthResponse2githubᚗcomᚋelisalimliᚋnextsyncᚋserverᚋgraphqlᚋmodelsᚐAuthResponse(ctx context.Context, sel ast.SelectionSet, v models.AuthResponse) graphql.Marshaler {
 	return ec._AuthResponse(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNAuthResponse2ᚖgithubᚗcomᚋelisalimliᚋserverᚋgraphqlᚋmodelsᚐAuthResponse(ctx context.Context, sel ast.SelectionSet, v *models.AuthResponse) graphql.Marshaler {
+func (ec *executionContext) marshalNAuthResponse2ᚖgithubᚗcomᚋelisalimliᚋnextsyncᚋserverᚋgraphqlᚋmodelsᚐAuthResponse(ctx context.Context, sel ast.SelectionSet, v *models.AuthResponse) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
@@ -7471,16 +7631,16 @@ func (ec *executionContext) marshalNBoolean2bool(ctx context.Context, sel ast.Se
 	return res
 }
 
-func (ec *executionContext) unmarshalNCreatePostInput2githubᚗcomᚋelisalimliᚋserverᚋgraphqlᚋmodelsᚐCreatePostInput(ctx context.Context, v interface{}) (models.CreatePostInput, error) {
+func (ec *executionContext) unmarshalNCreatePostInput2githubᚗcomᚋelisalimliᚋnextsyncᚋserverᚋgraphqlᚋmodelsᚐCreatePostInput(ctx context.Context, v interface{}) (models.CreatePostInput, error) {
 	res, err := ec.unmarshalInputCreatePostInput(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalNCreatePostResponse2githubᚗcomᚋelisalimliᚋserverᚋgraphqlᚋmodelsᚐCreatePostResponse(ctx context.Context, sel ast.SelectionSet, v models.CreatePostResponse) graphql.Marshaler {
+func (ec *executionContext) marshalNCreatePostResponse2githubᚗcomᚋelisalimliᚋnextsyncᚋserverᚋgraphqlᚋmodelsᚐCreatePostResponse(ctx context.Context, sel ast.SelectionSet, v models.CreatePostResponse) graphql.Marshaler {
 	return ec._CreatePostResponse(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNCreatePostResponse2ᚖgithubᚗcomᚋelisalimliᚋserverᚋgraphqlᚋmodelsᚐCreatePostResponse(ctx context.Context, sel ast.SelectionSet, v *models.CreatePostResponse) graphql.Marshaler {
+func (ec *executionContext) marshalNCreatePostResponse2ᚖgithubᚗcomᚋelisalimliᚋnextsyncᚋserverᚋgraphqlᚋmodelsᚐCreatePostResponse(ctx context.Context, sel ast.SelectionSet, v *models.CreatePostResponse) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
@@ -7490,11 +7650,11 @@ func (ec *executionContext) marshalNCreatePostResponse2ᚖgithubᚗcomᚋelisali
 	return ec._CreatePostResponse(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalNFormResponse2githubᚗcomᚋelisalimliᚋserverᚋgraphqlᚋmodelsᚐFormResponse(ctx context.Context, sel ast.SelectionSet, v models.FormResponse) graphql.Marshaler {
+func (ec *executionContext) marshalNFormResponse2githubᚗcomᚋelisalimliᚋnextsyncᚋserverᚋgraphqlᚋmodelsᚐFormResponse(ctx context.Context, sel ast.SelectionSet, v models.FormResponse) graphql.Marshaler {
 	return ec._FormResponse(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNFormResponse2ᚖgithubᚗcomᚋelisalimliᚋserverᚋgraphqlᚋmodelsᚐFormResponse(ctx context.Context, sel ast.SelectionSet, v *models.FormResponse) graphql.Marshaler {
+func (ec *executionContext) marshalNFormResponse2ᚖgithubᚗcomᚋelisalimliᚋnextsyncᚋserverᚋgraphqlᚋmodelsᚐFormResponse(ctx context.Context, sel ast.SelectionSet, v *models.FormResponse) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
@@ -7504,7 +7664,7 @@ func (ec *executionContext) marshalNFormResponse2ᚖgithubᚗcomᚋelisalimliᚋ
 	return ec._FormResponse(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalNGoogleLoginOrSignUpInput2githubᚗcomᚋelisalimliᚋserverᚋgraphqlᚋmodelsᚐGoogleLoginOrSignUpInput(ctx context.Context, v interface{}) (models.GoogleLoginOrSignUpInput, error) {
+func (ec *executionContext) unmarshalNGoogleLoginOrSignUpInput2githubᚗcomᚋelisalimliᚋnextsyncᚋserverᚋgraphqlᚋmodelsᚐGoogleLoginOrSignUpInput(ctx context.Context, v interface{}) (models.GoogleLoginOrSignUpInput, error) {
 	res, err := ec.unmarshalInputGoogleLoginOrSignUpInput(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
@@ -7539,12 +7699,12 @@ func (ec *executionContext) marshalNInt2int64(ctx context.Context, sel ast.Selec
 	return res
 }
 
-func (ec *executionContext) unmarshalNLoginInput2githubᚗcomᚋelisalimliᚋserverᚋgraphqlᚋmodelsᚐLoginInput(ctx context.Context, v interface{}) (models.LoginInput, error) {
+func (ec *executionContext) unmarshalNLoginInput2githubᚗcomᚋelisalimliᚋnextsyncᚋserverᚋgraphqlᚋmodelsᚐLoginInput(ctx context.Context, v interface{}) (models.LoginInput, error) {
 	res, err := ec.unmarshalInputLoginInput(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalNPost2ᚕᚖgithubᚗcomᚋelisalimliᚋserverᚋgraphqlᚋmodelsᚐPostᚄ(ctx context.Context, sel ast.SelectionSet, v []*models.Post) graphql.Marshaler {
+func (ec *executionContext) marshalNPost2ᚕᚖgithubᚗcomᚋelisalimliᚋnextsyncᚋserverᚋgraphqlᚋmodelsᚐPostᚄ(ctx context.Context, sel ast.SelectionSet, v []*models.Post) graphql.Marshaler {
 	ret := make(graphql.Array, len(v))
 	var wg sync.WaitGroup
 	isLen1 := len(v) == 1
@@ -7568,7 +7728,7 @@ func (ec *executionContext) marshalNPost2ᚕᚖgithubᚗcomᚋelisalimliᚋserve
 			if !isLen1 {
 				defer wg.Done()
 			}
-			ret[i] = ec.marshalNPost2ᚖgithubᚗcomᚋelisalimliᚋserverᚋgraphqlᚋmodelsᚐPost(ctx, sel, v[i])
+			ret[i] = ec.marshalNPost2ᚖgithubᚗcomᚋelisalimliᚋnextsyncᚋserverᚋgraphqlᚋmodelsᚐPost(ctx, sel, v[i])
 		}
 		if isLen1 {
 			f(i)
@@ -7588,7 +7748,7 @@ func (ec *executionContext) marshalNPost2ᚕᚖgithubᚗcomᚋelisalimliᚋserve
 	return ret
 }
 
-func (ec *executionContext) marshalNPost2ᚖgithubᚗcomᚋelisalimliᚋserverᚋgraphqlᚋmodelsᚐPost(ctx context.Context, sel ast.SelectionSet, v *models.Post) graphql.Marshaler {
+func (ec *executionContext) marshalNPost2ᚖgithubᚗcomᚋelisalimliᚋnextsyncᚋserverᚋgraphqlᚋmodelsᚐPost(ctx context.Context, sel ast.SelectionSet, v *models.Post) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
@@ -7598,16 +7758,16 @@ func (ec *executionContext) marshalNPost2ᚖgithubᚗcomᚋelisalimliᚋserver�
 	return ec._Post(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalNPostsInput2githubᚗcomᚋelisalimliᚋserverᚋgraphqlᚋmodelsᚐPostsInput(ctx context.Context, v interface{}) (models.PostsInput, error) {
+func (ec *executionContext) unmarshalNPostsInput2githubᚗcomᚋelisalimliᚋnextsyncᚋserverᚋgraphqlᚋmodelsᚐPostsInput(ctx context.Context, v interface{}) (models.PostsInput, error) {
 	res, err := ec.unmarshalInputPostsInput(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalNPostsResponse2githubᚗcomᚋelisalimliᚋserverᚋgraphqlᚋmodelsᚐPostsResponse(ctx context.Context, sel ast.SelectionSet, v models.PostsResponse) graphql.Marshaler {
+func (ec *executionContext) marshalNPostsResponse2githubᚗcomᚋelisalimliᚋnextsyncᚋserverᚋgraphqlᚋmodelsᚐPostsResponse(ctx context.Context, sel ast.SelectionSet, v models.PostsResponse) graphql.Marshaler {
 	return ec._PostsResponse(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNPostsResponse2ᚖgithubᚗcomᚋelisalimliᚋserverᚋgraphqlᚋmodelsᚐPostsResponse(ctx context.Context, sel ast.SelectionSet, v *models.PostsResponse) graphql.Marshaler {
+func (ec *executionContext) marshalNPostsResponse2ᚖgithubᚗcomᚋelisalimliᚋnextsyncᚋserverᚋgraphqlᚋmodelsᚐPostsResponse(ctx context.Context, sel ast.SelectionSet, v *models.PostsResponse) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
@@ -7617,12 +7777,12 @@ func (ec *executionContext) marshalNPostsResponse2ᚖgithubᚗcomᚋelisalimli�
 	return ec._PostsResponse(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalNRegisterInput2githubᚗcomᚋelisalimliᚋserverᚋgraphqlᚋmodelsᚐRegisterInput(ctx context.Context, v interface{}) (models.RegisterInput, error) {
+func (ec *executionContext) unmarshalNRegisterInput2githubᚗcomᚋelisalimliᚋnextsyncᚋserverᚋgraphqlᚋmodelsᚐRegisterInput(ctx context.Context, v interface{}) (models.RegisterInput, error) {
 	res, err := ec.unmarshalInputRegisterInput(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalNSendOtpInput2githubᚗcomᚋelisalimliᚋserverᚋgraphqlᚋmodelsᚐSendOtpInput(ctx context.Context, v interface{}) (models.SendOtpInput, error) {
+func (ec *executionContext) unmarshalNSendOtpInput2githubᚗcomᚋelisalimliᚋnextsyncᚋserverᚋgraphqlᚋmodelsᚐSendOtpInput(ctx context.Context, v interface{}) (models.SendOtpInput, error) {
 	res, err := ec.unmarshalInputSendOtpInput(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
@@ -7642,11 +7802,11 @@ func (ec *executionContext) marshalNString2string(ctx context.Context, sel ast.S
 	return res
 }
 
-func (ec *executionContext) marshalNTag2githubᚗcomᚋelisalimliᚋserverᚋgraphqlᚋmodelsᚐTag(ctx context.Context, sel ast.SelectionSet, v models.Tag) graphql.Marshaler {
+func (ec *executionContext) marshalNTag2githubᚗcomᚋelisalimliᚋnextsyncᚋserverᚋgraphqlᚋmodelsᚐTag(ctx context.Context, sel ast.SelectionSet, v models.Tag) graphql.Marshaler {
 	return ec._Tag(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNTag2ᚕgithubᚗcomᚋelisalimliᚋserverᚋgraphqlᚋmodelsᚐTagᚄ(ctx context.Context, sel ast.SelectionSet, v []models.Tag) graphql.Marshaler {
+func (ec *executionContext) marshalNTag2ᚕgithubᚗcomᚋelisalimliᚋnextsyncᚋserverᚋgraphqlᚋmodelsᚐTagᚄ(ctx context.Context, sel ast.SelectionSet, v []models.Tag) graphql.Marshaler {
 	ret := make(graphql.Array, len(v))
 	var wg sync.WaitGroup
 	isLen1 := len(v) == 1
@@ -7670,7 +7830,7 @@ func (ec *executionContext) marshalNTag2ᚕgithubᚗcomᚋelisalimliᚋserverᚋ
 			if !isLen1 {
 				defer wg.Done()
 			}
-			ret[i] = ec.marshalNTag2githubᚗcomᚋelisalimliᚋserverᚋgraphqlᚋmodelsᚐTag(ctx, sel, v[i])
+			ret[i] = ec.marshalNTag2githubᚗcomᚋelisalimliᚋnextsyncᚋserverᚋgraphqlᚋmodelsᚐTag(ctx, sel, v[i])
 		}
 		if isLen1 {
 			f(i)
@@ -7690,7 +7850,7 @@ func (ec *executionContext) marshalNTag2ᚕgithubᚗcomᚋelisalimliᚋserverᚋ
 	return ret
 }
 
-func (ec *executionContext) marshalNTag2ᚕᚖgithubᚗcomᚋelisalimliᚋserverᚋgraphqlᚋmodelsᚐTagᚄ(ctx context.Context, sel ast.SelectionSet, v []*models.Tag) graphql.Marshaler {
+func (ec *executionContext) marshalNTag2ᚕᚖgithubᚗcomᚋelisalimliᚋnextsyncᚋserverᚋgraphqlᚋmodelsᚐTagᚄ(ctx context.Context, sel ast.SelectionSet, v []*models.Tag) graphql.Marshaler {
 	ret := make(graphql.Array, len(v))
 	var wg sync.WaitGroup
 	isLen1 := len(v) == 1
@@ -7714,7 +7874,7 @@ func (ec *executionContext) marshalNTag2ᚕᚖgithubᚗcomᚋelisalimliᚋserver
 			if !isLen1 {
 				defer wg.Done()
 			}
-			ret[i] = ec.marshalNTag2ᚖgithubᚗcomᚋelisalimliᚋserverᚋgraphqlᚋmodelsᚐTag(ctx, sel, v[i])
+			ret[i] = ec.marshalNTag2ᚖgithubᚗcomᚋelisalimliᚋnextsyncᚋserverᚋgraphqlᚋmodelsᚐTag(ctx, sel, v[i])
 		}
 		if isLen1 {
 			f(i)
@@ -7734,7 +7894,7 @@ func (ec *executionContext) marshalNTag2ᚕᚖgithubᚗcomᚋelisalimliᚋserver
 	return ret
 }
 
-func (ec *executionContext) marshalNTag2ᚖgithubᚗcomᚋelisalimliᚋserverᚋgraphqlᚋmodelsᚐTag(ctx context.Context, sel ast.SelectionSet, v *models.Tag) graphql.Marshaler {
+func (ec *executionContext) marshalNTag2ᚖgithubᚗcomᚋelisalimliᚋnextsyncᚋserverᚋgraphqlᚋmodelsᚐTag(ctx context.Context, sel ast.SelectionSet, v *models.Tag) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
@@ -7795,11 +7955,11 @@ func (ec *executionContext) marshalNUpload2githubᚗcomᚋ99designsᚋgqlgenᚋg
 	return res
 }
 
-func (ec *executionContext) marshalNUser2githubᚗcomᚋelisalimliᚋserverᚋgraphqlᚋmodelsᚐUser(ctx context.Context, sel ast.SelectionSet, v models.User) graphql.Marshaler {
+func (ec *executionContext) marshalNUser2githubᚗcomᚋelisalimliᚋnextsyncᚋserverᚋgraphqlᚋmodelsᚐUser(ctx context.Context, sel ast.SelectionSet, v models.User) graphql.Marshaler {
 	return ec._User(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNUser2ᚕᚖgithubᚗcomᚋelisalimliᚋserverᚋgraphqlᚋmodelsᚐUserᚄ(ctx context.Context, sel ast.SelectionSet, v []*models.User) graphql.Marshaler {
+func (ec *executionContext) marshalNUser2ᚕᚖgithubᚗcomᚋelisalimliᚋnextsyncᚋserverᚋgraphqlᚋmodelsᚐUserᚄ(ctx context.Context, sel ast.SelectionSet, v []*models.User) graphql.Marshaler {
 	ret := make(graphql.Array, len(v))
 	var wg sync.WaitGroup
 	isLen1 := len(v) == 1
@@ -7823,7 +7983,7 @@ func (ec *executionContext) marshalNUser2ᚕᚖgithubᚗcomᚋelisalimliᚋserve
 			if !isLen1 {
 				defer wg.Done()
 			}
-			ret[i] = ec.marshalNUser2ᚖgithubᚗcomᚋelisalimliᚋserverᚋgraphqlᚋmodelsᚐUser(ctx, sel, v[i])
+			ret[i] = ec.marshalNUser2ᚖgithubᚗcomᚋelisalimliᚋnextsyncᚋserverᚋgraphqlᚋmodelsᚐUser(ctx, sel, v[i])
 		}
 		if isLen1 {
 			f(i)
@@ -7843,7 +8003,7 @@ func (ec *executionContext) marshalNUser2ᚕᚖgithubᚗcomᚋelisalimliᚋserve
 	return ret
 }
 
-func (ec *executionContext) marshalNUser2ᚖgithubᚗcomᚋelisalimliᚋserverᚋgraphqlᚋmodelsᚐUser(ctx context.Context, sel ast.SelectionSet, v *models.User) graphql.Marshaler {
+func (ec *executionContext) marshalNUser2ᚖgithubᚗcomᚋelisalimliᚋnextsyncᚋserverᚋgraphqlᚋmodelsᚐUser(ctx context.Context, sel ast.SelectionSet, v *models.User) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
@@ -7853,7 +8013,7 @@ func (ec *executionContext) marshalNUser2ᚖgithubᚗcomᚋelisalimliᚋserver�
 	return ec._User(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalNVerifyOtpInput2githubᚗcomᚋelisalimliᚋserverᚋgraphqlᚋmodelsᚐVerifyOtpInput(ctx context.Context, v interface{}) (models.VerifyOtpInput, error) {
+func (ec *executionContext) unmarshalNVerifyOtpInput2githubᚗcomᚋelisalimliᚋnextsyncᚋserverᚋgraphqlᚋmodelsᚐVerifyOtpInput(ctx context.Context, v interface{}) (models.VerifyOtpInput, error) {
 	res, err := ec.unmarshalInputVerifyOtpInput(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
@@ -8111,7 +8271,7 @@ func (ec *executionContext) marshalN__TypeKind2string(ctx context.Context, sel a
 	return res
 }
 
-func (ec *executionContext) marshalOAuthToken2ᚖgithubᚗcomᚋelisalimliᚋserverᚋgraphqlᚋmodelsᚐAuthToken(ctx context.Context, sel ast.SelectionSet, v *models.AuthToken) graphql.Marshaler {
+func (ec *executionContext) marshalOAuthToken2ᚖgithubᚗcomᚋelisalimliᚋnextsyncᚋserverᚋgraphqlᚋmodelsᚐAuthToken(ctx context.Context, sel ast.SelectionSet, v *models.AuthToken) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
@@ -8144,14 +8304,14 @@ func (ec *executionContext) marshalOBoolean2ᚖbool(ctx context.Context, sel ast
 	return res
 }
 
-func (ec *executionContext) marshalOCatalog2ᚖgithubᚗcomᚋelisalimliᚋserverᚋgraphqlᚋmodelsᚐCatalog(ctx context.Context, sel ast.SelectionSet, v *models.Catalog) graphql.Marshaler {
+func (ec *executionContext) marshalOCatalog2ᚖgithubᚗcomᚋelisalimliᚋnextsyncᚋserverᚋgraphqlᚋmodelsᚐCatalog(ctx context.Context, sel ast.SelectionSet, v *models.Catalog) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
 	return ec._Catalog(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalOFieldError2ᚕᚖgithubᚗcomᚋelisalimliᚋserverᚋvalidatorᚐFieldError(ctx context.Context, sel ast.SelectionSet, v []*validator.FieldError) graphql.Marshaler {
+func (ec *executionContext) marshalOFieldError2ᚕᚖgithubᚗcomᚋelisalimliᚋnextsyncᚋserverᚋvalidatorᚐFieldError(ctx context.Context, sel ast.SelectionSet, v []*validator.FieldError) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
@@ -8178,7 +8338,7 @@ func (ec *executionContext) marshalOFieldError2ᚕᚖgithubᚗcomᚋelisalimli�
 			if !isLen1 {
 				defer wg.Done()
 			}
-			ret[i] = ec.marshalOFieldError2ᚖgithubᚗcomᚋelisalimliᚋserverᚋvalidatorᚐFieldError(ctx, sel, v[i])
+			ret[i] = ec.marshalOFieldError2ᚖgithubᚗcomᚋelisalimliᚋnextsyncᚋserverᚋvalidatorᚐFieldError(ctx, sel, v[i])
 		}
 		if isLen1 {
 			f(i)
@@ -8192,7 +8352,7 @@ func (ec *executionContext) marshalOFieldError2ᚕᚖgithubᚗcomᚋelisalimli�
 	return ret
 }
 
-func (ec *executionContext) marshalOFieldError2ᚖgithubᚗcomᚋelisalimliᚋserverᚋvalidatorᚐFieldError(ctx context.Context, sel ast.SelectionSet, v *validator.FieldError) graphql.Marshaler {
+func (ec *executionContext) marshalOFieldError2ᚖgithubᚗcomᚋelisalimliᚋnextsyncᚋserverᚋvalidatorᚐFieldError(ctx context.Context, sel ast.SelectionSet, v *validator.FieldError) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
@@ -8215,14 +8375,14 @@ func (ec *executionContext) marshalOInt2ᚖint(ctx context.Context, sel ast.Sele
 	return res
 }
 
-func (ec *executionContext) marshalOPost2ᚖgithubᚗcomᚋelisalimliᚋserverᚋgraphqlᚋmodelsᚐPost(ctx context.Context, sel ast.SelectionSet, v *models.Post) graphql.Marshaler {
+func (ec *executionContext) marshalOPost2ᚖgithubᚗcomᚋelisalimliᚋnextsyncᚋserverᚋgraphqlᚋmodelsᚐPost(ctx context.Context, sel ast.SelectionSet, v *models.Post) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
 	return ec._Post(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalOPostFile2ᚕᚖgithubᚗcomᚋelisalimliᚋserverᚋgraphqlᚋmodelsᚐPostFile(ctx context.Context, sel ast.SelectionSet, v []*models.PostFile) graphql.Marshaler {
+func (ec *executionContext) marshalOPostFile2ᚕᚖgithubᚗcomᚋelisalimliᚋnextsyncᚋserverᚋgraphqlᚋmodelsᚐPostFile(ctx context.Context, sel ast.SelectionSet, v []*models.PostFile) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
@@ -8249,7 +8409,7 @@ func (ec *executionContext) marshalOPostFile2ᚕᚖgithubᚗcomᚋelisalimliᚋs
 			if !isLen1 {
 				defer wg.Done()
 			}
-			ret[i] = ec.marshalOPostFile2ᚖgithubᚗcomᚋelisalimliᚋserverᚋgraphqlᚋmodelsᚐPostFile(ctx, sel, v[i])
+			ret[i] = ec.marshalOPostFile2ᚖgithubᚗcomᚋelisalimliᚋnextsyncᚋserverᚋgraphqlᚋmodelsᚐPostFile(ctx, sel, v[i])
 		}
 		if isLen1 {
 			f(i)
@@ -8263,7 +8423,7 @@ func (ec *executionContext) marshalOPostFile2ᚕᚖgithubᚗcomᚋelisalimliᚋs
 	return ret
 }
 
-func (ec *executionContext) marshalOPostFile2ᚖgithubᚗcomᚋelisalimliᚋserverᚋgraphqlᚋmodelsᚐPostFile(ctx context.Context, sel ast.SelectionSet, v *models.PostFile) graphql.Marshaler {
+func (ec *executionContext) marshalOPostFile2ᚖgithubᚗcomᚋelisalimliᚋnextsyncᚋserverᚋgraphqlᚋmodelsᚐPostFile(ctx context.Context, sel ast.SelectionSet, v *models.PostFile) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
@@ -8324,7 +8484,7 @@ func (ec *executionContext) marshalOString2ᚖstring(ctx context.Context, sel as
 	return res
 }
 
-func (ec *executionContext) unmarshalOUploadFile2ᚕᚖgithubᚗcomᚋelisalimliᚋserverᚋgraphqlᚋmodelsᚐUploadFile(ctx context.Context, v interface{}) ([]*models.UploadFile, error) {
+func (ec *executionContext) unmarshalOUploadFile2ᚕᚖgithubᚗcomᚋelisalimliᚋnextsyncᚋserverᚋgraphqlᚋmodelsᚐUploadFile(ctx context.Context, v interface{}) ([]*models.UploadFile, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -8336,7 +8496,7 @@ func (ec *executionContext) unmarshalOUploadFile2ᚕᚖgithubᚗcomᚋelisalimli
 	res := make([]*models.UploadFile, len(vSlice))
 	for i := range vSlice {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
-		res[i], err = ec.unmarshalOUploadFile2ᚖgithubᚗcomᚋelisalimliᚋserverᚋgraphqlᚋmodelsᚐUploadFile(ctx, vSlice[i])
+		res[i], err = ec.unmarshalOUploadFile2ᚖgithubᚗcomᚋelisalimliᚋnextsyncᚋserverᚋgraphqlᚋmodelsᚐUploadFile(ctx, vSlice[i])
 		if err != nil {
 			return nil, err
 		}
@@ -8344,7 +8504,7 @@ func (ec *executionContext) unmarshalOUploadFile2ᚕᚖgithubᚗcomᚋelisalimli
 	return res, nil
 }
 
-func (ec *executionContext) unmarshalOUploadFile2ᚖgithubᚗcomᚋelisalimliᚋserverᚋgraphqlᚋmodelsᚐUploadFile(ctx context.Context, v interface{}) (*models.UploadFile, error) {
+func (ec *executionContext) unmarshalOUploadFile2ᚖgithubᚗcomᚋelisalimliᚋnextsyncᚋserverᚋgraphqlᚋmodelsᚐUploadFile(ctx context.Context, v interface{}) (*models.UploadFile, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -8352,7 +8512,7 @@ func (ec *executionContext) unmarshalOUploadFile2ᚖgithubᚗcomᚋelisalimliᚋ
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalOUser2ᚖgithubᚗcomᚋelisalimliᚋserverᚋgraphqlᚋmodelsᚐUser(ctx context.Context, sel ast.SelectionSet, v *models.User) graphql.Marshaler {
+func (ec *executionContext) marshalOUser2ᚖgithubᚗcomᚋelisalimliᚋnextsyncᚋserverᚋgraphqlᚋmodelsᚐUser(ctx context.Context, sel ast.SelectionSet, v *models.User) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
