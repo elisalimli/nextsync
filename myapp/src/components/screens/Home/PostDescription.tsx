@@ -1,7 +1,14 @@
 import React from "react";
-import { Text } from "react-native";
-import RenderHtml from "react-native-render-html";
+import { Text, View } from "react-native";
+import RenderHtml, {
+  HTMLSource,
+  RenderHTMLSourceProps,
+  TNodeChildrenRenderer,
+} from "react-native-render-html";
 import { constants } from "../../../constants";
+import Button from "../../Button";
+import { Link } from "expo-router";
+import { Post_FragmentFragment } from "../../../gql/graphql";
 
 const formatText = (text: string) => {
   const formattedText = [];
@@ -83,21 +90,44 @@ const formatText = (text: string) => {
   return formattedText;
 };
 
-interface PostDescriptionProps {
-  description: string | null | undefined;
-  htmlContent: string | null | undefined;
-}
+type PostDescriptionProps = {
+  post: Post_FragmentFragment | null | undefined;
+  truncate?: boolean;
+};
 
 const PostDescription: React.FC<PostDescriptionProps> = ({
-  description,
-  htmlContent,
+  post,
+  truncate = false,
 }) => {
+  const { description, htmlContent, id } = post;
+
   if (htmlContent) {
     const source = {
-      html: htmlContent,
-    };
+      html: truncate ? htmlContent.slice(0, 255) + "..." : htmlContent,
+    } as HTMLSource;
+    return (
+      <View>
+        <View className="">
+          <RenderHtml
+            contentWidth={constants.SCREEN_WIDTH}
+            source={source}
+            // defaultTextProps={{ numberOfLines: 1 }}
+          />
+        </View>
 
-    return <RenderHtml contentWidth={constants.SCREEN_WIDTH} source={source} />;
+        {truncate && (
+          <Link
+            href={{
+              pathname: `/post/${id}`,
+              // /* 1. Navigate to the details route with query params */
+              params: { id: post.id },
+            }}
+          >
+            Read More
+          </Link>
+        )}
+      </View>
+    );
   }
 
   return <Text>{description && formatText(description)}</Text>;

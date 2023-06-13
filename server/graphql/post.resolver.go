@@ -111,3 +111,31 @@ func (r *queryResolver) Posts(ctx context.Context, input models.PostsInput) (*mo
 	// TODO: lice array has more
 	return &models.PostsResponse{HasMore: hasMore, Posts: posts}, nil
 }
+
+func (r *queryResolver) Post(ctx context.Context, input models.PostInput) (*models.Post, error) {
+	fmt.Println("posts query trigged!!")
+	post := models.Post{}
+	q := r.Domain.PostsRepo.DB.NewSelect().Model(&post).
+		ColumnExpr("post.id, post.title, post.description, post.html_content, post.user_id, post.created_at, post.updated_at").
+		ColumnExpr(`json_agg(json_build_object(
+			'id', t.id,
+			'name', t.name,
+			'code', t.code,
+			'catalog', json_build_object('id', c.id,'name', c.name,'code', c.code)
+			)) AS tags`).
+		Join("LEFT JOIN post_tags pt ON post.id = pt.post_id").
+		Join("LEFT JOIN tags t ON t.id = pt.tag_id").
+		Join("LEFT JOIN catalogs c ON t.catalog_id = c.id").
+		GroupExpr(`post.id, post.title, post.description`).
+		Where("post.id = ?", input.ID)
+
+	err := q.Scan(ctx)
+
+	if err != nil {
+		fmt.Println("Error occured:", err)
+		return nil, errors.New(domain.ErrSomethingWentWrong)
+	}
+
+	// TODO: lice array has more
+	return &post, nil
+}

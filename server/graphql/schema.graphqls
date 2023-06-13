@@ -153,6 +153,11 @@ input PostsInput {
 }
 
 
+input PostInput {
+  id: String!
+}
+
+
 "The `UploadFile` type, represents the request for uploading a file with certain payload."
 input UploadFile {
     id: Int!
@@ -174,6 +179,7 @@ input CreatePostInput {
 type Query {
   users: [User!]!
   posts(input:PostsInput!): PostsResponse!
+  post(input:PostInput!): Post
   tags: [Tag!]!
   me: User
   hello: String! 

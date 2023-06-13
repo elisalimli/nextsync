@@ -90,6 +90,10 @@ type LoginInput struct {
 	Password string `json:"password"`
 }
 
+type PostInput struct {
+	ID string `json:"id"`
+}
+
 type PostsInput struct {
 	Cursor      *string  `json:"cursor,omitempty"`
 	Limit       *int     `json:"limit,omitempty"`

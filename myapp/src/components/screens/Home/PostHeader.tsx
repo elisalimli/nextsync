@@ -5,15 +5,12 @@ import PostDescription from "./PostDescription";
 
 type PostHeaderProps = Post_FragmentFragment;
 
-const PostHeader: React.FC<PostHeaderProps> = ({
-  title,
-  description,
-  htmlContent,
-}) => {
+const PostHeader: React.FC<PostHeaderProps> = (post) => {
+  const { title } = post;
   return (
     <View>
       <Text className="font-semibold text-base uppercase">{title}</Text>
-      <PostDescription description={description} htmlContent={htmlContent} />
+      <PostDescription post={post} truncate />
     </View>
   );
 };
