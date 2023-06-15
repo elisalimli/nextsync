@@ -10,6 +10,8 @@ module.exports = {
     resizeMode: "contain",
     backgroundColor: "#ffffff",
   },
+  icon: "./assets/images/icon.png",
+
   assetBundlePatterns: ["**/*"],
   ios: {
     supportsTablet: true,
