@@ -42,6 +42,7 @@ const CreatePost3Catalogs: any = ({
 
               return (
                 <CreatePost3Tag
+                  key={`create-post-catalog-${tag.id}`}
                   catalog={catalog}
                   tag={tag}
                   isActive={isActive}

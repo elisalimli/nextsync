@@ -5,7 +5,7 @@ import ContextMenu from "react-native-context-menu-view";
 import "react-native-get-random-values";
 import { v4 as uuidv4 } from "uuid";
 import { constants } from "../../../constants";
-import { FragmentType, useFragment } from "../../../gql";
+import { useFragment } from "../../../gql";
 import { File_Fragment } from "../../../graphql/query/post/posts";
 import { useFile } from "./PostContext";
 import { downloadFile } from "./downloadFile";
@@ -17,8 +17,9 @@ const titles = {
 };
 
 interface PostMenuProps {
-  files: FragmentType<typeof File_Fragment>[];
+  files: any;
 }
+
 const PostMenu = ({ files }: PostMenuProps) => {
   const {
     setTitle,
@@ -30,7 +31,7 @@ const PostMenu = ({ files }: PostMenuProps) => {
 
   const handleSaveFiles = () => {
     setModalVisible(true);
-    files.map(async (f, i) => {
+    files.map(async (f: any, i: number) => {
       const file = useFragment(File_Fragment, f);
       const fileName = file?.url.split("/").pop() as string;
       setTitle(titles.downloading);

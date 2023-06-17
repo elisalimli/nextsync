@@ -10,6 +10,7 @@ import PostMenu from "./PostMenu";
 import { useFragment } from "../../../gql";
 import { User_Fragment } from "../../../graphql/query/user/me";
 import PostModal from "./PostModal";
+import { File_Fragment } from "../../../graphql/query/post/posts";
 
 type PostActionProps = Post_FragmentFragment;
 

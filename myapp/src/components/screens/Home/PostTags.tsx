@@ -10,7 +10,6 @@ import {
 type PostTagsProps = Post_FragmentFragment;
 
 const PostTags = ({ tags }: PostTagsProps) => {
-  // console.log(tags);
   return (
     <ScrollView horizontal className="flex-row">
       {tags.map((t) => {
@@ -29,13 +28,6 @@ const PostTags = ({ tags }: PostTagsProps) => {
           )
         );
       })}
-      {/* <TouchableOpacity className="bg-indigo-100 text-indigo-800 text-xs font-medium mr-2 px-2.5 py-0.5 rounded">
-        <Text>Yellow</Text>
-      </TouchableOpacity>
-
-      <TouchableOpacity className="bg-indigo-100 text-indigo-800 text-xs font-medium mr-2 px-2.5 py-0.5 rounded">
-        <Text>Purple</Text>
-      </TouchableOpacity> */}
     </ScrollView>
   );
 };
