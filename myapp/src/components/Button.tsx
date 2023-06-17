@@ -26,7 +26,7 @@ enum BorderRadiusVariant {
   "full",
 }
 
-type ButtonProps = {
+export type ButtonProps = {
   isLoading?: boolean;
   isDarkBg?: boolean;
   variant?: keyof typeof ButtonVariant;
@@ -34,6 +34,7 @@ type ButtonProps = {
   containerClassName?: string;
   textClassName?: string;
   wrappedText?: boolean;
+  shouldApplyDisabledStyle?: boolean;
 } & TouchableOpacityProps;
 
 const Button = React.forwardRef<TouchableOpacity, ButtonProps>(
@@ -48,6 +49,8 @@ const Button = React.forwardRef<TouchableOpacity, ButtonProps>(
       borderRadius = "lg",
       isDarkBg = false,
       wrappedText = false,
+      shouldApplyDisabledStyle = true,
+
       // For override the style object
       style,
       ...rest
@@ -58,9 +61,15 @@ const Button = React.forwardRef<TouchableOpacity, ButtonProps>(
     containerClassName = clsx(
       "flex justify-center items-center rounded-lg p-2",
       variant === "primary" && "bg-primary",
+      variant === "ghost" && "bg-gray3",
+      disabled && shouldApplyDisabledStyle && "opacity-30",
       containerClassName
     );
-    textClassName = clsx(variant === "primary" && "text-white", textClassName);
+    textClassName = clsx(
+      variant === "primary" && "text-white",
+      variant === "ghost" && "text-black",
+      textClassName
+    );
     return (
       <TouchableOpacity
         ref={ref}

@@ -13,7 +13,6 @@ import { TypedDocumentNode as DocumentNode } from '@graphql-typed-document-node/
  * Therefore it is highly recommended to use the babel or swc plugin for production.
  */
 const documents = {
-    "\n  mutation CreatePost($input: CreatePostInput!) {\n    createPost(input: $input) {\n      ok\n      errors {\n        message\n        field\n      }\n      post {\n        id\n        title\n        description\n      }\n    }\n  }\n": types.CreatePostDocument,
     "\n  mutation GoogleLoginOrSignUp($input: GoogleLoginOrSignUpInput!) {\n    googleLoginOrSignUp(input: $input) {\n      ok\n      errors {\n        message\n        field\n      }\n      user {\n        ...User_Fragment\n      }\n      authToken {\n        token\n        expiredAt\n      }\n    }\n  }\n": types.GoogleLoginOrSignUpDocument,
     "\n  mutation Login($input: LoginInput!) {\n    login(input: $input) {\n      ok\n      errors {\n        message\n        field\n      }\n      authToken {\n        token\n        expiredAt\n      }\n      user {\n        ...User_Fragment\n      }\n    }\n  }\n": types.LoginDocument,
     "\n  mutation Logout {\n    logout\n  }\n": types.LogoutDocument,
@@ -24,7 +23,7 @@ const documents = {
     "\n  query Post($input: PostInput!) {\n    post(input: $input) {\n      ...Post_Fragment\n    }\n  }\n": types.PostDocument,
     "\n  fragment File_Fragment on PostFile {\n    id\n    url\n    postId\n    contentType\n    fileSize\n    fileName\n  }\n": types.File_FragmentFragmentDoc,
     "\n  fragment Catalog_Fragment on Catalog {\n    id\n    name\n    code\n  }\n": types.Catalog_FragmentFragmentDoc,
-    "\n  fragment Tag_Fragment on Tag {\n    id\n    name\n    catalog {\n      ...Catalog_Fragment\n    }\n  }\n": types.Tag_FragmentFragmentDoc,
+    "\n  fragment Tag_Fragment on Tag {\n    id\n    name\n    code\n    catalog {\n      ...Catalog_Fragment\n    }\n  }\n": types.Tag_FragmentFragmentDoc,
     "\n  fragment Post_Fragment on Post {\n    id\n    title\n    description\n    htmlContent\n    tags {\n      ...Tag_Fragment\n    }\n    createdAt\n    updatedAt\n    files {\n      ...File_Fragment\n    }\n    creator {\n      ...User_Fragment\n    }\n  }\n": types.Post_FragmentFragmentDoc,
     "\n  query Posts($input: PostsInput!) {\n    posts(input: $input) {\n      hasMore\n      posts {\n        ...Post_Fragment\n      }\n    }\n  }\n": types.PostsDocument,
     "\n  query Tags {\n    tags {\n      ...Tag_Fragment\n    }\n  }\n": types.TagsDocument,
@@ -46,10 +45,6 @@ const documents = {
  */
 export function graphql(source: string): unknown;
 
-/**
- * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
- */
-export function graphql(source: "\n  mutation CreatePost($input: CreatePostInput!) {\n    createPost(input: $input) {\n      ok\n      errors {\n        message\n        field\n      }\n      post {\n        id\n        title\n        description\n      }\n    }\n  }\n"): (typeof documents)["\n  mutation CreatePost($input: CreatePostInput!) {\n    createPost(input: $input) {\n      ok\n      errors {\n        message\n        field\n      }\n      post {\n        id\n        title\n        description\n      }\n    }\n  }\n"];
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
@@ -93,7 +88,7 @@ export function graphql(source: "\n  fragment Catalog_Fragment on Catalog {\n   
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
-export function graphql(source: "\n  fragment Tag_Fragment on Tag {\n    id\n    name\n    catalog {\n      ...Catalog_Fragment\n    }\n  }\n"): (typeof documents)["\n  fragment Tag_Fragment on Tag {\n    id\n    name\n    catalog {\n      ...Catalog_Fragment\n    }\n  }\n"];
+export function graphql(source: "\n  fragment Tag_Fragment on Tag {\n    id\n    name\n    code\n    catalog {\n      ...Catalog_Fragment\n    }\n  }\n"): (typeof documents)["\n  fragment Tag_Fragment on Tag {\n    id\n    name\n    code\n    catalog {\n      ...Catalog_Fragment\n    }\n  }\n"];
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */

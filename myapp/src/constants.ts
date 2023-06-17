@@ -18,6 +18,7 @@ export const constants = {
   POSTS_QUERY_LIMIT: 50,
   SCREEN_WIDTH: width,
   SCREEN_HEIGHT: height,
+  NEWS_TAG_CODE: "NEWS",
 };
 
 export const GRAPHQL_ENDPOINT = constants.apiBase + constants.apiGraphql;

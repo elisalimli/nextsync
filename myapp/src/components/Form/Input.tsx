@@ -22,6 +22,8 @@ const Input: React.FC<IInputProps> = ({
     name,
   });
 
+  console.log("formstate", formState);
+
   return (
     <View className={containerClassName}>
       <TextInput

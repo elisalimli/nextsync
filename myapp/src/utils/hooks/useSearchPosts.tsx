@@ -12,7 +12,6 @@ export const useSearchPosts = (refetch, flatListRef) => {
   useEffect(() => {
     // filtering posts when tags changed
     const refetchPosts = async () => {
-      console.log("refetch pots");
       await refetch();
       // scrolling to top when data refetched
       if (flatListRef?.current)

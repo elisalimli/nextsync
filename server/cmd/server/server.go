@@ -46,6 +46,7 @@ func main() {
 		AllowCredentials: true,
 		Debug:            true,
 	}).Handler)
+
 	router.Use(middleware.RequestID)
 	router.Use(middleware.Logger)
 	router.Use(customMiddleware.AuthMiddleware(userRepo))
@@ -78,6 +79,7 @@ func main() {
 	dataLoaders := storage.NewLoaders(initializers.DB)
 	router.Handle("/", playground.Handler("GraphQL playground", "/query"))
 	router.Handle("/query", storage.Middleware(dataLoaders, srv))
+	router.Post("/create-post", d.CreatePost)
 
 	log.Printf("connect to http://localhost:%s/ for GraphQL playground", port)
 	log.Fatal(http.ListenAndServe(":"+port, router))

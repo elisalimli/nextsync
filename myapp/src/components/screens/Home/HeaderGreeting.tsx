@@ -35,7 +35,3 @@ const HeaderGreeting = ({ username, scrollY }: HeaderGreetingProps) => {
 };
 
 export default HeaderGreeting;
-
-const styles = StyleSheet.create({
-  container: {},
-});

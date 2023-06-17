@@ -23,6 +23,7 @@ export const Tag_Fragment = graphql(/* GraphQL */ `
   fragment Tag_Fragment on Tag {
     id
     name
+    code
     catalog {
       ...Catalog_Fragment
     }

@@ -11,6 +11,7 @@ import RNFS from "react-native-fs";
 import { constants } from "../src/constants";
 import { asyncStoragePersister, queryClient } from "../src/graphql/client";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { StatusBar } from "expo-status-bar";
 
 export const unstable_settings = {
   // Ensure that reloading on `/modal` keeps a back button present.
@@ -61,6 +62,7 @@ function RootLayoutNav() {
         },
       }}
     >
+      <StatusBar style="dark" />
       {/* <ThemeProvider */}
       {/* value={colorScheme === "dark" ? DarkTheme : DefaultTheme} */}
 

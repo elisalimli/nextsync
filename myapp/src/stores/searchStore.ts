@@ -6,15 +6,21 @@ interface SearchState {
   activeTagIds: string[] | null;
   searchQuery: string | null;
   addTag: (newTagId: string) => void;
+  removeAllTags: () => void;
   removeTag: (tagId: string) => void;
   setLoading: (loading: boolean) => void;
   setSearchQuery: (query: string) => void;
+  reset: () => void;
 }
 
-export const useSearchStore = create<SearchState>((set) => ({
+const initialState = {
   loading: false,
   activeTagIds: null,
   searchQuery: null,
+};
+
+export const useSearchStore = create<SearchState>((set) => ({
+  ...initialState,
   addTag: (newTagId) =>
     set((state) => ({
       activeTagIds: [...(state.activeTagIds || []), newTagId],
@@ -28,6 +34,10 @@ export const useSearchStore = create<SearchState>((set) => ({
       }
       return { activeTagIds: tagIds };
     }),
+  removeAllTags: () =>
+    set((state) => ({
+      activeTagIds: [],
+    })),
   setLoading: (loading) =>
     set((state) => {
       return { loading: loading };
@@ -37,4 +47,7 @@ export const useSearchStore = create<SearchState>((set) => ({
     set((state) => {
       return { searchQuery: query };
     }),
+  reset: () => {
+    set(initialState);
+  },
 }));

@@ -33,7 +33,7 @@ const SearchTag: React.FC<SearchTagProps> = ({
   };
 
   return (
-    <View style={styles.container}>
+    <View>
       <TouchableOpacity
         onPress={handlePress}
         className={clsx(
@@ -55,7 +55,3 @@ const SearchTag: React.FC<SearchTagProps> = ({
 };
 
 export default SearchTag;
-
-const styles = StyleSheet.create({
-  container: {},
-});

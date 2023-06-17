@@ -27,7 +27,3 @@ const PostAction: React.FC<PostActionProps> = ({ files, creator }) => {
 };
 
 export default PostAction;
-
-const styles = StyleSheet.create({
-  container: {},
-});

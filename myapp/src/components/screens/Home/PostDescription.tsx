@@ -9,6 +9,7 @@ import { constants } from "../../../constants";
 import Button from "../../Button";
 import { Link } from "expo-router";
 import { Post_FragmentFragment } from "../../../gql/graphql";
+import { LinearGradient } from "expo-linear-gradient";
 
 const formatText = (text: string) => {
   const formattedText = [];
@@ -107,7 +108,7 @@ const PostDescription: React.FC<PostDescriptionProps> = ({
     } as HTMLSource;
     return (
       <View>
-        <View className="">
+        <View className="relative">
           <RenderHtml
             contentWidth={constants.SCREEN_WIDTH}
             source={source}
@@ -117,6 +118,7 @@ const PostDescription: React.FC<PostDescriptionProps> = ({
 
         {truncate && (
           <Link
+            className="text-darkGray2"
             href={{
               pathname: `/post/${id}`,
               // /* 1. Navigate to the details route with query params */

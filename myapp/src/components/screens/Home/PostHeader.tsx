@@ -16,7 +16,3 @@ const PostHeader: React.FC<PostHeaderProps> = (post) => {
 };
 
 export default PostHeader;
-
-const styles = StyleSheet.create({
-  container: {},
-});

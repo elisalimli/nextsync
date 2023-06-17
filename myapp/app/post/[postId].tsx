@@ -48,7 +48,3 @@ const Post = (props: PostProps) => {
 };
 
 export default Post;
-
-const styles = StyleSheet.create({
-  container: {},
-});
