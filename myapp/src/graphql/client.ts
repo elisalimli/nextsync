@@ -1,18 +1,26 @@
-import { saveAuthAccessToken } from "../auth/auth";
-
 import { getAuthAccessToken } from "../auth/auth";
-import { refreshTokenMutationDocument } from "./mutation/user/refreshToken";
 
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { createAsyncStoragePersister } from "@tanstack/query-async-storage-persister";
 import { QueryCache, QueryClient } from "@tanstack/react-query";
 import { graphqlRequestClient } from "./requestClient";
 
+import { isTokenExpired } from "../auth/isTokenExpired";
+import { refreshToken } from "../auth/refreshToken";
+
 export const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
       // cacheTime: 1000 * 60 * 60 * 24, // 24 hours
       cacheTime: 1000 * 60 * 60 * 24, // 24 hours
+    },
+
+    mutations: {
+      onMutate: async (variables) => {
+        console.log("refreshing token if expired");
+        const token = await getAuthAccessToken();
+        if (token && isTokenExpired(token)) await refreshToken();
+      },
     },
   },
   queryCache: new QueryCache({
@@ -21,19 +29,8 @@ export const queryClient = new QueryClient({
       if (
         token &&
         error?.response?.errors[0]?.extensions?.code === "UNAUTHENTICATED"
-      ) {
-        const data = await graphqlRequestClient.request(
-          refreshTokenMutationDocument
-        );
-        const token = data?.refreshToken?.authToken?.token;
-        if (token) {
-          await saveAuthAccessToken(token);
-          queryClient.invalidateQueries({ queryKey: ["me"] });
-        } else {
-          // if could not get new access token, then reset cache
-          queryClient?.resetQueries();
-        }
-      }
+      )
+        refreshToken();
     },
   }),
 });
