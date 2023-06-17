@@ -147,39 +147,39 @@ VALUES
         )
     ),
     (
-        'Azərbaycan dili',
-        'primary_language_AZE',
+        'Azərbaycan',
+        'section_AZE',
         (
             SELECT
                 id
             FROM
                 catalogs
             WHERE
-                code = 'primary_language'
+                code = 'section'
         )
     ),
     (
-        'İngilis dili',
-        'primary_language_ENG',
+        'İngilis',
+        'section_ENG',
         (
             SELECT
                 id
             FROM
                 catalogs
             WHERE
-                code = 'primary_language'
+                code = 'section'
         )
     ),
     (
-        'Rus dili',
-        'primary_language_RU',
+        'Rus',
+        'section_RU',
         (
             SELECT
                 id
             FROM
                 catalogs
             WHERE
-                code = 'primary_language'
+                code = 'section'
         )
     ),
     (

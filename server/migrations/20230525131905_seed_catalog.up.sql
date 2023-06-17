@@ -4,11 +4,11 @@ INSERT INTO
 VALUES
     ('Variant', 'variant'),
     ('Xarici dil', 'second_language'),
-    ('Sinif', 'grade');
+    ('Sinif', 'grade'),
+    ('Bölmə', 'section');
 
 -- Inserting catalogs
 INSERT INTO
     catalogs (code)
 VALUES
-    ('type'),
-    ('primary_language');
+    ('type');
