@@ -66,12 +66,6 @@ type ComplexityRoot struct {
 		Name func(childComplexity int) int
 	}
 
-	CreatePostResponse struct {
-		Errors func(childComplexity int) int
-		Ok     func(childComplexity int) int
-		Post   func(childComplexity int) int
-	}
-
 	FieldError struct {
 		Field   func(childComplexity int) int
 		Message func(childComplexity int) int
@@ -90,7 +84,6 @@ type ComplexityRoot struct {
 	}
 
 	Mutation struct {
-		CreatePost          func(childComplexity int, input models.CreatePostInput) int
 		GoogleLoginOrSignUp func(childComplexity int, input models.GoogleLoginOrSignUpInput) int
 		Login               func(childComplexity int, input models.LoginInput) int
 		Logout              func(childComplexity int) int
@@ -163,7 +156,6 @@ type MutationResolver interface {
 	RefreshToken(ctx context.Context) (*models.AuthResponse, error)
 	SendOtp(ctx context.Context, input models.SendOtpInput) (*models.FormResponse, error)
 	VerifyOtp(ctx context.Context, input models.VerifyOtpInput) (*models.AuthResponse, error)
-	CreatePost(ctx context.Context, input models.CreatePostInput) (*models.CreatePostResponse, error)
 }
 type PostResolver interface {
 	Files(ctx context.Context, obj *models.Post) ([]*models.PostFile, error)
@@ -257,27 +249,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Catalog.Name(childComplexity), true
 
-	case "CreatePostResponse.errors":
-		if e.complexity.CreatePostResponse.Errors == nil {
-			break
-		}
-
-		return e.complexity.CreatePostResponse.Errors(childComplexity), true
-
-	case "CreatePostResponse.ok":
-		if e.complexity.CreatePostResponse.Ok == nil {
-			break
-		}
-
-		return e.complexity.CreatePostResponse.Ok(childComplexity), true
-
-	case "CreatePostResponse.post":
-		if e.complexity.CreatePostResponse.Post == nil {
-			break
-		}
-
-		return e.complexity.CreatePostResponse.Post(childComplexity), true
-
 	case "FieldError.field":
 		if e.complexity.FieldError.Field == nil {
 			break
@@ -333,18 +304,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.FormResponse.Ok(childComplexity), true
-
-	case "Mutation.createPost":
-		if e.complexity.Mutation.CreatePost == nil {
-			break
-		}
-
-		args, err := ec.field_Mutation_createPost_args(context.TODO(), rawArgs)
-		if err != nil {
-			return 0, false
-		}
-
-		return e.complexity.Mutation.CreatePost(childComplexity, args["input"].(models.CreatePostInput)), true
 
 	case "Mutation.googleLoginOrSignUp":
 		if e.complexity.Mutation.GoogleLoginOrSignUp == nil {
@@ -690,7 +649,6 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 	rc := graphql.GetOperationContext(ctx)
 	ec := executionContext{rc, e, 0, 0, make(chan graphql.DeferredResult)}
 	inputUnmarshalMap := graphql.BuildUnmarshalerMap(
-		ec.unmarshalInputCreatePostInput,
 		ec.unmarshalInputGoogleLoginOrSignUpInput,
 		ec.unmarshalInputLoginInput,
 		ec.unmarshalInputPostInput,
@@ -814,21 +772,6 @@ var parsedSchema = gqlparser.MustLoadSchema(sources...)
 // endregion ************************** generated!.gotpl **************************
 
 // region    ***************************** args.gotpl *****************************
-
-func (ec *executionContext) field_Mutation_createPost_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
-	var err error
-	args := map[string]interface{}{}
-	var arg0 models.CreatePostInput
-	if tmp, ok := rawArgs["input"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
-		arg0, err = ec.unmarshalNCreatePostInput2githubᚗcomᚋelisalimliᚋnextsyncᚋserverᚋgraphqlᚋmodelsᚐCreatePostInput(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["input"] = arg0
-	return args, nil
-}
 
 func (ec *executionContext) field_Mutation_googleLoginOrSignUp_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
@@ -1398,160 +1341,6 @@ func (ec *executionContext) fieldContext_Catalog_code(ctx context.Context, field
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type String does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _CreatePostResponse_ok(ctx context.Context, field graphql.CollectedField, obj *models.CreatePostResponse) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_CreatePostResponse_ok(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Ok, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(bool)
-	fc.Result = res
-	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_CreatePostResponse_ok(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "CreatePostResponse",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type Boolean does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _CreatePostResponse_errors(ctx context.Context, field graphql.CollectedField, obj *models.CreatePostResponse) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_CreatePostResponse_errors(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Errors, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.([]*validator.FieldError)
-	fc.Result = res
-	return ec.marshalOFieldError2ᚕᚖgithubᚗcomᚋelisalimliᚋnextsyncᚋserverᚋvalidatorᚐFieldError(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_CreatePostResponse_errors(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "CreatePostResponse",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			switch field.Name {
-			case "message":
-				return ec.fieldContext_FieldError_message(ctx, field)
-			case "field":
-				return ec.fieldContext_FieldError_field(ctx, field)
-			}
-			return nil, fmt.Errorf("no field named %q was found under type FieldError", field.Name)
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _CreatePostResponse_post(ctx context.Context, field graphql.CollectedField, obj *models.CreatePostResponse) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_CreatePostResponse_post(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Post, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(*models.Post)
-	fc.Result = res
-	return ec.marshalOPost2ᚖgithubᚗcomᚋelisalimliᚋnextsyncᚋserverᚋgraphqlᚋmodelsᚐPost(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_CreatePostResponse_post(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "CreatePostResponse",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			switch field.Name {
-			case "id":
-				return ec.fieldContext_Post_id(ctx, field)
-			case "title":
-				return ec.fieldContext_Post_title(ctx, field)
-			case "description":
-				return ec.fieldContext_Post_description(ctx, field)
-			case "htmlContent":
-				return ec.fieldContext_Post_htmlContent(ctx, field)
-			case "files":
-				return ec.fieldContext_Post_files(ctx, field)
-			case "tags":
-				return ec.fieldContext_Post_tags(ctx, field)
-			case "creator":
-				return ec.fieldContext_Post_creator(ctx, field)
-			case "userId":
-				return ec.fieldContext_Post_userId(ctx, field)
-			case "createdAt":
-				return ec.fieldContext_Post_createdAt(ctx, field)
-			case "updatedAt":
-				return ec.fieldContext_Post_updatedAt(ctx, field)
-			}
-			return nil, fmt.Errorf("no field named %q was found under type Post", field.Name)
 		},
 	}
 	return fc, nil
@@ -2325,69 +2114,6 @@ func (ec *executionContext) fieldContext_Mutation_verifyOtp(ctx context.Context,
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_Mutation_verifyOtp_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
-		ec.Error(ctx, err)
-		return
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _Mutation_createPost(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Mutation_createPost(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().CreatePost(rctx, fc.Args["input"].(models.CreatePostInput))
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(*models.CreatePostResponse)
-	fc.Result = res
-	return ec.marshalNCreatePostResponse2ᚖgithubᚗcomᚋelisalimliᚋnextsyncᚋserverᚋgraphqlᚋmodelsᚐCreatePostResponse(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_Mutation_createPost(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "Mutation",
-		Field:      field,
-		IsMethod:   true,
-		IsResolver: true,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			switch field.Name {
-			case "ok":
-				return ec.fieldContext_CreatePostResponse_ok(ctx, field)
-			case "errors":
-				return ec.fieldContext_CreatePostResponse_errors(ctx, field)
-			case "post":
-				return ec.fieldContext_CreatePostResponse_post(ctx, field)
-			}
-			return nil, fmt.Errorf("no field named %q was found under type CreatePostResponse", field.Name)
-		},
-	}
-	defer func() {
-		if r := recover(); r != nil {
-			err = ec.Recover(ctx, r)
-			ec.Error(ctx, err)
-		}
-	}()
-	ctx = graphql.WithFieldContext(ctx, fc)
-	if fc.Args, err = ec.field_Mutation_createPost_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return
 	}
@@ -6028,53 +5754,6 @@ func (ec *executionContext) fieldContext___Type_specifiedByURL(ctx context.Conte
 
 // region    **************************** input.gotpl *****************************
 
-func (ec *executionContext) unmarshalInputCreatePostInput(ctx context.Context, obj interface{}) (models.CreatePostInput, error) {
-	var it models.CreatePostInput
-	asMap := map[string]interface{}{}
-	for k, v := range obj.(map[string]interface{}) {
-		asMap[k] = v
-	}
-
-	fieldsInOrder := [...]string{"files", "title", "description"}
-	for _, k := range fieldsInOrder {
-		v, ok := asMap[k]
-		if !ok {
-			continue
-		}
-		switch k {
-		case "files":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("files"))
-			data, err := ec.unmarshalOUploadFile2ᚕᚖgithubᚗcomᚋelisalimliᚋnextsyncᚋserverᚋgraphqlᚋmodelsᚐUploadFile(ctx, v)
-			if err != nil {
-				return it, err
-			}
-			it.Files = data
-		case "title":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("title"))
-			data, err := ec.unmarshalNString2string(ctx, v)
-			if err != nil {
-				return it, err
-			}
-			it.Title = data
-		case "description":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("description"))
-			data, err := ec.unmarshalNString2string(ctx, v)
-			if err != nil {
-				return it, err
-			}
-			it.Description = data
-		}
-	}
-
-	return it, nil
-}
-
 func (ec *executionContext) unmarshalInputGoogleLoginOrSignUpInput(ctx context.Context, obj interface{}) (models.GoogleLoginOrSignUpInput, error) {
 	var it models.GoogleLoginOrSignUpInput
 	asMap := map[string]interface{}{}
@@ -6448,13 +6127,6 @@ func (ec *executionContext) _IFormResponse(ctx context.Context, sel ast.Selectio
 			return graphql.Null
 		}
 		return ec._AuthResponse(ctx, sel, obj)
-	case models.CreatePostResponse:
-		return ec._CreatePostResponse(ctx, sel, &obj)
-	case *models.CreatePostResponse:
-		if obj == nil {
-			return graphql.Null
-		}
-		return ec._CreatePostResponse(ctx, sel, obj)
 	default:
 		panic(fmt.Errorf("unexpected type %T", obj))
 	}
@@ -6579,49 +6251,6 @@ func (ec *executionContext) _Catalog(ctx context.Context, sel ast.SelectionSet, 
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
-		default:
-			panic("unknown field " + strconv.Quote(field.Name))
-		}
-	}
-	out.Dispatch(ctx)
-	if out.Invalids > 0 {
-		return graphql.Null
-	}
-
-	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
-
-	for label, dfs := range deferred {
-		ec.processDeferredGroup(graphql.DeferredGroup{
-			Label:    label,
-			Path:     graphql.GetPath(ctx),
-			FieldSet: dfs,
-			Context:  ctx,
-		})
-	}
-
-	return out
-}
-
-var createPostResponseImplementors = []string{"CreatePostResponse", "IFormResponse"}
-
-func (ec *executionContext) _CreatePostResponse(ctx context.Context, sel ast.SelectionSet, obj *models.CreatePostResponse) graphql.Marshaler {
-	fields := graphql.CollectFields(ec.OperationContext, sel, createPostResponseImplementors)
-
-	out := graphql.NewFieldSet(fields)
-	deferred := make(map[string]*graphql.FieldSet)
-	for i, field := range fields {
-		switch field.Name {
-		case "__typename":
-			out.Values[i] = graphql.MarshalString("CreatePostResponse")
-		case "ok":
-			out.Values[i] = ec._CreatePostResponse_ok(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				out.Invalids++
-			}
-		case "errors":
-			out.Values[i] = ec._CreatePostResponse_errors(ctx, field, obj)
-		case "post":
-			out.Values[i] = ec._CreatePostResponse_post(ctx, field, obj)
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -6848,13 +6477,6 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 		case "verifyOtp":
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._Mutation_verifyOtp(ctx, field)
-			})
-			if out.Values[i] == graphql.Null {
-				out.Invalids++
-			}
-		case "createPost":
-			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
-				return ec._Mutation_createPost(ctx, field)
 			})
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
@@ -7783,25 +7405,6 @@ func (ec *executionContext) marshalNBoolean2bool(ctx context.Context, sel ast.Se
 	return res
 }
 
-func (ec *executionContext) unmarshalNCreatePostInput2githubᚗcomᚋelisalimliᚋnextsyncᚋserverᚋgraphqlᚋmodelsᚐCreatePostInput(ctx context.Context, v interface{}) (models.CreatePostInput, error) {
-	res, err := ec.unmarshalInputCreatePostInput(ctx, v)
-	return res, graphql.ErrorOnPath(ctx, err)
-}
-
-func (ec *executionContext) marshalNCreatePostResponse2githubᚗcomᚋelisalimliᚋnextsyncᚋserverᚋgraphqlᚋmodelsᚐCreatePostResponse(ctx context.Context, sel ast.SelectionSet, v models.CreatePostResponse) graphql.Marshaler {
-	return ec._CreatePostResponse(ctx, sel, &v)
-}
-
-func (ec *executionContext) marshalNCreatePostResponse2ᚖgithubᚗcomᚋelisalimliᚋnextsyncᚋserverᚋgraphqlᚋmodelsᚐCreatePostResponse(ctx context.Context, sel ast.SelectionSet, v *models.CreatePostResponse) graphql.Marshaler {
-	if v == nil {
-		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
-			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
-		}
-		return graphql.Null
-	}
-	return ec._CreatePostResponse(ctx, sel, v)
-}
-
 func (ec *executionContext) marshalNFormResponse2githubᚗcomᚋelisalimliᚋnextsyncᚋserverᚋgraphqlᚋmodelsᚐFormResponse(ctx context.Context, sel ast.SelectionSet, v models.FormResponse) graphql.Marshaler {
 	return ec._FormResponse(ctx, sel, &v)
 }
@@ -8639,34 +8242,6 @@ func (ec *executionContext) marshalOString2ᚖstring(ctx context.Context, sel as
 	}
 	res := graphql.MarshalString(*v)
 	return res
-}
-
-func (ec *executionContext) unmarshalOUploadFile2ᚕᚖgithubᚗcomᚋelisalimliᚋnextsyncᚋserverᚋgraphqlᚋmodelsᚐUploadFile(ctx context.Context, v interface{}) ([]*models.UploadFile, error) {
-	if v == nil {
-		return nil, nil
-	}
-	var vSlice []interface{}
-	if v != nil {
-		vSlice = graphql.CoerceList(v)
-	}
-	var err error
-	res := make([]*models.UploadFile, len(vSlice))
-	for i := range vSlice {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
-		res[i], err = ec.unmarshalOUploadFile2ᚖgithubᚗcomᚋelisalimliᚋnextsyncᚋserverᚋgraphqlᚋmodelsᚐUploadFile(ctx, vSlice[i])
-		if err != nil {
-			return nil, err
-		}
-	}
-	return res, nil
-}
-
-func (ec *executionContext) unmarshalOUploadFile2ᚖgithubᚗcomᚋelisalimliᚋnextsyncᚋserverᚋgraphqlᚋmodelsᚐUploadFile(ctx context.Context, v interface{}) (*models.UploadFile, error) {
-	if v == nil {
-		return nil, nil
-	}
-	res, err := ec.unmarshalInputUploadFile(ctx, v)
-	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
 func (ec *executionContext) marshalOUser2ᚖgithubᚗcomᚋelisalimliᚋnextsyncᚋserverᚋgraphqlᚋmodelsᚐUser(ctx context.Context, sel ast.SelectionSet, v *models.User) graphql.Marshaler {

@@ -3,10 +3,13 @@ package domain
 import (
 	"bytes"
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
+	"mime/multipart"
+	"net/http"
 	"os"
-	"sort"
+	"strings"
 	"sync"
 	"time"
 
@@ -82,144 +85,156 @@ func (d *Domain) uploadToS3(resp *s3.CreateMultipartUploadOutput, fileBytes []by
 	ch <- partUploadResult{}
 }
 
-func (d *Domain) uploadFiles(ctx context.Context, resp *[]models.PostFile, req []*models.UploadFile) error {
+func (d *Domain) uploadFiles(ctx context.Context, files []*multipart.FileHeader, imageUrls *[]models.PostFile, postId string) error {
+	// Create a new AWS session
+	sess := session.Must(session.NewSession(&aws.Config{
+		Region:      aws.String(BucketRegion),
+		Credentials: credentials.NewStaticCredentials(AccessKey, SecretKey, ""),
+	}))
+	s3Client := s3.New(sess)
 
-	for _, file := range req {
-		fmt.Println("content type",
-			file.File.ContentType, file.File.Filename)
-		currentUserId := ctx.Value(customMiddleware.CurrentUserIdKey)
+	// Iterate over the uploaded files
+	for _, fileHeader := range files {
+		// Open the uploaded file
+		file, err := fileHeader.Open()
+		if err != nil {
+			return errors.New("Failed to open file")
+		}
+		defer file.Close()
+
+		// Remove spaces from the file name
+		// Create an S3 service client
 		id := uuid.New()
 
-		fileName := fmt.Sprintf("%v-%v-%v", id.String(), currentUserId, file.File.Filename)
+		// Specify the S3 bucket name and file key
+		fileName := fmt.Sprintf("%v-%v", id.String(), strings.ReplaceAll(fileHeader.Filename, " ", ""))
+		contentType := fileHeader.Header.Get("Content-Type")
 
-		fileSize := file.File.Size
-
-		buffer := make([]byte, fileSize)
-
-		src := file.File.File
-		_, _ = src.Read(buffer)
-
-		expiryDate := time.Now().AddDate(0, 0, 1)
-
-		createdResp, err := S3session.CreateMultipartUpload(&s3.CreateMultipartUploadInput{
-			Bucket:  aws.String(BucketName),
-			Key:     aws.String(fileName),
-			Expires: &expiryDate,
+		// Upload the file to the S3 bucket
+		_, err = s3Client.PutObject(&s3.PutObjectInput{
+			Bucket: aws.String(BucketName),
+			Key:    aws.String(fileName),
+			Body:   file,
 		})
-
 		if err != nil {
-			fmt.Print(err)
-			return err
+			return errors.New("Failed to upload file to S3")
 		}
 
-		var start, currentSize int
-		var remaining = int(fileSize)
-		var partNum = 1
-		var completedParts []*s3.CompletedPart
-		var ch = make(chan partUploadResult)
-		fmt.Println("uploaded files", remaining, partNum)
-		for start = 0; remaining > 0; start += PartSize {
-			wg.Add(1)
-			if remaining < PartSize {
-				currentSize = remaining
-			} else {
-				currentSize = PartSize
-			}
-			go d.uploadToS3(createdResp, buffer[start:start+currentSize], partNum, &wg, ch)
+		// Generate the S3 URL for the uploaded file
+		s3URL := fmt.Sprintf("https://%s.s3.amazonaws.com/%s", BucketName, fileName)
+		*imageUrls = append(*imageUrls, models.PostFile{PostId: postId, FileSize: fileHeader.Size, URL: s3URL, FileName: fileName, ContentType: contentType})
 
-			remaining -= currentSize
-			fmt.Printf("Uplaodind of part %v started and remaning is %v \n", partNum, remaining)
-			partNum++
-
-		}
-
-		go func() {
-			wg.Wait()
-			close(ch)
-		}()
-
-		for result := range ch {
-			if result.err != nil {
-				_, err = S3session.AbortMultipartUpload(&s3.AbortMultipartUploadInput{
-					Bucket:   aws.String(BucketName),
-					Key:      aws.String(fileName),
-					UploadId: createdResp.UploadId,
-				})
-				if err != nil {
-					fmt.Print(err)
-					return err
-					// os.Exit(1)
-				}
-			}
-			fmt.Printf("Uploading of part %v has been finished \n", *result.completedPart.PartNumber)
-			completedParts = append(completedParts, result.completedPart)
-		}
-
-		// Ordering the array based on the PartNumber as each parts could be uploaded in different order!
-		sort.Slice(completedParts, func(i, j int) bool {
-			return *completedParts[i].PartNumber < *completedParts[j].PartNumber
-		})
-
-		// Signalling AWS S3 that the multiPartUpload is finished
-		res, err := S3session.CompleteMultipartUpload(&s3.CompleteMultipartUploadInput{
-			Bucket:   createdResp.Bucket,
-			Key:      createdResp.Key,
-			UploadId: createdResp.UploadId,
-			MultipartUpload: &s3.CompletedMultipartUpload{
-				Parts: completedParts,
-			},
-		})
-
-		if err != nil {
-			fmt.Print(err)
-			return err
-		} else {
-			*resp = append(*resp, models.PostFile{URL: *res.Location, ContentType: file.File.ContentType, FileSize: file.File.Size, FileName: file.File.Filename})
-			fmt.Println(res.String())
-		}
 	}
 	return nil
 }
 
-func (d *Domain) CreatePost(ctx context.Context, input models.CreatePostInput) (*models.CreatePostResponse, error) {
-	currentUserId, _ := ctx.Value(customMiddleware.CurrentUserIdKey).(string)
-	fmt.Println("file size", input.Files[0].File.Size)
-	// TODO: check if user exists
-	var imageUrls []models.PostFile
-	if len(input.Files) == 0 {
-		return &models.CreatePostResponse{Ok: false, Errors: []*validator.FieldError{{Field: GeneralErrorFieldCode, Message: "Please provide at least a file."}}}, nil
-	}
+func (d *Domain) CreatePost(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+	// Parse the multipart form data
 
-	err := d.uploadFiles(ctx, &imageUrls, input.Files)
+	err := r.ParseMultipartForm(32 << 20) // Max 32MB in-memory cache
 	if err != nil {
-		return nil, err
+		http.Error(w, "Failed to parse form data", http.StatusBadRequest)
+		return
 	}
 
-	// variant := strings.ToUpper(input.Variant)
+	// fmt.Println("create post", input.SecondLanguage)
+	currentUserId, _ := ctx.Value(customMiddleware.CurrentUserIdKey).(string)
+
+	if currentUserId == "TOKEN_EXPIRED" {
+		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		return
+	}
+
+	title := r.FormValue("title")
+	description := r.FormValue("description")
+	tagIds := r.MultipartForm.Value["tagIds"]
+	input := models.CreatePostInput{Title: title, Description: description}
+	isValid, errors := Validation(ctx, input)
+
+	// validating field
+	if !isValid {
+		// Create the response object
+		response := models.CreatePostResponse{
+			Ok:     false,
+			Errors: errors,
+		}
+		// Convert the response object to JSON
+		jsonResponse, err := json.Marshal(response)
+		if err != nil {
+			http.Error(w, "Failed to marshal response to JSON", http.StatusInternalServerError)
+			return
+		}
+		// Write the JSON response
+		w.WriteHeader(http.StatusForbidden)
+		w.Write(jsonResponse)
+		return
+	}
+
+	// Process the uploaded files
+	files := r.MultipartForm.File["files"]
+
+	// Check if file types are supported
+	for _, fileHeader := range files {
+		contentType := fileHeader.Header.Get("Content-Type")
+		if contentType != "application/pdf" && contentType != "image/png" && contentType != "image/jpeg" {
+			// Create the response object
+			response := models.CreatePostResponse{
+				Ok:     false,
+				Errors: []*validator.FieldError{{Message: "Unsupported file types", Field: "files"}},
+			}
+			// Convert the response object to JSON
+			jsonResponse, err := json.Marshal(response)
+			if err != nil {
+				http.Error(w, "Failed to marshal response to JSON", http.StatusInternalServerError)
+				return
+			}
+			// Write the JSON response
+			w.WriteHeader(http.StatusForbidden)
+			w.Write(jsonResponse)
+			return
+			// return &models.CreatePostResponse{Ok: false, Errors: []*validator.FieldError{{Field: "files", Message: "Unsupported file types"}}}, nil
+		}
+	}
+
+	imageUrls := *new([]models.PostFile)
+
 	post := &models.Post{
 		Title:       input.Title,
 		Description: &input.Description,
-		// Type:           strings.ToUpper(input.Type.String()),
-		// Language:       strings.ToUpper(input.Language.String()),
-		// Variant:        variant,
-		// SecondLanguage: strings.ToUpper(input.SecondLanguage.String()),
-		// Grade:          input.Grade,
-		Files:  imageUrls,
-		UserId: currentUserId,
+		UserId:      currentUserId,
 	}
-	fmt.Println(post)
+
 	err = d.PostsRepo.CreatePost(ctx, post)
 	if err != nil {
-		return nil, errors.New(ErrSomethingWentWrong)
+		http.Error(w, "Something went wrong!", http.StatusInternalServerError)
+		return
 	}
 
-	for i := range imageUrls {
-		imageUrls[i].PostId = post.Id
-	}
-	err = d.PostsRepo.DB.NewInsert().Model(&imageUrls).Scan(ctx)
+	d.uploadFiles(ctx, files, &imageUrls, post.Id)
+	if len(imageUrls) > 0 {
+		err = d.PostsRepo.DB.NewInsert().Model(&imageUrls).Scan(ctx)
 
-	if err != nil {
-		return nil, err
+		if err != nil {
+			http.Error(w, "Something went wrong", http.StatusInternalServerError)
+			return
+		}
 	}
-	return &models.CreatePostResponse{Ok: true, Post: post}, nil
+
+	for i := 0; i < len(tagIds); i++ {
+		fmt.Println("tagId", len(tagIds), tagIds[i])
+		postTag := &models.PostTag{
+			PostId: post.Id,
+			TagId:  tagIds[i],
+		}
+		_, err = d.PostsRepo.DB.NewInsert().Model(postTag).Returning("*").Exec(ctx)
+		if err != nil {
+			http.Error(w, "Something went wrong", http.StatusInternalServerError)
+			return
+		}
+
+	}
+
+	w.WriteHeader(http.StatusCreated)
+	w.Write([]byte("Post created successfully"))
 }

@@ -40,32 +40,6 @@ type AuthToken struct {
 	ExpiredAt time.Time `json:"expiredAt"`
 }
 
-// The `UploadFile` type, represents the request for uploading a file with a certain payload.
-type CreatePostInput struct {
-	Files       []*UploadFile `json:"files,omitempty"`
-	Title       string        `json:"title"`
-	Description string        `json:"description"`
-}
-
-type CreatePostResponse struct {
-	Ok     bool                    `json:"ok"`
-	Errors []*validator.FieldError `json:"errors,omitempty"`
-	Post   *Post                   `json:"post,omitempty"`
-}
-
-func (CreatePostResponse) IsIFormResponse() {}
-func (this CreatePostResponse) GetOk() bool { return this.Ok }
-func (this CreatePostResponse) GetErrors() []*validator.FieldError {
-	if this.Errors == nil {
-		return nil
-	}
-	interfaceSlice := make([]*validator.FieldError, 0, len(this.Errors))
-	for _, concrete := range this.Errors {
-		interfaceSlice = append(interfaceSlice, concrete)
-	}
-	return interfaceSlice
-}
-
 // The `File` type, represents the response of uploading a file.
 type File struct {
 	ID          int    `json:"id"`

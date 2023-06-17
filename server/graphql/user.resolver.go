@@ -29,7 +29,7 @@ var (
 )
 
 func (m *mutationResolver) Login(ctx context.Context, input models.LoginInput) (*models.AuthResponse, error) {
-	isValid, errors := validation(ctx, input)
+	isValid, errors := domain.Validation(ctx, input)
 	fmt.Println(isValid, errors)
 	if !isValid {
 		return &models.AuthResponse{Ok: false, Errors: errors}, nil
@@ -68,7 +68,7 @@ func (r *queryResolver) Me(ctx context.Context) (*models.User, error) {
 }
 
 func (m *mutationResolver) Register(ctx context.Context, input models.RegisterInput) (*models.AuthResponse, error) {
-	isValid, errors := validation(ctx, input)
+	isValid, errors := domain.Validation(ctx, input)
 	if !isValid {
 		return &models.AuthResponse{Ok: false, Errors: errors}, nil
 	}
@@ -181,7 +181,7 @@ func (m *mutationResolver) Logout(ctx context.Context) (bool, error) {
 }
 
 func (m *mutationResolver) SendOtp(ctx context.Context, input models.SendOtpInput) (*models.FormResponse, error) {
-	isValid, errors := validation(ctx, input)
+	isValid, errors := domain.Validation(ctx, input)
 	if !isValid {
 		return &models.FormResponse{Ok: false, Errors: errors}, nil
 	}
@@ -190,7 +190,7 @@ func (m *mutationResolver) SendOtp(ctx context.Context, input models.SendOtpInpu
 }
 
 func (m *mutationResolver) VerifyOtp(ctx context.Context, input models.VerifyOtpInput) (*models.AuthResponse, error) {
-	isValid, errors := validation(ctx, input)
+	isValid, errors := domain.Validation(ctx, input)
 	if !isValid {
 		return &models.AuthResponse{Ok: false, Errors: errors}, nil
 	}

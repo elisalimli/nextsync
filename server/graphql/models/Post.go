@@ -3,6 +3,7 @@ package models
 import (
 	"time"
 
+	"github.com/elisalimli/nextsync/server/validator"
 	"github.com/uptrace/bun"
 )
 
@@ -36,4 +37,14 @@ type PostTag struct {
 	TagId         string `bun:",pk"`
 	Tag           *Tag   `bun:"rel:belongs-to,join:tag_id=id"`
 	Post          *Post  `bun:"rel:belongs-to,join:post_id=id"`
+}
+
+type CreatePostInput struct {
+	Title       string `json:"email"`
+	Description string `json:"password"`
+}
+
+type CreatePostResponse struct {
+	Ok     bool                    `json:"ok"`
+	Errors []*validator.FieldError `json:"errors"`
 }

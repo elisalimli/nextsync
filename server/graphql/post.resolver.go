@@ -5,14 +5,10 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/99designs/gqlgen/graphql"
 	"github.com/elisalimli/nextsync/server/domain"
 	"github.com/elisalimli/nextsync/server/graphql/models"
-	customMiddleware "github.com/elisalimli/nextsync/server/middleware"
 	"github.com/elisalimli/nextsync/server/storage"
-	"github.com/elisalimli/nextsync/server/validator"
 	"github.com/uptrace/bun"
-	"github.com/vektah/gqlparser/v2/gqlerror"
 )
 
 func (m *postResolver) Creator(ctx context.Context, obj *models.Post) (*models.User, error) {
@@ -27,34 +23,6 @@ func (m *postResolver) Files(ctx context.Context, obj *models.Post) ([]*models.P
 	return storage.GetPostFiles(ctx, obj.Id)
 }
 
-func (m *mutationResolver) CreatePost(ctx context.Context, input models.CreatePostInput) (*models.CreatePostResponse, error) {
-	// fmt.Println("create post", input.SecondLanguage)
-	currentUserId, _ := ctx.Value(customMiddleware.CurrentUserIdKey).(string)
-
-	if currentUserId == "TOKEN_EXPIRED" {
-		graphql.AddError(ctx, &gqlerror.Error{
-			Path:    graphql.GetPath(ctx),
-			Message: "Unauthorized: Token has expired",
-			Extensions: map[string]interface{}{
-				"code": "UNAUTHENTICATED",
-			},
-		})
-
-		return nil, nil
-	}
-	isValid, errors := validation(ctx, input)
-
-	if !isValid {
-		return &models.CreatePostResponse{Ok: false, Errors: errors}, nil
-	}
-
-	for _, k := range input.Files {
-		if k.File.ContentType != "application/pdf" && k.File.ContentType != "image/png" && k.File.ContentType != "image/jpeg" {
-			return &models.CreatePostResponse{Ok: false, Errors: []*validator.FieldError{{Field: "files", Message: "Unsupported file types"}}}, nil
-		}
-	}
-	return m.Domain.CreatePost(ctx, input)
-}
 func (r *queryResolver) Posts(ctx context.Context, input models.PostsInput) (*models.PostsResponse, error) {
 	fmt.Println("posts query trigged!!")
 	realLimitPlusOne := *input.Limit + 1

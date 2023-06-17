@@ -26,13 +26,6 @@ type AuthResponse implements IFormResponse {
   user: User
 }
 
-type CreatePostResponse implements IFormResponse {
-  ok: Boolean!
-  errors: [FieldError]
-  post: Post
-}
-
-
 type PostsResponse {
   hasMore: Boolean!
   posts: [Post!]!
@@ -165,12 +158,6 @@ input UploadFile {
 }
 
 
-"The `UploadFile` type, represents the request for uploading a file with a certain payload."
-input CreatePostInput {
-    files: [UploadFile]
-    title: String!
-    description: String!
-}
 
 # @regionEnd Inputs 
 
@@ -194,7 +181,6 @@ type Mutation {
   sendOtp(input: SendOtpInput!): FormResponse!
   verifyOtp(input: VerifyOtpInput!): AuthResponse!
   
-  createPost(input: CreatePostInput!): CreatePostResponse!
   # createMeetup(input: NewMeetup!): Meetup!
   # updateMeetup(id: ID!, input: UpdateMeetup!): Meetup!
   # deleteMeetup(id: ID!): Boolean!
