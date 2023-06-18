@@ -182,7 +182,7 @@ func (e *executableSchema) Schema() *ast.Schema {
 }
 
 func (e *executableSchema) Complexity(typeName, field string, childComplexity int, rawArgs map[string]interface{}) (int, bool) {
-	ec := executionContext{nil, e, 0, 0, nil}
+	ec := executionContext{nil, e}
 	_ = ec
 	switch typeName + "." + field {
 
@@ -647,7 +647,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 	rc := graphql.GetOperationContext(ctx)
-	ec := executionContext{rc, e, 0, 0, make(chan graphql.DeferredResult)}
+	ec := executionContext{rc, e}
 	inputUnmarshalMap := graphql.BuildUnmarshalerMap(
 		ec.unmarshalInputGoogleLoginOrSignUpInput,
 		ec.unmarshalInputLoginInput,
@@ -663,33 +663,18 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 	switch rc.Operation.Operation {
 	case ast.Query:
 		return func(ctx context.Context) *graphql.Response {
-			var response graphql.Response
-			var data graphql.Marshaler
-			if first {
-				first = false
-				ctx = graphql.WithUnmarshalerMap(ctx, inputUnmarshalMap)
-				data = ec._Query(ctx, rc.Operation.SelectionSet)
-			} else {
-				if atomic.LoadInt32(&ec.pendingDeferred) > 0 {
-					result := <-ec.deferredResults
-					atomic.AddInt32(&ec.pendingDeferred, -1)
-					data = result.Result
-					response.Path = result.Path
-					response.Label = result.Label
-					response.Errors = result.Errors
-				} else {
-					return nil
-				}
+			if !first {
+				return nil
 			}
+			first = false
+			ctx = graphql.WithUnmarshalerMap(ctx, inputUnmarshalMap)
+			data := ec._Query(ctx, rc.Operation.SelectionSet)
 			var buf bytes.Buffer
 			data.MarshalGQL(&buf)
-			response.Data = buf.Bytes()
-			if atomic.LoadInt32(&ec.deferred) > 0 {
-				hasNext := atomic.LoadInt32(&ec.pendingDeferred) > 0
-				response.HasNext = &hasNext
-			}
 
-			return &response
+			return &graphql.Response{
+				Data: buf.Bytes(),
+			}
 		}
 	case ast.Mutation:
 		return func(ctx context.Context) *graphql.Response {
@@ -715,28 +700,6 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 type executionContext struct {
 	*graphql.OperationContext
 	*executableSchema
-	deferred        int32
-	pendingDeferred int32
-	deferredResults chan graphql.DeferredResult
-}
-
-func (ec *executionContext) processDeferredGroup(dg graphql.DeferredGroup) {
-	atomic.AddInt32(&ec.pendingDeferred, 1)
-	go func() {
-		ctx := graphql.WithFreshResponseContext(dg.Context)
-		dg.FieldSet.Dispatch(ctx)
-		ds := graphql.DeferredResult{
-			Path:   dg.Path,
-			Label:  dg.Label,
-			Result: dg.FieldSet,
-			Errors: graphql.GetErrors(ctx),
-		}
-		// null fields should bubble up
-		if dg.FieldSet.Invalids > 0 {
-			ds.Result = graphql.Null
-		}
-		ec.deferredResults <- ds
-	}()
 }
 
 func (ec *executionContext) introspectSchema() (*introspection.Schema, error) {
@@ -5772,29 +5735,26 @@ func (ec *executionContext) unmarshalInputGoogleLoginOrSignUpInput(ctx context.C
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("token"))
-			data, err := ec.unmarshalNString2string(ctx, v)
+			it.Token, err = ec.unmarshalNString2string(ctx, v)
 			if err != nil {
 				return it, err
 			}
-			it.Token = data
 		case "username":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("username"))
-			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			it.Username, err = ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
 				return it, err
 			}
-			it.Username = data
 		case "phoneNumber":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("phoneNumber"))
-			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			it.PhoneNumber, err = ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
 				return it, err
 			}
-			it.PhoneNumber = data
 		}
 	}
 
@@ -5819,20 +5779,18 @@ func (ec *executionContext) unmarshalInputLoginInput(ctx context.Context, obj in
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("email"))
-			data, err := ec.unmarshalNString2string(ctx, v)
+			it.Email, err = ec.unmarshalNString2string(ctx, v)
 			if err != nil {
 				return it, err
 			}
-			it.Email = data
 		case "password":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("password"))
-			data, err := ec.unmarshalNString2string(ctx, v)
+			it.Password, err = ec.unmarshalNString2string(ctx, v)
 			if err != nil {
 				return it, err
 			}
-			it.Password = data
 		}
 	}
 
@@ -5857,11 +5815,10 @@ func (ec *executionContext) unmarshalInputPostInput(ctx context.Context, obj int
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
-			data, err := ec.unmarshalNString2string(ctx, v)
+			it.ID, err = ec.unmarshalNString2string(ctx, v)
 			if err != nil {
 				return it, err
 			}
-			it.ID = data
 		}
 	}
 
@@ -5886,38 +5843,34 @@ func (ec *executionContext) unmarshalInputPostsInput(ctx context.Context, obj in
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("cursor"))
-			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			it.Cursor, err = ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
 				return it, err
 			}
-			it.Cursor = data
 		case "limit":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("limit"))
-			data, err := ec.unmarshalOInt2ᚖint(ctx, v)
+			it.Limit, err = ec.unmarshalOInt2ᚖint(ctx, v)
 			if err != nil {
 				return it, err
 			}
-			it.Limit = data
 		case "searchQuery":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("searchQuery"))
-			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			it.SearchQuery, err = ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
 				return it, err
 			}
-			it.SearchQuery = data
 		case "tagIds":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("tagIds"))
-			data, err := ec.unmarshalOString2ᚕstringᚄ(ctx, v)
+			it.TagIds, err = ec.unmarshalOString2ᚕstringᚄ(ctx, v)
 			if err != nil {
 				return it, err
 			}
-			it.TagIds = data
 		}
 	}
 
@@ -5942,65 +5895,58 @@ func (ec *executionContext) unmarshalInputRegisterInput(ctx context.Context, obj
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("username"))
-			data, err := ec.unmarshalNString2string(ctx, v)
+			it.Username, err = ec.unmarshalNString2string(ctx, v)
 			if err != nil {
 				return it, err
 			}
-			it.Username = data
 		case "email":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("email"))
-			data, err := ec.unmarshalNString2string(ctx, v)
+			it.Email, err = ec.unmarshalNString2string(ctx, v)
 			if err != nil {
 				return it, err
 			}
-			it.Email = data
 		case "password":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("password"))
-			data, err := ec.unmarshalNString2string(ctx, v)
+			it.Password, err = ec.unmarshalNString2string(ctx, v)
 			if err != nil {
 				return it, err
 			}
-			it.Password = data
 		case "confirmPassword":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("confirmPassword"))
-			data, err := ec.unmarshalNString2string(ctx, v)
+			it.ConfirmPassword, err = ec.unmarshalNString2string(ctx, v)
 			if err != nil {
 				return it, err
 			}
-			it.ConfirmPassword = data
 		case "firstName":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("firstName"))
-			data, err := ec.unmarshalNString2string(ctx, v)
+			it.FirstName, err = ec.unmarshalNString2string(ctx, v)
 			if err != nil {
 				return it, err
 			}
-			it.FirstName = data
 		case "lastName":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("lastName"))
-			data, err := ec.unmarshalNString2string(ctx, v)
+			it.LastName, err = ec.unmarshalNString2string(ctx, v)
 			if err != nil {
 				return it, err
 			}
-			it.LastName = data
 		case "phoneNumber":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("phoneNumber"))
-			data, err := ec.unmarshalNString2string(ctx, v)
+			it.PhoneNumber, err = ec.unmarshalNString2string(ctx, v)
 			if err != nil {
 				return it, err
 			}
-			it.PhoneNumber = data
 		}
 	}
 
@@ -6025,11 +5971,10 @@ func (ec *executionContext) unmarshalInputSendOtpInput(ctx context.Context, obj 
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("to"))
-			data, err := ec.unmarshalNString2string(ctx, v)
+			it.To, err = ec.unmarshalNString2string(ctx, v)
 			if err != nil {
 				return it, err
 			}
-			it.To = data
 		}
 	}
 
@@ -6054,20 +5999,18 @@ func (ec *executionContext) unmarshalInputUploadFile(ctx context.Context, obj in
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
-			data, err := ec.unmarshalNInt2int(ctx, v)
+			it.ID, err = ec.unmarshalNInt2int(ctx, v)
 			if err != nil {
 				return it, err
 			}
-			it.ID = data
 		case "file":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("file"))
-			data, err := ec.unmarshalNUpload2githubᚗcomᚋ99designsᚋgqlgenᚋgraphqlᚐUpload(ctx, v)
+			it.File, err = ec.unmarshalNUpload2githubᚗcomᚋ99designsᚋgqlgenᚋgraphqlᚐUpload(ctx, v)
 			if err != nil {
 				return it, err
 			}
-			it.File = data
 		}
 	}
 
@@ -6092,20 +6035,18 @@ func (ec *executionContext) unmarshalInputVerifyOtpInput(ctx context.Context, ob
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("to"))
-			data, err := ec.unmarshalNString2string(ctx, v)
+			it.To, err = ec.unmarshalNString2string(ctx, v)
 			if err != nil {
 				return it, err
 			}
-			it.To = data
 		case "code":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("code"))
-			data, err := ec.unmarshalNString2string(ctx, v)
+			it.Code, err = ec.unmarshalNString2string(ctx, v)
 			if err != nil {
 				return it, err
 			}
-			it.Code = data
 		}
 	}
 
@@ -6140,44 +6081,39 @@ var authResponseImplementors = []string{"AuthResponse", "IFormResponse"}
 
 func (ec *executionContext) _AuthResponse(ctx context.Context, sel ast.SelectionSet, obj *models.AuthResponse) graphql.Marshaler {
 	fields := graphql.CollectFields(ec.OperationContext, sel, authResponseImplementors)
-
 	out := graphql.NewFieldSet(fields)
-	deferred := make(map[string]*graphql.FieldSet)
+	var invalids uint32
 	for i, field := range fields {
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("AuthResponse")
 		case "ok":
+
 			out.Values[i] = ec._AuthResponse_ok(ctx, field, obj)
+
 			if out.Values[i] == graphql.Null {
-				out.Invalids++
+				invalids++
 			}
 		case "errors":
+
 			out.Values[i] = ec._AuthResponse_errors(ctx, field, obj)
+
 		case "authToken":
+
 			out.Values[i] = ec._AuthResponse_authToken(ctx, field, obj)
+
 		case "user":
+
 			out.Values[i] = ec._AuthResponse_user(ctx, field, obj)
+
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
 	}
-	out.Dispatch(ctx)
-	if out.Invalids > 0 {
+	out.Dispatch()
+	if invalids > 0 {
 		return graphql.Null
 	}
-
-	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
-
-	for label, dfs := range deferred {
-		ec.processDeferredGroup(graphql.DeferredGroup{
-			Label:    label,
-			Path:     graphql.GetPath(ctx),
-			FieldSet: dfs,
-			Context:  ctx,
-		})
-	}
-
 	return out
 }
 
@@ -6185,43 +6121,34 @@ var authTokenImplementors = []string{"AuthToken"}
 
 func (ec *executionContext) _AuthToken(ctx context.Context, sel ast.SelectionSet, obj *models.AuthToken) graphql.Marshaler {
 	fields := graphql.CollectFields(ec.OperationContext, sel, authTokenImplementors)
-
 	out := graphql.NewFieldSet(fields)
-	deferred := make(map[string]*graphql.FieldSet)
+	var invalids uint32
 	for i, field := range fields {
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("AuthToken")
 		case "token":
+
 			out.Values[i] = ec._AuthToken_token(ctx, field, obj)
+
 			if out.Values[i] == graphql.Null {
-				out.Invalids++
+				invalids++
 			}
 		case "expiredAt":
+
 			out.Values[i] = ec._AuthToken_expiredAt(ctx, field, obj)
+
 			if out.Values[i] == graphql.Null {
-				out.Invalids++
+				invalids++
 			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
 	}
-	out.Dispatch(ctx)
-	if out.Invalids > 0 {
+	out.Dispatch()
+	if invalids > 0 {
 		return graphql.Null
 	}
-
-	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
-
-	for label, dfs := range deferred {
-		ec.processDeferredGroup(graphql.DeferredGroup{
-			Label:    label,
-			Path:     graphql.GetPath(ctx),
-			FieldSet: dfs,
-			Context:  ctx,
-		})
-	}
-
 	return out
 }
 
@@ -6229,48 +6156,41 @@ var catalogImplementors = []string{"Catalog"}
 
 func (ec *executionContext) _Catalog(ctx context.Context, sel ast.SelectionSet, obj *models.Catalog) graphql.Marshaler {
 	fields := graphql.CollectFields(ec.OperationContext, sel, catalogImplementors)
-
 	out := graphql.NewFieldSet(fields)
-	deferred := make(map[string]*graphql.FieldSet)
+	var invalids uint32
 	for i, field := range fields {
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("Catalog")
 		case "id":
+
 			out.Values[i] = ec._Catalog_id(ctx, field, obj)
+
 			if out.Values[i] == graphql.Null {
-				out.Invalids++
+				invalids++
 			}
 		case "name":
+
 			out.Values[i] = ec._Catalog_name(ctx, field, obj)
+
 			if out.Values[i] == graphql.Null {
-				out.Invalids++
+				invalids++
 			}
 		case "code":
+
 			out.Values[i] = ec._Catalog_code(ctx, field, obj)
+
 			if out.Values[i] == graphql.Null {
-				out.Invalids++
+				invalids++
 			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
 	}
-	out.Dispatch(ctx)
-	if out.Invalids > 0 {
+	out.Dispatch()
+	if invalids > 0 {
 		return graphql.Null
 	}
-
-	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
-
-	for label, dfs := range deferred {
-		ec.processDeferredGroup(graphql.DeferredGroup{
-			Label:    label,
-			Path:     graphql.GetPath(ctx),
-			FieldSet: dfs,
-			Context:  ctx,
-		})
-	}
-
 	return out
 }
 
@@ -6278,43 +6198,34 @@ var fieldErrorImplementors = []string{"FieldError"}
 
 func (ec *executionContext) _FieldError(ctx context.Context, sel ast.SelectionSet, obj *validator.FieldError) graphql.Marshaler {
 	fields := graphql.CollectFields(ec.OperationContext, sel, fieldErrorImplementors)
-
 	out := graphql.NewFieldSet(fields)
-	deferred := make(map[string]*graphql.FieldSet)
+	var invalids uint32
 	for i, field := range fields {
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("FieldError")
 		case "message":
+
 			out.Values[i] = ec._FieldError_message(ctx, field, obj)
+
 			if out.Values[i] == graphql.Null {
-				out.Invalids++
+				invalids++
 			}
 		case "field":
+
 			out.Values[i] = ec._FieldError_field(ctx, field, obj)
+
 			if out.Values[i] == graphql.Null {
-				out.Invalids++
+				invalids++
 			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
 	}
-	out.Dispatch(ctx)
-	if out.Invalids > 0 {
+	out.Dispatch()
+	if invalids > 0 {
 		return graphql.Null
 	}
-
-	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
-
-	for label, dfs := range deferred {
-		ec.processDeferredGroup(graphql.DeferredGroup{
-			Label:    label,
-			Path:     graphql.GetPath(ctx),
-			FieldSet: dfs,
-			Context:  ctx,
-		})
-	}
-
 	return out
 }
 
@@ -6322,53 +6233,48 @@ var fileImplementors = []string{"File"}
 
 func (ec *executionContext) _File(ctx context.Context, sel ast.SelectionSet, obj *models.File) graphql.Marshaler {
 	fields := graphql.CollectFields(ec.OperationContext, sel, fileImplementors)
-
 	out := graphql.NewFieldSet(fields)
-	deferred := make(map[string]*graphql.FieldSet)
+	var invalids uint32
 	for i, field := range fields {
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("File")
 		case "id":
+
 			out.Values[i] = ec._File_id(ctx, field, obj)
+
 			if out.Values[i] == graphql.Null {
-				out.Invalids++
+				invalids++
 			}
 		case "name":
+
 			out.Values[i] = ec._File_name(ctx, field, obj)
+
 			if out.Values[i] == graphql.Null {
-				out.Invalids++
+				invalids++
 			}
 		case "content":
+
 			out.Values[i] = ec._File_content(ctx, field, obj)
+
 			if out.Values[i] == graphql.Null {
-				out.Invalids++
+				invalids++
 			}
 		case "contentType":
+
 			out.Values[i] = ec._File_contentType(ctx, field, obj)
+
 			if out.Values[i] == graphql.Null {
-				out.Invalids++
+				invalids++
 			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
 	}
-	out.Dispatch(ctx)
-	if out.Invalids > 0 {
+	out.Dispatch()
+	if invalids > 0 {
 		return graphql.Null
 	}
-
-	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
-
-	for label, dfs := range deferred {
-		ec.processDeferredGroup(graphql.DeferredGroup{
-			Label:    label,
-			Path:     graphql.GetPath(ctx),
-			FieldSet: dfs,
-			Context:  ctx,
-		})
-	}
-
 	return out
 }
 
@@ -6376,40 +6282,31 @@ var formResponseImplementors = []string{"FormResponse"}
 
 func (ec *executionContext) _FormResponse(ctx context.Context, sel ast.SelectionSet, obj *models.FormResponse) graphql.Marshaler {
 	fields := graphql.CollectFields(ec.OperationContext, sel, formResponseImplementors)
-
 	out := graphql.NewFieldSet(fields)
-	deferred := make(map[string]*graphql.FieldSet)
+	var invalids uint32
 	for i, field := range fields {
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("FormResponse")
 		case "ok":
+
 			out.Values[i] = ec._FormResponse_ok(ctx, field, obj)
+
 			if out.Values[i] == graphql.Null {
-				out.Invalids++
+				invalids++
 			}
 		case "errors":
+
 			out.Values[i] = ec._FormResponse_errors(ctx, field, obj)
+
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
 	}
-	out.Dispatch(ctx)
-	if out.Invalids > 0 {
+	out.Dispatch()
+	if invalids > 0 {
 		return graphql.Null
 	}
-
-	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
-
-	for label, dfs := range deferred {
-		ec.processDeferredGroup(graphql.DeferredGroup{
-			Label:    label,
-			Path:     graphql.GetPath(ctx),
-			FieldSet: dfs,
-			Context:  ctx,
-		})
-	}
-
 	return out
 }
 
@@ -6422,7 +6319,7 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 	})
 
 	out := graphql.NewFieldSet(fields)
-	deferred := make(map[string]*graphql.FieldSet)
+	var invalids uint32
 	for i, field := range fields {
 		innerCtx := graphql.WithRootFieldContext(ctx, &graphql.RootFieldContext{
 			Object: field.Name,
@@ -6433,74 +6330,76 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("Mutation")
 		case "register":
+
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._Mutation_register(ctx, field)
 			})
+
 			if out.Values[i] == graphql.Null {
-				out.Invalids++
+				invalids++
 			}
 		case "login":
+
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._Mutation_login(ctx, field)
 			})
+
 			if out.Values[i] == graphql.Null {
-				out.Invalids++
+				invalids++
 			}
 		case "googleLoginOrSignUp":
+
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._Mutation_googleLoginOrSignUp(ctx, field)
 			})
+
 			if out.Values[i] == graphql.Null {
-				out.Invalids++
+				invalids++
 			}
 		case "logout":
+
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._Mutation_logout(ctx, field)
 			})
+
 			if out.Values[i] == graphql.Null {
-				out.Invalids++
+				invalids++
 			}
 		case "refreshToken":
+
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._Mutation_refreshToken(ctx, field)
 			})
+
 			if out.Values[i] == graphql.Null {
-				out.Invalids++
+				invalids++
 			}
 		case "sendOtp":
+
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._Mutation_sendOtp(ctx, field)
 			})
+
 			if out.Values[i] == graphql.Null {
-				out.Invalids++
+				invalids++
 			}
 		case "verifyOtp":
+
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._Mutation_verifyOtp(ctx, field)
 			})
+
 			if out.Values[i] == graphql.Null {
-				out.Invalids++
+				invalids++
 			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
 	}
-	out.Dispatch(ctx)
-	if out.Invalids > 0 {
+	out.Dispatch()
+	if invalids > 0 {
 		return graphql.Null
 	}
-
-	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
-
-	for label, dfs := range deferred {
-		ec.processDeferredGroup(graphql.DeferredGroup{
-			Label:    label,
-			Path:     graphql.GetPath(ctx),
-			FieldSet: dfs,
-			Context:  ctx,
-		})
-	}
-
 	return out
 }
 
@@ -6508,31 +6407,38 @@ var postImplementors = []string{"Post"}
 
 func (ec *executionContext) _Post(ctx context.Context, sel ast.SelectionSet, obj *models.Post) graphql.Marshaler {
 	fields := graphql.CollectFields(ec.OperationContext, sel, postImplementors)
-
 	out := graphql.NewFieldSet(fields)
-	deferred := make(map[string]*graphql.FieldSet)
+	var invalids uint32
 	for i, field := range fields {
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("Post")
 		case "id":
+
 			out.Values[i] = ec._Post_id(ctx, field, obj)
+
 			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&out.Invalids, 1)
+				atomic.AddUint32(&invalids, 1)
 			}
 		case "title":
+
 			out.Values[i] = ec._Post_title(ctx, field, obj)
+
 			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&out.Invalids, 1)
+				atomic.AddUint32(&invalids, 1)
 			}
 		case "description":
+
 			out.Values[i] = ec._Post_description(ctx, field, obj)
+
 		case "htmlContent":
+
 			out.Values[i] = ec._Post_htmlContent(ctx, field, obj)
+
 		case "files":
 			field := field
 
-			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
 				defer func() {
 					if r := recover(); r != nil {
 						ec.Error(ctx, ec.Recover(ctx, r))
@@ -6542,35 +6448,21 @@ func (ec *executionContext) _Post(ctx context.Context, sel ast.SelectionSet, obj
 				return res
 			}
 
-			if field.Deferrable != nil {
-				dfs, ok := deferred[field.Deferrable.Label]
-				di := 0
-				if ok {
-					dfs.AddField(field)
-					di = len(dfs.Values) - 1
-				} else {
-					dfs = graphql.NewFieldSet([]graphql.CollectedField{field})
-					deferred[field.Deferrable.Label] = dfs
-				}
-				dfs.Concurrently(di, func(ctx context.Context) graphql.Marshaler {
-					return innerFunc(ctx, dfs)
-				})
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
 
-				// don't run the out.Concurrently() call below
-				out.Values[i] = graphql.Null
-				continue
-			}
-
-			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+			})
 		case "tags":
+
 			out.Values[i] = ec._Post_tags(ctx, field, obj)
+
 			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&out.Invalids, 1)
+				atomic.AddUint32(&invalids, 1)
 			}
 		case "creator":
 			field := field
 
-			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
 				defer func() {
 					if r := recover(); r != nil {
 						ec.Error(ctx, ec.Recover(ctx, r))
@@ -6578,66 +6470,44 @@ func (ec *executionContext) _Post(ctx context.Context, sel ast.SelectionSet, obj
 				}()
 				res = ec._Post_creator(ctx, field, obj)
 				if res == graphql.Null {
-					atomic.AddUint32(&fs.Invalids, 1)
+					atomic.AddUint32(&invalids, 1)
 				}
 				return res
 			}
 
-			if field.Deferrable != nil {
-				dfs, ok := deferred[field.Deferrable.Label]
-				di := 0
-				if ok {
-					dfs.AddField(field)
-					di = len(dfs.Values) - 1
-				} else {
-					dfs = graphql.NewFieldSet([]graphql.CollectedField{field})
-					deferred[field.Deferrable.Label] = dfs
-				}
-				dfs.Concurrently(di, func(ctx context.Context) graphql.Marshaler {
-					return innerFunc(ctx, dfs)
-				})
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
 
-				// don't run the out.Concurrently() call below
-				out.Values[i] = graphql.Null
-				continue
-			}
-
-			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+			})
 		case "userId":
+
 			out.Values[i] = ec._Post_userId(ctx, field, obj)
+
 			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&out.Invalids, 1)
+				atomic.AddUint32(&invalids, 1)
 			}
 		case "createdAt":
+
 			out.Values[i] = ec._Post_createdAt(ctx, field, obj)
+
 			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&out.Invalids, 1)
+				atomic.AddUint32(&invalids, 1)
 			}
 		case "updatedAt":
+
 			out.Values[i] = ec._Post_updatedAt(ctx, field, obj)
+
 			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&out.Invalids, 1)
+				atomic.AddUint32(&invalids, 1)
 			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
 	}
-	out.Dispatch(ctx)
-	if out.Invalids > 0 {
+	out.Dispatch()
+	if invalids > 0 {
 		return graphql.Null
 	}
-
-	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
-
-	for label, dfs := range deferred {
-		ec.processDeferredGroup(graphql.DeferredGroup{
-			Label:    label,
-			Path:     graphql.GetPath(ctx),
-			FieldSet: dfs,
-			Context:  ctx,
-		})
-	}
-
 	return out
 }
 
@@ -6645,63 +6515,62 @@ var postFileImplementors = []string{"PostFile"}
 
 func (ec *executionContext) _PostFile(ctx context.Context, sel ast.SelectionSet, obj *models.PostFile) graphql.Marshaler {
 	fields := graphql.CollectFields(ec.OperationContext, sel, postFileImplementors)
-
 	out := graphql.NewFieldSet(fields)
-	deferred := make(map[string]*graphql.FieldSet)
+	var invalids uint32
 	for i, field := range fields {
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("PostFile")
 		case "id":
+
 			out.Values[i] = ec._PostFile_id(ctx, field, obj)
+
 			if out.Values[i] == graphql.Null {
-				out.Invalids++
+				invalids++
 			}
 		case "postId":
+
 			out.Values[i] = ec._PostFile_postId(ctx, field, obj)
+
 			if out.Values[i] == graphql.Null {
-				out.Invalids++
+				invalids++
 			}
 		case "url":
+
 			out.Values[i] = ec._PostFile_url(ctx, field, obj)
+
 			if out.Values[i] == graphql.Null {
-				out.Invalids++
+				invalids++
 			}
 		case "contentType":
+
 			out.Values[i] = ec._PostFile_contentType(ctx, field, obj)
+
 			if out.Values[i] == graphql.Null {
-				out.Invalids++
+				invalids++
 			}
 		case "fileSize":
+
 			out.Values[i] = ec._PostFile_fileSize(ctx, field, obj)
+
 			if out.Values[i] == graphql.Null {
-				out.Invalids++
+				invalids++
 			}
 		case "fileName":
+
 			out.Values[i] = ec._PostFile_fileName(ctx, field, obj)
+
 			if out.Values[i] == graphql.Null {
-				out.Invalids++
+				invalids++
 			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
 	}
-	out.Dispatch(ctx)
-	if out.Invalids > 0 {
+	out.Dispatch()
+	if invalids > 0 {
 		return graphql.Null
 	}
-
-	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
-
-	for label, dfs := range deferred {
-		ec.processDeferredGroup(graphql.DeferredGroup{
-			Label:    label,
-			Path:     graphql.GetPath(ctx),
-			FieldSet: dfs,
-			Context:  ctx,
-		})
-	}
-
 	return out
 }
 
@@ -6709,43 +6578,34 @@ var postsResponseImplementors = []string{"PostsResponse"}
 
 func (ec *executionContext) _PostsResponse(ctx context.Context, sel ast.SelectionSet, obj *models.PostsResponse) graphql.Marshaler {
 	fields := graphql.CollectFields(ec.OperationContext, sel, postsResponseImplementors)
-
 	out := graphql.NewFieldSet(fields)
-	deferred := make(map[string]*graphql.FieldSet)
+	var invalids uint32
 	for i, field := range fields {
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("PostsResponse")
 		case "hasMore":
+
 			out.Values[i] = ec._PostsResponse_hasMore(ctx, field, obj)
+
 			if out.Values[i] == graphql.Null {
-				out.Invalids++
+				invalids++
 			}
 		case "posts":
+
 			out.Values[i] = ec._PostsResponse_posts(ctx, field, obj)
+
 			if out.Values[i] == graphql.Null {
-				out.Invalids++
+				invalids++
 			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
 	}
-	out.Dispatch(ctx)
-	if out.Invalids > 0 {
+	out.Dispatch()
+	if invalids > 0 {
 		return graphql.Null
 	}
-
-	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
-
-	for label, dfs := range deferred {
-		ec.processDeferredGroup(graphql.DeferredGroup{
-			Label:    label,
-			Path:     graphql.GetPath(ctx),
-			FieldSet: dfs,
-			Context:  ctx,
-		})
-	}
-
 	return out
 }
 
@@ -6758,7 +6618,7 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 	})
 
 	out := graphql.NewFieldSet(fields)
-	deferred := make(map[string]*graphql.FieldSet)
+	var invalids uint32
 	for i, field := range fields {
 		innerCtx := graphql.WithRootFieldContext(ctx, &graphql.RootFieldContext{
 			Object: field.Name,
@@ -6771,7 +6631,7 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 		case "users":
 			field := field
 
-			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
 				defer func() {
 					if r := recover(); r != nil {
 						ec.Error(ctx, ec.Recover(ctx, r))
@@ -6779,21 +6639,22 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 				}()
 				res = ec._Query_users(ctx, field)
 				if res == graphql.Null {
-					atomic.AddUint32(&fs.Invalids, 1)
+					atomic.AddUint32(&invalids, 1)
 				}
 				return res
 			}
 
 			rrm := func(ctx context.Context) graphql.Marshaler {
-				return ec.OperationContext.RootResolverMiddleware(ctx,
-					func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+				return ec.OperationContext.RootResolverMiddleware(ctx, innerFunc)
 			}
 
-			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
+			out.Concurrently(i, func() graphql.Marshaler {
+				return rrm(innerCtx)
+			})
 		case "posts":
 			field := field
 
-			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
 				defer func() {
 					if r := recover(); r != nil {
 						ec.Error(ctx, ec.Recover(ctx, r))
@@ -6801,21 +6662,22 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 				}()
 				res = ec._Query_posts(ctx, field)
 				if res == graphql.Null {
-					atomic.AddUint32(&fs.Invalids, 1)
+					atomic.AddUint32(&invalids, 1)
 				}
 				return res
 			}
 
 			rrm := func(ctx context.Context) graphql.Marshaler {
-				return ec.OperationContext.RootResolverMiddleware(ctx,
-					func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+				return ec.OperationContext.RootResolverMiddleware(ctx, innerFunc)
 			}
 
-			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
+			out.Concurrently(i, func() graphql.Marshaler {
+				return rrm(innerCtx)
+			})
 		case "post":
 			field := field
 
-			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
 				defer func() {
 					if r := recover(); r != nil {
 						ec.Error(ctx, ec.Recover(ctx, r))
@@ -6826,15 +6688,16 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 			}
 
 			rrm := func(ctx context.Context) graphql.Marshaler {
-				return ec.OperationContext.RootResolverMiddleware(ctx,
-					func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+				return ec.OperationContext.RootResolverMiddleware(ctx, innerFunc)
 			}
 
-			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
+			out.Concurrently(i, func() graphql.Marshaler {
+				return rrm(innerCtx)
+			})
 		case "tags":
 			field := field
 
-			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
 				defer func() {
 					if r := recover(); r != nil {
 						ec.Error(ctx, ec.Recover(ctx, r))
@@ -6842,21 +6705,22 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 				}()
 				res = ec._Query_tags(ctx, field)
 				if res == graphql.Null {
-					atomic.AddUint32(&fs.Invalids, 1)
+					atomic.AddUint32(&invalids, 1)
 				}
 				return res
 			}
 
 			rrm := func(ctx context.Context) graphql.Marshaler {
-				return ec.OperationContext.RootResolverMiddleware(ctx,
-					func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+				return ec.OperationContext.RootResolverMiddleware(ctx, innerFunc)
 			}
 
-			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
+			out.Concurrently(i, func() graphql.Marshaler {
+				return rrm(innerCtx)
+			})
 		case "me":
 			field := field
 
-			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
 				defer func() {
 					if r := recover(); r != nil {
 						ec.Error(ctx, ec.Recover(ctx, r))
@@ -6867,15 +6731,16 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 			}
 
 			rrm := func(ctx context.Context) graphql.Marshaler {
-				return ec.OperationContext.RootResolverMiddleware(ctx,
-					func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+				return ec.OperationContext.RootResolverMiddleware(ctx, innerFunc)
 			}
 
-			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
+			out.Concurrently(i, func() graphql.Marshaler {
+				return rrm(innerCtx)
+			})
 		case "hello":
 			field := field
 
-			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
 				defer func() {
 					if r := recover(); r != nil {
 						ec.Error(ctx, ec.Recover(ctx, r))
@@ -6883,45 +6748,38 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 				}()
 				res = ec._Query_hello(ctx, field)
 				if res == graphql.Null {
-					atomic.AddUint32(&fs.Invalids, 1)
+					atomic.AddUint32(&invalids, 1)
 				}
 				return res
 			}
 
 			rrm := func(ctx context.Context) graphql.Marshaler {
-				return ec.OperationContext.RootResolverMiddleware(ctx,
-					func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+				return ec.OperationContext.RootResolverMiddleware(ctx, innerFunc)
 			}
 
-			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
+			out.Concurrently(i, func() graphql.Marshaler {
+				return rrm(innerCtx)
+			})
 		case "__type":
+
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._Query___type(ctx, field)
 			})
+
 		case "__schema":
+
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._Query___schema(ctx, field)
 			})
+
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
 	}
-	out.Dispatch(ctx)
-	if out.Invalids > 0 {
+	out.Dispatch()
+	if invalids > 0 {
 		return graphql.Null
 	}
-
-	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
-
-	for label, dfs := range deferred {
-		ec.processDeferredGroup(graphql.DeferredGroup{
-			Label:    label,
-			Path:     graphql.GetPath(ctx),
-			FieldSet: dfs,
-			Context:  ctx,
-		})
-	}
-
 	return out
 }
 
@@ -6929,55 +6787,52 @@ var tagImplementors = []string{"Tag"}
 
 func (ec *executionContext) _Tag(ctx context.Context, sel ast.SelectionSet, obj *models.Tag) graphql.Marshaler {
 	fields := graphql.CollectFields(ec.OperationContext, sel, tagImplementors)
-
 	out := graphql.NewFieldSet(fields)
-	deferred := make(map[string]*graphql.FieldSet)
+	var invalids uint32
 	for i, field := range fields {
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("Tag")
 		case "id":
+
 			out.Values[i] = ec._Tag_id(ctx, field, obj)
+
 			if out.Values[i] == graphql.Null {
-				out.Invalids++
+				invalids++
 			}
 		case "name":
+
 			out.Values[i] = ec._Tag_name(ctx, field, obj)
+
 			if out.Values[i] == graphql.Null {
-				out.Invalids++
+				invalids++
 			}
 		case "code":
+
 			out.Values[i] = ec._Tag_code(ctx, field, obj)
+
 			if out.Values[i] == graphql.Null {
-				out.Invalids++
+				invalids++
 			}
 		case "catalogId":
+
 			out.Values[i] = ec._Tag_catalogId(ctx, field, obj)
+
 			if out.Values[i] == graphql.Null {
-				out.Invalids++
+				invalids++
 			}
 		case "catalog":
+
 			out.Values[i] = ec._Tag_catalog(ctx, field, obj)
+
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
 	}
-	out.Dispatch(ctx)
-	if out.Invalids > 0 {
+	out.Dispatch()
+	if invalids > 0 {
 		return graphql.Null
 	}
-
-	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
-
-	for label, dfs := range deferred {
-		ec.processDeferredGroup(graphql.DeferredGroup{
-			Label:    label,
-			Path:     graphql.GetPath(ctx),
-			FieldSet: dfs,
-			Context:  ctx,
-		})
-	}
-
 	return out
 }
 
@@ -6985,68 +6840,69 @@ var userImplementors = []string{"User"}
 
 func (ec *executionContext) _User(ctx context.Context, sel ast.SelectionSet, obj *models.User) graphql.Marshaler {
 	fields := graphql.CollectFields(ec.OperationContext, sel, userImplementors)
-
 	out := graphql.NewFieldSet(fields)
-	deferred := make(map[string]*graphql.FieldSet)
+	var invalids uint32
 	for i, field := range fields {
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("User")
 		case "id":
+
 			out.Values[i] = ec._User_id(ctx, field, obj)
+
 			if out.Values[i] == graphql.Null {
-				out.Invalids++
+				invalids++
 			}
 		case "username":
+
 			out.Values[i] = ec._User_username(ctx, field, obj)
+
 			if out.Values[i] == graphql.Null {
-				out.Invalids++
+				invalids++
 			}
 		case "email":
+
 			out.Values[i] = ec._User_email(ctx, field, obj)
+
 			if out.Values[i] == graphql.Null {
-				out.Invalids++
+				invalids++
 			}
 		case "phoneNumber":
+
 			out.Values[i] = ec._User_phoneNumber(ctx, field, obj)
+
 			if out.Values[i] == graphql.Null {
-				out.Invalids++
+				invalids++
 			}
 		case "verified":
+
 			out.Values[i] = ec._User_verified(ctx, field, obj)
+
 			if out.Values[i] == graphql.Null {
-				out.Invalids++
+				invalids++
 			}
 		case "createdAt":
+
 			out.Values[i] = ec._User_createdAt(ctx, field, obj)
+
 			if out.Values[i] == graphql.Null {
-				out.Invalids++
+				invalids++
 			}
 		case "updatedAt":
+
 			out.Values[i] = ec._User_updatedAt(ctx, field, obj)
+
 			if out.Values[i] == graphql.Null {
-				out.Invalids++
+				invalids++
 			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
 	}
-	out.Dispatch(ctx)
-	if out.Invalids > 0 {
+	out.Dispatch()
+	if invalids > 0 {
 		return graphql.Null
 	}
-
-	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
-
-	for label, dfs := range deferred {
-		ec.processDeferredGroup(graphql.DeferredGroup{
-			Label:    label,
-			Path:     graphql.GetPath(ctx),
-			FieldSet: dfs,
-			Context:  ctx,
-		})
-	}
-
 	return out
 }
 
@@ -7054,55 +6910,52 @@ var __DirectiveImplementors = []string{"__Directive"}
 
 func (ec *executionContext) ___Directive(ctx context.Context, sel ast.SelectionSet, obj *introspection.Directive) graphql.Marshaler {
 	fields := graphql.CollectFields(ec.OperationContext, sel, __DirectiveImplementors)
-
 	out := graphql.NewFieldSet(fields)
-	deferred := make(map[string]*graphql.FieldSet)
+	var invalids uint32
 	for i, field := range fields {
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("__Directive")
 		case "name":
+
 			out.Values[i] = ec.___Directive_name(ctx, field, obj)
+
 			if out.Values[i] == graphql.Null {
-				out.Invalids++
+				invalids++
 			}
 		case "description":
+
 			out.Values[i] = ec.___Directive_description(ctx, field, obj)
+
 		case "locations":
+
 			out.Values[i] = ec.___Directive_locations(ctx, field, obj)
+
 			if out.Values[i] == graphql.Null {
-				out.Invalids++
+				invalids++
 			}
 		case "args":
+
 			out.Values[i] = ec.___Directive_args(ctx, field, obj)
+
 			if out.Values[i] == graphql.Null {
-				out.Invalids++
+				invalids++
 			}
 		case "isRepeatable":
+
 			out.Values[i] = ec.___Directive_isRepeatable(ctx, field, obj)
+
 			if out.Values[i] == graphql.Null {
-				out.Invalids++
+				invalids++
 			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
 	}
-	out.Dispatch(ctx)
-	if out.Invalids > 0 {
+	out.Dispatch()
+	if invalids > 0 {
 		return graphql.Null
 	}
-
-	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
-
-	for label, dfs := range deferred {
-		ec.processDeferredGroup(graphql.DeferredGroup{
-			Label:    label,
-			Path:     graphql.GetPath(ctx),
-			FieldSet: dfs,
-			Context:  ctx,
-		})
-	}
-
 	return out
 }
 
@@ -7110,47 +6963,42 @@ var __EnumValueImplementors = []string{"__EnumValue"}
 
 func (ec *executionContext) ___EnumValue(ctx context.Context, sel ast.SelectionSet, obj *introspection.EnumValue) graphql.Marshaler {
 	fields := graphql.CollectFields(ec.OperationContext, sel, __EnumValueImplementors)
-
 	out := graphql.NewFieldSet(fields)
-	deferred := make(map[string]*graphql.FieldSet)
+	var invalids uint32
 	for i, field := range fields {
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("__EnumValue")
 		case "name":
+
 			out.Values[i] = ec.___EnumValue_name(ctx, field, obj)
+
 			if out.Values[i] == graphql.Null {
-				out.Invalids++
+				invalids++
 			}
 		case "description":
+
 			out.Values[i] = ec.___EnumValue_description(ctx, field, obj)
+
 		case "isDeprecated":
+
 			out.Values[i] = ec.___EnumValue_isDeprecated(ctx, field, obj)
+
 			if out.Values[i] == graphql.Null {
-				out.Invalids++
+				invalids++
 			}
 		case "deprecationReason":
+
 			out.Values[i] = ec.___EnumValue_deprecationReason(ctx, field, obj)
+
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
 	}
-	out.Dispatch(ctx)
-	if out.Invalids > 0 {
+	out.Dispatch()
+	if invalids > 0 {
 		return graphql.Null
 	}
-
-	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
-
-	for label, dfs := range deferred {
-		ec.processDeferredGroup(graphql.DeferredGroup{
-			Label:    label,
-			Path:     graphql.GetPath(ctx),
-			FieldSet: dfs,
-			Context:  ctx,
-		})
-	}
-
 	return out
 }
 
@@ -7158,57 +7006,56 @@ var __FieldImplementors = []string{"__Field"}
 
 func (ec *executionContext) ___Field(ctx context.Context, sel ast.SelectionSet, obj *introspection.Field) graphql.Marshaler {
 	fields := graphql.CollectFields(ec.OperationContext, sel, __FieldImplementors)
-
 	out := graphql.NewFieldSet(fields)
-	deferred := make(map[string]*graphql.FieldSet)
+	var invalids uint32
 	for i, field := range fields {
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("__Field")
 		case "name":
+
 			out.Values[i] = ec.___Field_name(ctx, field, obj)
+
 			if out.Values[i] == graphql.Null {
-				out.Invalids++
+				invalids++
 			}
 		case "description":
+
 			out.Values[i] = ec.___Field_description(ctx, field, obj)
+
 		case "args":
+
 			out.Values[i] = ec.___Field_args(ctx, field, obj)
+
 			if out.Values[i] == graphql.Null {
-				out.Invalids++
+				invalids++
 			}
 		case "type":
+
 			out.Values[i] = ec.___Field_type(ctx, field, obj)
+
 			if out.Values[i] == graphql.Null {
-				out.Invalids++
+				invalids++
 			}
 		case "isDeprecated":
+
 			out.Values[i] = ec.___Field_isDeprecated(ctx, field, obj)
+
 			if out.Values[i] == graphql.Null {
-				out.Invalids++
+				invalids++
 			}
 		case "deprecationReason":
+
 			out.Values[i] = ec.___Field_deprecationReason(ctx, field, obj)
+
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
 	}
-	out.Dispatch(ctx)
-	if out.Invalids > 0 {
+	out.Dispatch()
+	if invalids > 0 {
 		return graphql.Null
 	}
-
-	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
-
-	for label, dfs := range deferred {
-		ec.processDeferredGroup(graphql.DeferredGroup{
-			Label:    label,
-			Path:     graphql.GetPath(ctx),
-			FieldSet: dfs,
-			Context:  ctx,
-		})
-	}
-
 	return out
 }
 
@@ -7216,47 +7063,42 @@ var __InputValueImplementors = []string{"__InputValue"}
 
 func (ec *executionContext) ___InputValue(ctx context.Context, sel ast.SelectionSet, obj *introspection.InputValue) graphql.Marshaler {
 	fields := graphql.CollectFields(ec.OperationContext, sel, __InputValueImplementors)
-
 	out := graphql.NewFieldSet(fields)
-	deferred := make(map[string]*graphql.FieldSet)
+	var invalids uint32
 	for i, field := range fields {
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("__InputValue")
 		case "name":
+
 			out.Values[i] = ec.___InputValue_name(ctx, field, obj)
+
 			if out.Values[i] == graphql.Null {
-				out.Invalids++
+				invalids++
 			}
 		case "description":
+
 			out.Values[i] = ec.___InputValue_description(ctx, field, obj)
+
 		case "type":
+
 			out.Values[i] = ec.___InputValue_type(ctx, field, obj)
+
 			if out.Values[i] == graphql.Null {
-				out.Invalids++
+				invalids++
 			}
 		case "defaultValue":
+
 			out.Values[i] = ec.___InputValue_defaultValue(ctx, field, obj)
+
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
 	}
-	out.Dispatch(ctx)
-	if out.Invalids > 0 {
+	out.Dispatch()
+	if invalids > 0 {
 		return graphql.Null
 	}
-
-	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
-
-	for label, dfs := range deferred {
-		ec.processDeferredGroup(graphql.DeferredGroup{
-			Label:    label,
-			Path:     graphql.GetPath(ctx),
-			FieldSet: dfs,
-			Context:  ctx,
-		})
-	}
-
 	return out
 }
 
@@ -7264,54 +7106,53 @@ var __SchemaImplementors = []string{"__Schema"}
 
 func (ec *executionContext) ___Schema(ctx context.Context, sel ast.SelectionSet, obj *introspection.Schema) graphql.Marshaler {
 	fields := graphql.CollectFields(ec.OperationContext, sel, __SchemaImplementors)
-
 	out := graphql.NewFieldSet(fields)
-	deferred := make(map[string]*graphql.FieldSet)
+	var invalids uint32
 	for i, field := range fields {
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("__Schema")
 		case "description":
+
 			out.Values[i] = ec.___Schema_description(ctx, field, obj)
+
 		case "types":
+
 			out.Values[i] = ec.___Schema_types(ctx, field, obj)
+
 			if out.Values[i] == graphql.Null {
-				out.Invalids++
+				invalids++
 			}
 		case "queryType":
+
 			out.Values[i] = ec.___Schema_queryType(ctx, field, obj)
+
 			if out.Values[i] == graphql.Null {
-				out.Invalids++
+				invalids++
 			}
 		case "mutationType":
+
 			out.Values[i] = ec.___Schema_mutationType(ctx, field, obj)
+
 		case "subscriptionType":
+
 			out.Values[i] = ec.___Schema_subscriptionType(ctx, field, obj)
+
 		case "directives":
+
 			out.Values[i] = ec.___Schema_directives(ctx, field, obj)
+
 			if out.Values[i] == graphql.Null {
-				out.Invalids++
+				invalids++
 			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
 	}
-	out.Dispatch(ctx)
-	if out.Invalids > 0 {
+	out.Dispatch()
+	if invalids > 0 {
 		return graphql.Null
 	}
-
-	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
-
-	for label, dfs := range deferred {
-		ec.processDeferredGroup(graphql.DeferredGroup{
-			Label:    label,
-			Path:     graphql.GetPath(ctx),
-			FieldSet: dfs,
-			Context:  ctx,
-		})
-	}
-
 	return out
 }
 
@@ -7319,56 +7160,63 @@ var __TypeImplementors = []string{"__Type"}
 
 func (ec *executionContext) ___Type(ctx context.Context, sel ast.SelectionSet, obj *introspection.Type) graphql.Marshaler {
 	fields := graphql.CollectFields(ec.OperationContext, sel, __TypeImplementors)
-
 	out := graphql.NewFieldSet(fields)
-	deferred := make(map[string]*graphql.FieldSet)
+	var invalids uint32
 	for i, field := range fields {
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("__Type")
 		case "kind":
+
 			out.Values[i] = ec.___Type_kind(ctx, field, obj)
+
 			if out.Values[i] == graphql.Null {
-				out.Invalids++
+				invalids++
 			}
 		case "name":
+
 			out.Values[i] = ec.___Type_name(ctx, field, obj)
+
 		case "description":
+
 			out.Values[i] = ec.___Type_description(ctx, field, obj)
+
 		case "fields":
+
 			out.Values[i] = ec.___Type_fields(ctx, field, obj)
+
 		case "interfaces":
+
 			out.Values[i] = ec.___Type_interfaces(ctx, field, obj)
+
 		case "possibleTypes":
+
 			out.Values[i] = ec.___Type_possibleTypes(ctx, field, obj)
+
 		case "enumValues":
+
 			out.Values[i] = ec.___Type_enumValues(ctx, field, obj)
+
 		case "inputFields":
+
 			out.Values[i] = ec.___Type_inputFields(ctx, field, obj)
+
 		case "ofType":
+
 			out.Values[i] = ec.___Type_ofType(ctx, field, obj)
+
 		case "specifiedByURL":
+
 			out.Values[i] = ec.___Type_specifiedByURL(ctx, field, obj)
+
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
 	}
-	out.Dispatch(ctx)
-	if out.Invalids > 0 {
+	out.Dispatch()
+	if invalids > 0 {
 		return graphql.Null
 	}
-
-	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
-
-	for label, dfs := range deferred {
-		ec.processDeferredGroup(graphql.DeferredGroup{
-			Label:    label,
-			Path:     graphql.GetPath(ctx),
-			FieldSet: dfs,
-			Context:  ctx,
-		})
-	}
-
 	return out
 }
 
