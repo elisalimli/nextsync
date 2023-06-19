@@ -54,7 +54,7 @@ func ConnectToDatabase() {
 
 	// DB.AutoMigrate(&models.User{}, &models.Post{}, &models.Post_File{})
 
-	log.Println("🚀 Connected Successfully to the Database")
+	log.Println("🚀🚀 Connected Successfully to the Database ")
 
 	if err != nil {
 		log.Fatal("Failed to connect a database.")

@@ -29,10 +29,10 @@ module.exports = {
     favicon: "./assets/images/favicon.png",
   },
   extra: {
+    eas: {
+      projectId: "ce790d53-b891-4b79-bcfb-0217b86caacf",
+    },
     apiUrl: process.env.GOOGLE_IOS_CLIENT_ID,
     // ENTRY_FILE: "index.ts",
-    eas: {
-      projectId: "2fa83acc-9852-4f6d-9a32-7e57e42e9353",
-    },
   },
 };

@@ -44,7 +44,7 @@ func (r *queryResolver) Users(ctx context.Context) ([]*models.User, error) {
 func (r *queryResolver) Hello(ctx context.Context) (string, error) {
 	fmt.Println(ctx.Value("currentUser"))
 	fmt.Println("recieved from ios")
-	return "hello world", nil
+	return "hello world works!", nil
 }
 
 func (r *queryResolver) Me(ctx context.Context) (*models.User, error) {

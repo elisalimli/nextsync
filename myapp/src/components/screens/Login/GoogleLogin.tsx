@@ -33,8 +33,11 @@ function GoogleLogin() {
     {}
   );
 
+  console.log("GOOGLE_ANDROID_CLIENT_ID", GOOGLE_ANDROID_CLIENT_ID);
+
   const [_, response, promptAsync] = Google.useAuthRequest({
-    androidClientId: GOOGLE_ANDROID_CLIENT_ID,
+    androidClientId:
+      "451487467771-4ickof31ukub0jnk6v2boud3ff772bco.apps.googleusercontent.com",
     expoClientId: GOOGLE_IOS_CLIENT_ID,
     iosClientId: GOOGLE_IOS_CLIENT_ID,
     webClientId: GOOGLE_WEB_CLIENT_ID,
@@ -45,10 +48,11 @@ function GoogleLogin() {
       const res = await mutation.mutateAsync();
       const data = res?.googleLoginOrSignUp;
 
+      console.log("res", res);
+
       // if response is ok, saving accessToken
       if (data?.ok && data?.authToken) {
         await saveAuthAccessToken(data?.authToken?.token);
-
         queryClient.invalidateQueries({ queryKey: ["me"] });
       } else if (data?.ok && !data?.user) {
         // if user is not verified, we need to navigate the user to userDetails screen
@@ -56,6 +60,7 @@ function GoogleLogin() {
       }
     }
 
+    console.log("handling login", response);
     if (response?.type === "success") {
       setToken(response?.authentication?.accessToken as string);
       handleLogin();
@@ -65,8 +70,9 @@ function GoogleLogin() {
   return (
     <TouchableOpacity
       disabled={mutation.isLoading}
-      onPress={() => {
-        promptAsync();
+      onPress={async () => {
+        const res = await promptAsync();
+        console.log("res", res);
       }}
     >
       <Text>Sign in with google</Text>
