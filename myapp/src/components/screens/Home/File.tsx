@@ -98,7 +98,7 @@ const File: React.FC<FileProps> = ({
   }
 
   return (
-    <View>
+    <View className="mb-2">
       {/* {fileExists ? ( */}
       <View className="flex-row">
         <View className="bg-primary p-2 rounded-lg">

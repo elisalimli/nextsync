@@ -27,20 +27,17 @@ export const useAnimatedHeaderStyles = ({
   const animatedHeaderStyles = useAnimatedStyle(() => {
     const headerHeight = interpolate(
       scrollY.value,
-      [0, 100],
-      [
-        HEADER_HEIGHT_EXPANDED + tagsHeight.value,
-        HEADER_HEIGHT_NARROWED + tagsHeight.value,
-      ],
+      [0, HEADER_TAGS_HEIGHT_EXPANDED],
+      [HEADER_HEIGHT_EXPANDED, HEADER_HEIGHT_NARROWED + tagsHeight.value + 30],
       {
-        extrapolateLeft: Extrapolation.CLAMP,
+        extrapolateLeft: Extrapolation.EXTEND,
         extrapolateRight: Extrapolation.CLAMP,
       }
     );
     const headerY = interpolate(
       scrollDiffY.value,
       [0, HEADER_HEIGHT_NARROWED + tagsHeight.value],
-      [0, -(HEADER_HEIGHT_EXPANDED + tagsHeight.value)],
+      [0, -(HEADER_TAGS_HEIGHT_EXPANDED + tagsHeight.value)],
       {
         extrapolateLeft: Extrapolation.CLAMP,
         extrapolateRight: Extrapolation.CLAMP,
@@ -49,7 +46,7 @@ export const useAnimatedHeaderStyles = ({
 
     return {
       height: headerHeight,
-      transform: [{ translateY: headerY }],
+      // transform: [{ translateY: headerY }],
     };
   });
 

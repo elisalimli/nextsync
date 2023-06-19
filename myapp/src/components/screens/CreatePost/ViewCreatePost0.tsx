@@ -1,9 +1,11 @@
 import { StatusBar } from "expo-status-bar";
 import * as React from "react";
-import { SafeAreaView, View } from "react-native";
+import { Platform, SafeAreaView, View } from "react-native";
 import { PostTypeData } from "./ConnectedCreatePost0";
 import CreatePostHeader from "./CreatePostHeader";
 import CreatePostTypeCard from "./CreatePostTypeCard";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import CustomSafeAreaView from "../../CustomSafeAreaView";
 
 interface ViewCreatePost0Props {
   postTypesData: PostTypeData[];
@@ -14,10 +16,12 @@ const ViewCreatePost0 = ({
   postTypesData,
   newsTagId,
 }: ViewCreatePost0Props) => {
+  const insets = useSafeAreaInsets();
+  console.log(insets);
   return (
-    <SafeAreaView style={{ flex: 1 }}>
+    <CustomSafeAreaView>
       <StatusBar style="dark" />
-      <View className="mx-8 flex-1">
+      <View className="flex-1 mx-4">
         <CreatePostHeader />
         <View className="w-0 h-3 bg-red-500"></View>
         <View className="flex-1 mt-24">
@@ -30,7 +34,7 @@ const ViewCreatePost0 = ({
           ))}
         </View>
       </View>
-    </SafeAreaView>
+    </CustomSafeAreaView>
   );
 };
 

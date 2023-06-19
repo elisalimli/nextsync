@@ -1,7 +1,7 @@
 import { useRouter } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import * as React from "react";
-import { SafeAreaView, View } from "react-native";
+import { Platform, SafeAreaView, View } from "react-native";
 import {
   FileUpload,
   useCreatePostStore,
@@ -9,6 +9,8 @@ import {
 import CreatePost2Cards from "./CreatePost2Cards";
 import CreatePostFooter from "./CreatePostFooter";
 import CreatePostHeader from "./CreatePostHeader";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import CustomSafeAreaView from "../../CustomSafeAreaView";
 
 interface ViewCreatePost2Props {
   docs: FileUpload[];
@@ -17,12 +19,13 @@ interface ViewCreatePost2Props {
 
 const ViewCreatePost2 = ({ docs, pickDocument }: ViewCreatePost2Props) => {
   const router = useRouter();
+  const insets = useSafeAreaInsets();
   const { setDocs } = useCreatePostStore();
 
   return (
-    <SafeAreaView style={{ flex: 1 }}>
+    <CustomSafeAreaView>
       <StatusBar style="dark" />
-      <View className="flex-1">
+      <View className="flex-1 mx-4">
         <CreatePostHeader />
         <View className="flex-1 p-2">
           <CreatePost2Cards pickDocument={pickDocument} docs={docs} />
@@ -34,7 +37,7 @@ const ViewCreatePost2 = ({ docs, pickDocument }: ViewCreatePost2Props) => {
           }}
         />
       </View>
-    </SafeAreaView>
+    </CustomSafeAreaView>
   );
 };
 

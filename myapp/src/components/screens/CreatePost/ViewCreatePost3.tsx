@@ -1,10 +1,12 @@
 import { StatusBar } from "expo-status-bar";
 import * as React from "react";
-import { ActivityIndicator, SafeAreaView, View } from "react-native";
+import { ActivityIndicator, Platform, SafeAreaView, View } from "react-native";
 import { Tag_FragmentFragment } from "../../../gql/graphql";
 import CreatePostFooter from "./CreatePostFooter";
 import CreatePostHeader from "./CreatePostHeader";
 import CreatePost3Catalogs from "./CreatePost3Catalogs";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import CustomSafeAreaView from "../../CustomSafeAreaView";
 
 interface ViewCreatePost3Props {
   isLoading: boolean;
@@ -19,12 +21,14 @@ const ViewCreatePost3 = ({
   isLoading,
   tagIds,
 }: ViewCreatePost3Props) => {
+  const insets = useSafeAreaInsets();
+
   return (
-    <SafeAreaView className="flex-1">
+    <CustomSafeAreaView>
       <StatusBar style="dark" />
-      <View className="flex-1">
+      <View className="flex-1 mx-4">
         {isLoading ? (
-          <View className="flex justify-center items-center">
+          <View className="flex-1 justify-center items-center">
             <ActivityIndicator size={"large"} />
           </View>
         ) : (
@@ -37,7 +41,7 @@ const ViewCreatePost3 = ({
           </>
         )}
       </View>
-    </SafeAreaView>
+    </CustomSafeAreaView>
   );
 };
 

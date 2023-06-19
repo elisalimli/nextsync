@@ -21,6 +21,7 @@ import (
 	customMiddleware "github.com/elisalimli/nextsync/server/middleware"
 	"github.com/elisalimli/nextsync/server/validator"
 	"github.com/google/uuid"
+	"golang.org/x/exp/slices"
 )
 
 var (
@@ -165,6 +166,7 @@ func (d *Domain) CreatePost(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, "Failed to marshal response to JSON", http.StatusInternalServerError)
 			return
 		}
+		fmt.Println("error 1")
 		// Write the JSON response
 		w.WriteHeader(http.StatusForbidden)
 		w.Write(jsonResponse)
@@ -177,7 +179,11 @@ func (d *Domain) CreatePost(w http.ResponseWriter, r *http.Request) {
 	// Check if file types are supported
 	for _, fileHeader := range files {
 		contentType := fileHeader.Header.Get("Content-Type")
-		if contentType != "application/pdf" && contentType != "image/png" && contentType != "image/jpeg" {
+
+		supportedFileTypes := []string{"png", "jpg", "jpeg", "pdf"}
+		extension := strings.Split(contentType, "/")[1]
+
+		if !slices.Contains(supportedFileTypes, extension) {
 			// Create the response object
 			response := models.CreatePostResponse{
 				Ok:     false,
@@ -189,6 +195,8 @@ func (d *Domain) CreatePost(w http.ResponseWriter, r *http.Request) {
 				http.Error(w, "Failed to marshal response to JSON", http.StatusInternalServerError)
 				return
 			}
+			fmt.Println("error", contentType)
+
 			// Write the JSON response
 			w.WriteHeader(http.StatusForbidden)
 			w.Write(jsonResponse)

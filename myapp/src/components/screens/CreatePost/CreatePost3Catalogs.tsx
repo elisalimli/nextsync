@@ -29,7 +29,7 @@ const CreatePost3Catalogs: any = ({
 
     if (catalog) {
       return (
-        <View className="mb-4">
+        <View className="mb-4" key={`create-post-catalog-${catalog.id}`}>
           {/* Catalog Header */}
           <Text className="mb-2 text-base font-semibold">{catalog?.name}</Text>
           {/* Tags */}
@@ -42,7 +42,7 @@ const CreatePost3Catalogs: any = ({
 
               return (
                 <CreatePost3Tag
-                  key={`create-post-catalog-${tag.id}`}
+                  key={`create-post-catalog-tag-${tag.id}`}
                   catalog={catalog}
                   tag={tag}
                   isActive={isActive}

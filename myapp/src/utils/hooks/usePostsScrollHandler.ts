@@ -1,34 +1,15 @@
 import {
-  useSharedValue,
-  useAnimatedStyle,
-  interpolate,
-  Extrapolation,
   useAnimatedScrollHandler,
+  useSharedValue,
   withTiming,
 } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { clamp } from "../clamp";
-import { HEADER_HEIGHT_EXPANDED } from "../../animation/useAnimatedHeaderStyles";
 
 export const useScrollHandler = () => {
   const translationDiffY = useSharedValue(0);
   const translationY = useSharedValue(0);
   const insets = useSafeAreaInsets();
-
-  const animatedHeaderStyles = useAnimatedStyle(() => {
-    const height = interpolate(
-      translationY.value,
-      [0, 100],
-      [HEADER_HEIGHT_EXPANDED + 20, 20],
-      {
-        extrapolateLeft: Extrapolation.CLAMP,
-        extrapolateRight: Extrapolation.CLAMP,
-      }
-    );
-    return {
-      paddingTop: height,
-    };
-  });
 
   const scrollHandler = useAnimatedScrollHandler<{ prevY?: number }>({
     onBeginDrag: (event, ctx) => {
@@ -55,7 +36,6 @@ export const useScrollHandler = () => {
     translationY,
     translationDiffY,
     insets,
-    animatedHeaderStyles,
     scrollHandler,
   };
 };

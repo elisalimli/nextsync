@@ -2,7 +2,10 @@ import { StatusBar } from "expo-status-bar";
 import React, { useRef } from "react";
 import { ActivityIndicator, FlatList, Text, View } from "react-native";
 import Animated from "react-native-reanimated";
-import { HEADER_HEIGHT_EXPANDED } from "../../src/animation/useAnimatedHeaderStyles";
+import {
+  HEADER_HEIGHT_EXPANDED,
+  HEADER_TAGS_HEIGHT_EXPANDED,
+} from "../../src/animation/useAnimatedHeaderStyles";
 import HomeHeader from "../../src/components/screens/Home/HomeHeader";
 import HomeNoResults from "../../src/components/screens/Home/HomeNoResults";
 import ListHeader from "../../src/components/screens/Home/LIstHeader";
@@ -15,13 +18,8 @@ const App = () => {
   const flatListRef = useRef<FlatList>(null);
   const { allItems, lastPage, isLoading, error, refetch, handleOnEndReached } =
     useGetPosts();
-  const {
-    translationY,
-    translationDiffY,
-    insets,
-    animatedHeaderStyles,
-    scrollHandler,
-  } = useScrollHandler();
+  const { translationY, translationDiffY, insets, scrollHandler } =
+    useScrollHandler();
 
   useSearchPosts(refetch, flatListRef);
   let body = null;
@@ -61,8 +59,8 @@ const App = () => {
         style={[
           {
             flexGrow: 1,
+            paddingTop: HEADER_TAGS_HEIGHT_EXPANDED,
           },
-          animatedHeaderStyles,
         ]}
         // data={data?.posts}
         data={allItems}

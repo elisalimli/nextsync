@@ -2,11 +2,13 @@ import { useRouter } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import * as React from "react";
 import { UseFormReturn } from "react-hook-form";
-import { SafeAreaView, View } from "react-native";
+import { Platform, SafeAreaView, View } from "react-native";
 import { CreatePostFormValues } from "./ConnectedCreatePost1";
 import CreatePost1Form from "./CreatePost1Form";
 import CreatePostFooter from "./CreatePostFooter";
 import CreatePostHeader from "./CreatePostHeader";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import CustomSafeAreaView from "../../CustomSafeAreaView";
 
 interface ViewCreatePost1Props {
   methods: UseFormReturn<CreatePostFormValues, any>;
@@ -15,11 +17,11 @@ interface ViewCreatePost1Props {
 
 const ViewCreatePost1 = ({ methods, setFormValues }: ViewCreatePost1Props) => {
   const router = useRouter();
-
+  const insets = useSafeAreaInsets();
   return (
-    <SafeAreaView style={{ flex: 1 }}>
+    <CustomSafeAreaView>
       <StatusBar style="dark" />
-      <View className="flex-1">
+      <View className="flex-1 mx-4">
         <CreatePostHeader />
         <CreatePost1Form methods={methods} />
         <CreatePostFooter
@@ -32,7 +34,7 @@ const ViewCreatePost1 = ({ methods, setFormValues }: ViewCreatePost1Props) => {
           }}
         />
       </View>
-    </SafeAreaView>
+    </CustomSafeAreaView>
   );
 };
 

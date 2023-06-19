@@ -9,7 +9,7 @@ const ConnectedCreatePost2 = () => {
 
   const pickDocument = async () => {
     await DocumentPicker.getDocumentAsync({
-      type: ["application/pdf", "image/png", "image/jpeg"],
+      type: ["application/pdf", "image/png", "image/jpeg", "image/jpg"],
       multiple: true,
       copyToCacheDirectory: false,
     }).then(async (response) => {
