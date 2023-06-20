@@ -46,7 +46,7 @@ export const useAnimatedHeaderStyles = ({
 
     return {
       height: headerHeight,
-      // transform: [{ translateY: headerY }],
+      transform: [{ translateY: headerY }],
     };
   });
 

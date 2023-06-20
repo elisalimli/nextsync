@@ -39,7 +39,7 @@ const HomeHeader = ({ scrollY, scrollDiffY }: HomeHeaderProps) => {
       className="bg-primary items-center justify-end absolute top-0 left-0 right-0 pb-3 z-10"
     >
       <SearchBar translateSearch={translateSearch} tagsHeight={tagsHeight} />
-      {/* <HeaderGreeting scrollY={scrollY} username={user?.username} /> */}
+      <HeaderGreeting scrollY={scrollY} username={user?.username} />
       <HomeHeaderActions
         tagsHeight={tagsHeight}
         translateSearch={translateSearch}

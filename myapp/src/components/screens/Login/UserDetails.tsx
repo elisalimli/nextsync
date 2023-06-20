@@ -49,22 +49,6 @@ const UserDetails = () => {
       await saveAuthAccessToken(resData?.authToken?.token);
       router.replace("/");
     }
-    // const user = useFragment(
-    //   User_Fragment,
-    //   res?.data?.googleLoginOrSignUp?.user
-    // );
-    // if (user?.phoneNumber) {
-    // const response = await sendOtpMutate({
-    // variables: {
-    // input: { to: user?.phoneNumber },
-    // },
-    // });
-    // console.log("send otp response", response, user?.phoneNumber);
-    // if (response?.data?.sendOtp?.ok) {
-    // setPhoneNumber(user?.phoneNumber);
-    // router.push("/verifyOtp");
-    // }
-    // }
   };
   return (
     <SafeAreaView style={{ flex: 1 }}>

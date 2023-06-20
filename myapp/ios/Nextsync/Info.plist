@@ -26,7 +26,7 @@
         <key>CFBundleURLSchemes</key>
         <array>
           <string>nextsync</string>
-          <string>com.quantum17.nextsync</string>
+          <string>com.elisalimli.nextsync</string>
         </array>
       </dict>
     </array>

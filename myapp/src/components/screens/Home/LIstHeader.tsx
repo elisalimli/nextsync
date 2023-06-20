@@ -5,6 +5,7 @@ import { logoutMutationDocument } from "../../../graphql/mutation/user/logout";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { graphqlRequestClient } from "../../../graphql/requestClient";
 import { useRouter } from "expo-router";
+import { GoogleSignin } from "@react-native-google-signin/google-signin";
 
 function ListHeader() {
   const queryClient = useQueryClient();
@@ -28,6 +29,8 @@ function ListHeader() {
     const data = await mutation.mutateAsync();
     // if logout is successful, we clear the auth state
     if (data?.logout) await clearAuthState();
+    await GoogleSignin.revokeAccess();
+    await GoogleSignin.signOut();
   };
 
   return (

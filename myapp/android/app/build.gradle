@@ -113,9 +113,9 @@ android {
 
     compileSdkVersion rootProject.ext.compileSdkVersion
 
-    namespace 'com.quantum17.nextsync'
+    namespace 'com.elisalimli.nextsync'
     defaultConfig {
-        applicationId 'com.quantum17.nextsync'
+        applicationId 'com.elisalimli.nextsync'
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 1

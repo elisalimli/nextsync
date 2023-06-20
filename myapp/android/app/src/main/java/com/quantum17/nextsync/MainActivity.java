@@ -1,4 +1,4 @@
-package com.quantum17.nextsync;
+package com.elisalimli.nextsync;
 
 import android.os.Build;
 import android.os.Bundle;
