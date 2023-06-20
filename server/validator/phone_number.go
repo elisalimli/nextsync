@@ -10,7 +10,7 @@ func (v *Validator) IsPhoneNumber(field, phone string) bool {
 	}
 
 	if !phoneRegexp.MatchString(phone) {
-		v.Errors[field] = "not a valid phone number"
+		v.Errors[field] = "Telefon nömrəsi düzgün daxil edilməyib."
 		return false
 	}
 

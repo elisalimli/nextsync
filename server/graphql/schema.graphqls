@@ -122,10 +122,15 @@ input LoginInput {
   password: String!
 }
 
-input GoogleLoginOrSignUpInput {
+
+input GoogleSignUpInput {
   token: String!
-  username: String
-  phoneNumber: String
+  username: String!
+  phoneNumber: String!
+}
+
+input GoogleLoginInput {
+  token: String!
 }
 
 
@@ -175,7 +180,8 @@ type Query {
 type Mutation {
   register(input: RegisterInput!): AuthResponse!
   login(input: LoginInput!): AuthResponse!
-  googleLoginOrSignUp(input:GoogleLoginOrSignUpInput!):AuthResponse!
+  googleLogin(input:GoogleLoginInput!): AuthResponse!
+  googleSignUp(input:GoogleSignUpInput!): AuthResponse!
   logout: Boolean!
   refreshToken: AuthResponse!
   sendOtp(input: SendOtpInput!): FormResponse!

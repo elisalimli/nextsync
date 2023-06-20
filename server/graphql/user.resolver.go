@@ -6,11 +6,8 @@ package graphql
 
 import (
 	"context"
-	"encoding/json"
 	"errors"
 	"fmt"
-	"io"
-	"log"
 	"net/http"
 	"os"
 
@@ -19,7 +16,6 @@ import (
 	"github.com/elisalimli/nextsync/server/domain"
 	"github.com/elisalimli/nextsync/server/graphql/models"
 	customMiddleware "github.com/elisalimli/nextsync/server/middleware"
-	"github.com/elisalimli/nextsync/server/validator"
 
 	"github.com/vektah/gqlparser/v2/gqlerror"
 )
@@ -76,93 +72,22 @@ func (m *mutationResolver) Register(ctx context.Context, input models.RegisterIn
 	return m.Domain.Register(ctx, input)
 }
 
-type GoogleUserRes struct {
-	ID         string `json:"id"`
-	Email      string `json:"email"`
-	Name       string `json:"name"`
-	GivenName  string `json:"given_name"`
-	FamilyName string `json:"family_name"`
+func (m *mutationResolver) GoogleLogin(ctx context.Context, input models.GoogleLoginInput) (*models.AuthResponse, error) {
+	isValid, errors := domain.Validation(ctx, input)
+	if !isValid {
+		return &models.AuthResponse{Ok: false, Errors: errors}, nil
+	}
+	return m.Domain.GoogleLogin(ctx, input)
 }
 
-func (m *mutationResolver) GoogleLoginOrSignUp(ctx context.Context, input models.GoogleLoginOrSignUpInput) (*models.AuthResponse, error) {
-	endpoint := "https://www.googleapis.com/userinfo/v2/me"
-	fmt.Println("en", endpoint)
-	client := &http.Client{}
-	req, _ := http.NewRequest("GET", endpoint, nil)
-	header := "Bearer " + input.Token
-	req.Header.Set("Authorization", header)
-	res, googleErr := client.Do(req)
-	if googleErr != nil {
-		return &models.AuthResponse{Ok: false, Errors: []*validator.FieldError{{Message: domain.ErrSomethingWentWrong, Field: domain.GeneralErrorFieldCode}}}, nil
+func (m *mutationResolver) GoogleSignUp(ctx context.Context, input models.GoogleSignUpInput) (*models.AuthResponse, error) {
+	isValid, validationErrors := domain.Validation(ctx, input)
+	if !isValid {
+		return &models.AuthResponse{Ok: false, Errors: validationErrors}, nil
 	}
-
-	defer res.Body.Close()
-	body, bodyErr := io.ReadAll(res.Body)
-	if bodyErr != nil {
-		log.Panic(bodyErr)
-		return &models.AuthResponse{Ok: false}, nil
-	}
-
-	var googleBody GoogleUserRes
-	json.Unmarshal(body, &googleBody)
-	fmt.Println(googleBody)
-	if googleBody.Email != "" {
-		user, _ := m.Domain.UsersRepo.GetUserByEmail(ctx, googleBody.Email)
-
-		// userExists, userExistsErr := getAndHandleUserExists(&user, googleBody.Email)
-		fmt.Println(user)
-		// if userExistsErr != nil {
-		// utils.CreateInternalServerError(ctx)
-		// return
-		// }
-
-		if user == nil && input.Username != nil && input.PhoneNumber != nil {
-			fmt.Println("creating...", user)
-			newUser := models.User{Email: googleBody.Email, SocialLogin: true, SocialProvider: "Google", Username: *input.Username, PhoneNumber: *input.PhoneNumber}
-			// 	storage.DB.Create(&user)
-			res, err := m.Domain.UsersRepo.DB.NewInsert().Model(&newUser).Returning("*").Exec(ctx)
-			fmt.Println("create user res", res, err)
-			// 	returnUser(user, ctx)
-			// 	return
-			// }
-			// re-defining the new created user
-			user = &newUser
-
-			// return &models.AuthResponse{Ok: true, User: &newUser}, nil
-
-			// if user.SocialLogin == true && user.SocialProvider == "Google" {
-			// 	returnUser(user, ctx)
-			// 	return
-			// }
-
-			// utils.CreateEmailAlreadyRegistered(ctx)
-			// return
-		}
-		// if !user.Verified {
-		// return &models.AuthResponse{Ok: true, User: user}, nil
-		// } else {
-
-		// returning the auth tokens if user is created or existed before
-		if user != nil {
-			newRefreshToken, err := user.GenRefreshToken()
-			if err != nil {
-				return nil, errors.New(domain.ErrSomethingWentWrong)
-			}
-
-			newAccessToken, err := user.GenAccessToken()
-			if err != nil {
-				return nil, errors.New(domain.ErrSomethingWentWrong)
-			}
-			user.SaveRefreshToken(ctx, newRefreshToken)
-			return &models.AuthResponse{Ok: true, AuthToken: newAccessToken, User: user}, nil
-		}
-		// }
-	}
-	fmt.Println("case 4")
-
-	return &models.AuthResponse{Ok: true}, nil
-
+	return m.Domain.GoogleSignUp(ctx, input)
 }
+
 func (m *mutationResolver) RefreshToken(ctx context.Context) (*models.AuthResponse, error) {
 	return m.Domain.RefreshToken(ctx)
 }

@@ -34,6 +34,10 @@ func (u *UsersRepo) GetUserByUsername(ctx context.Context, username string) (*mo
 	return u.GetUserByField(ctx, "username", username)
 }
 
+func (u *UsersRepo) GetUserByPhoneNumber(ctx context.Context, phoneNumber string) (*models.User, error) {
+	return u.GetUserByField(ctx, "phone_number", phoneNumber)
+}
+
 func (u *UsersRepo) CreateUser(ctx context.Context, user *(models.User)) error {
 	_, err := u.DB.NewInsert().Model(user).Exec(ctx)
 	return err

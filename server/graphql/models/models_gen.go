@@ -53,10 +53,14 @@ type FormResponse struct {
 	Errors []*validator.FieldError `json:"errors,omitempty"`
 }
 
-type GoogleLoginOrSignUpInput struct {
-	Token       string  `json:"token"`
-	Username    *string `json:"username,omitempty"`
-	PhoneNumber *string `json:"phoneNumber,omitempty"`
+type GoogleLoginInput struct {
+	Token string `json:"token"`
+}
+
+type GoogleSignUpInput struct {
+	Token       string `json:"token"`
+	Username    string `json:"username"`
+	PhoneNumber string `json:"phoneNumber"`
 }
 
 type LoginInput struct {

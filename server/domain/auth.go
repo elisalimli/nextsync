@@ -3,8 +3,10 @@ package domain
 import (
 	"context"
 	"database/sql"
+	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
 	"log"
 	"net/http"
 	"os"
@@ -82,8 +84,7 @@ func (d *Domain) Login(ctx context.Context, input models.LoginInput) (*models.Au
 }
 
 func (d *Domain) Register(ctx context.Context, input models.RegisterInput) (*models.AuthResponse, error) {
-	res, err := d.UsersRepo.GetUserByEmail(ctx, input.Email)
-	fmt.Println(res, err)
+	_, err := d.UsersRepo.GetUserByEmail(ctx, input.Email)
 	if err == nil {
 		return NewFieldError(validator.FieldError{Message: "Email already in used", Field: "email"}), nil
 	}
@@ -252,5 +253,111 @@ func (d *Domain) VerifyOtp(ctx context.Context, input models.VerifyOtpInput) (*m
 		fmt.Println("Incorrect!")
 		return &models.AuthResponse{Ok: false}, nil
 	}
+
+}
+
+func GoogleMeRequest(token string) (*GoogleUserRes, bool) {
+	endpoint := "https://www.googleapis.com/userinfo/v2/me"
+	client := &http.Client{}
+	req, _ := http.NewRequest("GET", endpoint, nil)
+	header := "Bearer " + token
+	req.Header.Set("Authorization", header)
+	res, googleErr := client.Do(req)
+	if googleErr != nil {
+		return nil, true
+	}
+
+	defer res.Body.Close()
+
+	body, bodyErr := io.ReadAll(res.Body)
+	if bodyErr != nil {
+		log.Panic(bodyErr)
+		return nil, true
+	}
+
+	var googleBody GoogleUserRes
+	json.Unmarshal(body, &googleBody)
+	return &googleBody, false
+}
+
+type GoogleUserRes struct {
+	ID         string `json:"id"`
+	Email      string `json:"email"`
+	Name       string `json:"name"`
+	GivenName  string `json:"given_name"`
+	FamilyName string `json:"family_name"`
+}
+
+func (d *Domain) GoogleLogin(ctx context.Context, input models.GoogleLoginInput) (*models.AuthResponse, error) {
+	googleBody, err := GoogleMeRequest(input.Token)
+	if err {
+		return NewFieldError(validator.FieldError{Message: GeneralErrorFieldCode, Field: ErrSomethingWentWrong}), nil
+	}
+
+	if googleBody.Email != "" {
+		user, _ := d.UsersRepo.GetUserByEmail(ctx, googleBody.Email)
+		// returning the auth tokens if user is created or existed before
+		if user != nil {
+			newRefreshToken, err := user.GenRefreshToken()
+			if err != nil {
+				return nil, errors.New(ErrSomethingWentWrong)
+			}
+
+			newAccessToken, err := user.GenAccessToken()
+			if err != nil {
+				return nil, errors.New(ErrSomethingWentWrong)
+			}
+			user.SaveRefreshToken(ctx, newRefreshToken)
+			return &models.AuthResponse{Ok: true, AuthToken: newAccessToken, User: user}, nil
+		}
+	}
+
+	return &models.AuthResponse{Ok: true}, nil
+}
+
+func (m *Domain) GoogleSignUp(ctx context.Context, input models.GoogleSignUpInput) (*models.AuthResponse, error) {
+	googleBody, err := GoogleMeRequest(input.Token)
+	if err {
+		return NewFieldError(validator.FieldError{Message: GeneralErrorFieldCode, Field: ErrSomethingWentWrong}), nil
+	}
+
+	if googleBody.Email != "" {
+		_, err := m.UsersRepo.GetUserByUsername(ctx, input.Username)
+		if err == nil {
+			return NewFieldError(validator.FieldError{Message: "Bu istifadəçi adı daha öncə istifadə olunub.", Field: "username"}), nil
+		}
+
+		_, err = m.UsersRepo.GetUserByPhoneNumber(ctx, input.PhoneNumber)
+		if err == nil {
+			return NewFieldError(validator.FieldError{Message: "Bu telefon nömrəsi daha öncə istifadə olunub.", Field: "phoneNumber"}), nil
+		}
+
+		user, _ := m.UsersRepo.GetUserByEmail(ctx, googleBody.Email)
+		if user == nil {
+			newUser := models.User{Email: googleBody.Email, SocialLogin: true, SocialProvider: "Google", Username: input.Username, PhoneNumber: input.PhoneNumber}
+			_, err := m.UsersRepo.DB.NewInsert().Model(&newUser).Returning("*").Exec(ctx)
+
+			if err != nil {
+				return nil, errors.New(ErrSomethingWentWrong)
+			}
+
+			// re-defining the new created user
+			user = &newUser
+
+			newRefreshToken, err := user.GenRefreshToken()
+			if err != nil {
+				return nil, errors.New(ErrSomethingWentWrong)
+			}
+
+			newAccessToken, err := user.GenAccessToken()
+			if err != nil {
+				return nil, errors.New(ErrSomethingWentWrong)
+			}
+			user.SaveRefreshToken(ctx, newRefreshToken)
+			return &models.AuthResponse{Ok: true, AuthToken: newAccessToken, User: user}, nil
+		}
+	}
+
+	return &models.AuthResponse{Ok: false}, nil
 
 }

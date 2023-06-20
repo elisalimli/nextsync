@@ -84,13 +84,14 @@ type ComplexityRoot struct {
 	}
 
 	Mutation struct {
-		GoogleLoginOrSignUp func(childComplexity int, input models.GoogleLoginOrSignUpInput) int
-		Login               func(childComplexity int, input models.LoginInput) int
-		Logout              func(childComplexity int) int
-		RefreshToken        func(childComplexity int) int
-		Register            func(childComplexity int, input models.RegisterInput) int
-		SendOtp             func(childComplexity int, input models.SendOtpInput) int
-		VerifyOtp           func(childComplexity int, input models.VerifyOtpInput) int
+		GoogleLogin  func(childComplexity int, input models.GoogleLoginInput) int
+		GoogleSignUp func(childComplexity int, input models.GoogleSignUpInput) int
+		Login        func(childComplexity int, input models.LoginInput) int
+		Logout       func(childComplexity int) int
+		RefreshToken func(childComplexity int) int
+		Register     func(childComplexity int, input models.RegisterInput) int
+		SendOtp      func(childComplexity int, input models.SendOtpInput) int
+		VerifyOtp    func(childComplexity int, input models.VerifyOtpInput) int
 	}
 
 	Post struct {
@@ -151,7 +152,8 @@ type ComplexityRoot struct {
 type MutationResolver interface {
 	Register(ctx context.Context, input models.RegisterInput) (*models.AuthResponse, error)
 	Login(ctx context.Context, input models.LoginInput) (*models.AuthResponse, error)
-	GoogleLoginOrSignUp(ctx context.Context, input models.GoogleLoginOrSignUpInput) (*models.AuthResponse, error)
+	GoogleLogin(ctx context.Context, input models.GoogleLoginInput) (*models.AuthResponse, error)
+	GoogleSignUp(ctx context.Context, input models.GoogleSignUpInput) (*models.AuthResponse, error)
 	Logout(ctx context.Context) (bool, error)
 	RefreshToken(ctx context.Context) (*models.AuthResponse, error)
 	SendOtp(ctx context.Context, input models.SendOtpInput) (*models.FormResponse, error)
@@ -305,17 +307,29 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.FormResponse.Ok(childComplexity), true
 
-	case "Mutation.googleLoginOrSignUp":
-		if e.complexity.Mutation.GoogleLoginOrSignUp == nil {
+	case "Mutation.googleLogin":
+		if e.complexity.Mutation.GoogleLogin == nil {
 			break
 		}
 
-		args, err := ec.field_Mutation_googleLoginOrSignUp_args(context.TODO(), rawArgs)
+		args, err := ec.field_Mutation_googleLogin_args(context.TODO(), rawArgs)
 		if err != nil {
 			return 0, false
 		}
 
-		return e.complexity.Mutation.GoogleLoginOrSignUp(childComplexity, args["input"].(models.GoogleLoginOrSignUpInput)), true
+		return e.complexity.Mutation.GoogleLogin(childComplexity, args["input"].(models.GoogleLoginInput)), true
+
+	case "Mutation.googleSignUp":
+		if e.complexity.Mutation.GoogleSignUp == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_googleSignUp_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.GoogleSignUp(childComplexity, args["input"].(models.GoogleSignUpInput)), true
 
 	case "Mutation.login":
 		if e.complexity.Mutation.Login == nil {
@@ -649,7 +663,8 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 	rc := graphql.GetOperationContext(ctx)
 	ec := executionContext{rc, e, 0, 0, make(chan graphql.DeferredResult)}
 	inputUnmarshalMap := graphql.BuildUnmarshalerMap(
-		ec.unmarshalInputGoogleLoginOrSignUpInput,
+		ec.unmarshalInputGoogleLoginInput,
+		ec.unmarshalInputGoogleSignUpInput,
 		ec.unmarshalInputLoginInput,
 		ec.unmarshalInputPostInput,
 		ec.unmarshalInputPostsInput,
@@ -773,13 +788,28 @@ var parsedSchema = gqlparser.MustLoadSchema(sources...)
 
 // region    ***************************** args.gotpl *****************************
 
-func (ec *executionContext) field_Mutation_googleLoginOrSignUp_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+func (ec *executionContext) field_Mutation_googleLogin_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
-	var arg0 models.GoogleLoginOrSignUpInput
+	var arg0 models.GoogleLoginInput
 	if tmp, ok := rawArgs["input"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
-		arg0, err = ec.unmarshalNGoogleLoginOrSignUpInput2githubᚗcomᚋelisalimliᚋnextsyncᚋserverᚋgraphqlᚋmodelsᚐGoogleLoginOrSignUpInput(ctx, tmp)
+		arg0, err = ec.unmarshalNGoogleLoginInput2githubᚗcomᚋelisalimliᚋnextsyncᚋserverᚋgraphqlᚋmodelsᚐGoogleLoginInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["input"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_googleSignUp_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 models.GoogleSignUpInput
+	if tmp, ok := rawArgs["input"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
+		arg0, err = ec.unmarshalNGoogleSignUpInput2githubᚗcomᚋelisalimliᚋnextsyncᚋserverᚋgraphqlᚋmodelsᚐGoogleSignUpInput(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -1831,8 +1861,8 @@ func (ec *executionContext) fieldContext_Mutation_login(ctx context.Context, fie
 	return fc, nil
 }
 
-func (ec *executionContext) _Mutation_googleLoginOrSignUp(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Mutation_googleLoginOrSignUp(ctx, field)
+func (ec *executionContext) _Mutation_googleLogin(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_googleLogin(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -1845,7 +1875,7 @@ func (ec *executionContext) _Mutation_googleLoginOrSignUp(ctx context.Context, f
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().GoogleLoginOrSignUp(rctx, fc.Args["input"].(models.GoogleLoginOrSignUpInput))
+		return ec.resolvers.Mutation().GoogleLogin(rctx, fc.Args["input"].(models.GoogleLoginInput))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -1862,7 +1892,7 @@ func (ec *executionContext) _Mutation_googleLoginOrSignUp(ctx context.Context, f
 	return ec.marshalNAuthResponse2ᚖgithubᚗcomᚋelisalimliᚋnextsyncᚋserverᚋgraphqlᚋmodelsᚐAuthResponse(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_Mutation_googleLoginOrSignUp(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_Mutation_googleLogin(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "Mutation",
 		Field:      field,
@@ -1889,7 +1919,72 @@ func (ec *executionContext) fieldContext_Mutation_googleLoginOrSignUp(ctx contex
 		}
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
-	if fc.Args, err = ec.field_Mutation_googleLoginOrSignUp_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+	if fc.Args, err = ec.field_Mutation_googleLogin_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_googleSignUp(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_googleSignUp(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().GoogleSignUp(rctx, fc.Args["input"].(models.GoogleSignUpInput))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*models.AuthResponse)
+	fc.Result = res
+	return ec.marshalNAuthResponse2ᚖgithubᚗcomᚋelisalimliᚋnextsyncᚋserverᚋgraphqlᚋmodelsᚐAuthResponse(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Mutation_googleSignUp(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "ok":
+				return ec.fieldContext_AuthResponse_ok(ctx, field)
+			case "errors":
+				return ec.fieldContext_AuthResponse_errors(ctx, field)
+			case "authToken":
+				return ec.fieldContext_AuthResponse_authToken(ctx, field)
+			case "user":
+				return ec.fieldContext_AuthResponse_user(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type AuthResponse", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_googleSignUp_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return
 	}
@@ -5754,8 +5849,37 @@ func (ec *executionContext) fieldContext___Type_specifiedByURL(ctx context.Conte
 
 // region    **************************** input.gotpl *****************************
 
-func (ec *executionContext) unmarshalInputGoogleLoginOrSignUpInput(ctx context.Context, obj interface{}) (models.GoogleLoginOrSignUpInput, error) {
-	var it models.GoogleLoginOrSignUpInput
+func (ec *executionContext) unmarshalInputGoogleLoginInput(ctx context.Context, obj interface{}) (models.GoogleLoginInput, error) {
+	var it models.GoogleLoginInput
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"token"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "token":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("token"))
+			data, err := ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Token = data
+		}
+	}
+
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputGoogleSignUpInput(ctx context.Context, obj interface{}) (models.GoogleSignUpInput, error) {
+	var it models.GoogleSignUpInput
 	asMap := map[string]interface{}{}
 	for k, v := range obj.(map[string]interface{}) {
 		asMap[k] = v
@@ -5781,7 +5905,7 @@ func (ec *executionContext) unmarshalInputGoogleLoginOrSignUpInput(ctx context.C
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("username"))
-			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			data, err := ec.unmarshalNString2string(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -5790,7 +5914,7 @@ func (ec *executionContext) unmarshalInputGoogleLoginOrSignUpInput(ctx context.C
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("phoneNumber"))
-			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			data, err := ec.unmarshalNString2string(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -6446,9 +6570,16 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
-		case "googleLoginOrSignUp":
+		case "googleLogin":
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
-				return ec._Mutation_googleLoginOrSignUp(ctx, field)
+				return ec._Mutation_googleLogin(ctx, field)
+			})
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "googleSignUp":
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_googleSignUp(ctx, field)
 			})
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
@@ -7419,8 +7550,13 @@ func (ec *executionContext) marshalNFormResponse2ᚖgithubᚗcomᚋelisalimliᚋ
 	return ec._FormResponse(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalNGoogleLoginOrSignUpInput2githubᚗcomᚋelisalimliᚋnextsyncᚋserverᚋgraphqlᚋmodelsᚐGoogleLoginOrSignUpInput(ctx context.Context, v interface{}) (models.GoogleLoginOrSignUpInput, error) {
-	res, err := ec.unmarshalInputGoogleLoginOrSignUpInput(ctx, v)
+func (ec *executionContext) unmarshalNGoogleLoginInput2githubᚗcomᚋelisalimliᚋnextsyncᚋserverᚋgraphqlᚋmodelsᚐGoogleLoginInput(ctx context.Context, v interface{}) (models.GoogleLoginInput, error) {
+	res, err := ec.unmarshalInputGoogleLoginInput(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) unmarshalNGoogleSignUpInput2githubᚗcomᚋelisalimliᚋnextsyncᚋserverᚋgraphqlᚋmodelsᚐGoogleSignUpInput(ctx context.Context, v interface{}) (models.GoogleSignUpInput, error) {
+	res, err := ec.unmarshalInputGoogleSignUpInput(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 

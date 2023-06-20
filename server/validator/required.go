@@ -5,13 +5,17 @@ import (
 	"reflect"
 )
 
-func (v *Validator) Required(field string, value interface{}) bool {
+func (v *Validator) Required(field string, value interface{}, customErrorMessage *string) bool {
 	if _, ok := v.Errors[field]; ok {
 		return false
 	}
-
+	fmt.Println(IsEmpty(value), value)
 	if IsEmpty(value) {
-		v.Errors[field] = fmt.Sprintf("%s is required", field)
+		if customErrorMessage != nil {
+			v.Errors[field] = *customErrorMessage
+		} else {
+			v.Errors[field] = fmt.Sprintf("%s is required", field)
+		}
 		return false
 	}
 
