@@ -9,7 +9,7 @@ import { FieldError, LoginInput, SendOtpInput } from "../../src/gql/graphql";
 import { loginMutationDocument } from "../../src/graphql/mutation/user/login";
 import * as WebBrowser from "expo-web-browser";
 import * as Google from "expo-auth-session/providers/google";
-import { googleLoginOrSignUpMutationDocument } from "../../src/graphql/mutation/user/googleLoginOrSignup";
+import { googleLoginOrSignUpMutationDocument } from "../../src/graphql/mutation/user/googleLogin";
 import { sendOtpMutation } from "../../src/graphql/mutation/user/sendOtp";
 import { useRouter } from "expo-router";
 

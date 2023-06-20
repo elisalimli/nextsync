@@ -13,7 +13,8 @@ import { TypedDocumentNode as DocumentNode } from '@graphql-typed-document-node/
  * Therefore it is highly recommended to use the babel or swc plugin for production.
  */
 const documents = {
-    "\n  mutation GoogleLoginOrSignUp($input: GoogleLoginOrSignUpInput!) {\n    googleLoginOrSignUp(input: $input) {\n      ok\n      errors {\n        message\n        field\n      }\n      user {\n        ...User_Fragment\n      }\n      authToken {\n        token\n        expiredAt\n      }\n    }\n  }\n": types.GoogleLoginOrSignUpDocument,
+    "\n  mutation GoogleLogin($input: GoogleLoginInput!) {\n    googleLogin(input: $input) {\n      ok\n      errors {\n        message\n        field\n      }\n      user {\n        ...User_Fragment\n      }\n      authToken {\n        token\n        expiredAt\n      }\n    }\n  }\n": types.GoogleLoginDocument,
+    "\n  mutation GoogleSignUp($input: GoogleSignUpInput!) {\n    googleSignUp(input: $input) {\n      ok\n      errors {\n        message\n        field\n      }\n      user {\n        ...User_Fragment\n      }\n      authToken {\n        token\n        expiredAt\n      }\n    }\n  }\n": types.GoogleSignUpDocument,
     "\n  mutation Login($input: LoginInput!) {\n    login(input: $input) {\n      ok\n      errors {\n        message\n        field\n      }\n      authToken {\n        token\n        expiredAt\n      }\n      user {\n        ...User_Fragment\n      }\n    }\n  }\n": types.LoginDocument,
     "\n  mutation Logout {\n    logout\n  }\n": types.LogoutDocument,
     "\n  mutation RefreshToken {\n    refreshToken {\n      ok\n      errors {\n        message\n        field\n      }\n      authToken {\n        token\n        expiredAt\n      }\n    }\n  }\n": types.RefreshTokenDocument,
@@ -48,7 +49,11 @@ export function graphql(source: string): unknown;
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
-export function graphql(source: "\n  mutation GoogleLoginOrSignUp($input: GoogleLoginOrSignUpInput!) {\n    googleLoginOrSignUp(input: $input) {\n      ok\n      errors {\n        message\n        field\n      }\n      user {\n        ...User_Fragment\n      }\n      authToken {\n        token\n        expiredAt\n      }\n    }\n  }\n"): (typeof documents)["\n  mutation GoogleLoginOrSignUp($input: GoogleLoginOrSignUpInput!) {\n    googleLoginOrSignUp(input: $input) {\n      ok\n      errors {\n        message\n        field\n      }\n      user {\n        ...User_Fragment\n      }\n      authToken {\n        token\n        expiredAt\n      }\n    }\n  }\n"];
+export function graphql(source: "\n  mutation GoogleLogin($input: GoogleLoginInput!) {\n    googleLogin(input: $input) {\n      ok\n      errors {\n        message\n        field\n      }\n      user {\n        ...User_Fragment\n      }\n      authToken {\n        token\n        expiredAt\n      }\n    }\n  }\n"): (typeof documents)["\n  mutation GoogleLogin($input: GoogleLoginInput!) {\n    googleLogin(input: $input) {\n      ok\n      errors {\n        message\n        field\n      }\n      user {\n        ...User_Fragment\n      }\n      authToken {\n        token\n        expiredAt\n      }\n    }\n  }\n"];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "\n  mutation GoogleSignUp($input: GoogleSignUpInput!) {\n    googleSignUp(input: $input) {\n      ok\n      errors {\n        message\n        field\n      }\n      user {\n        ...User_Fragment\n      }\n      authToken {\n        token\n        expiredAt\n      }\n    }\n  }\n"): (typeof documents)["\n  mutation GoogleSignUp($input: GoogleSignUpInput!) {\n    googleSignUp(input: $input) {\n      ok\n      errors {\n        message\n        field\n      }\n      user {\n        ...User_Fragment\n      }\n      authToken {\n        token\n        expiredAt\n      }\n    }\n  }\n"];
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */

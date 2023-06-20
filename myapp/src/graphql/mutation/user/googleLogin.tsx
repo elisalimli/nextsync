@@ -1,8 +1,8 @@
 import { graphql } from "../../../gql";
 
-export const googleLoginOrSignUpMutationDocument = graphql(`
-  mutation GoogleLoginOrSignUp($input: GoogleLoginOrSignUpInput!) {
-    googleLoginOrSignUp(input: $input) {
+export const googleLoginpMutationDocument = graphql(`
+  mutation GoogleLogin($input: GoogleLoginInput!) {
+    googleLogin(input: $input) {
       ok
       errors {
         message

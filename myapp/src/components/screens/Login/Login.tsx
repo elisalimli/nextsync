@@ -10,75 +10,24 @@ import Input from "../../Form/Input";
 import { setErrors } from "../../Form/setErrors";
 import GoogleLogin from "./GoogleLogin";
 import { graphqlRequestClient } from "../../../graphql/requestClient";
+import CustomSafeAreaView from "../../CustomSafeAreaView";
+import { View } from "react-native";
 
 const Login = () => {
-  const queryClient = useQueryClient();
-  const {
-    control,
-    handleSubmit,
-    getValues,
-    setError,
-    formState: { errors },
-  } = useForm<LoginInput & FieldValues>();
-
-  const mutation = useMutation(
-    () =>
-      graphqlRequestClient.request(loginMutationDocument, {
-        input: {
-          email: getValues().email,
-          password: getValues().password,
-        },
-      }),
-    {
-      onSuccess: async (data) => {
-        // Invalidate and refetch
-        if (data?.login?.ok && data?.login?.authToken) {
-          await saveAuthAccessToken(data?.login?.authToken?.token);
-          await queryClient.resetQueries();
-        }
-      },
-    }
-  );
-
-  const onSubmit = async (data: LoginInput & FieldValues) => {
-    const response = await mutation.mutateAsync();
-    // setting errors
-    if (response?.login?.errors) {
-      setErrors<LoginInput>(response!.login!.errors as FieldError[], setError);
-    }
-
-    // if response is ok, saving accessToken
-    if (response.login.ok && response.login?.authToken) {
-      await saveAuthAccessToken(response?.login?.authToken?.token);
-    }
-  };
-
   return (
-    <SafeAreaView style={{ flex: 1 }}>
-      <Text>You need to sign in</Text>
-      <Input
-        placeholder="Enter your username or email"
-        name={"email"}
-        control={control}
-      />
-      <Input
-        placeholder="Enter your password"
-        name={"password"}
-        control={control}
-      />
-      <ErrorMessage
-        errors={errors}
-        name={"root.serverError"}
-        render={({ message }) => <Text>{message}</Text>}
-      />
-      <TouchableOpacity
-        disabled={mutation.isLoading}
-        onPress={handleSubmit(onSubmit)}
-      >
-        <Text>Submit</Text>
-      </TouchableOpacity>
-      <GoogleLogin />
-    </SafeAreaView>
+    <CustomSafeAreaView>
+      <View className="flex-1 px-9 mt-24">
+        <View className="flex-1">
+          <Text className="text-2xl font-semibold">Qeydiyyatdan keçin.</Text>
+          <Text className="mt-2 text-darkGray">
+            İmtahanlar, sınaqlar və daha çoxu.
+          </Text>
+        </View>
+        <View className="mb-4">
+          <GoogleLogin />
+        </View>
+      </View>
+    </CustomSafeAreaView>
   );
 };
 export default Login;

@@ -19,10 +19,12 @@ import type { User } from "@react-native-google-signin/google-signin";
 // @ts-ignore see docs/CONTRIBUTING.md for details
 import config from "./config";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { googleLoginOrSignUpMutationDocument } from "../../../graphql/mutation/user/googleLoginOrSignup";
 import { graphqlRequestClient } from "../../../graphql/requestClient";
 import { saveAuthAccessToken } from "../../../auth/auth";
 import { useRouter } from "expo-router";
+import { TouchableOpacity } from "react-native-gesture-handler";
+import { AntDesign } from "@expo/vector-icons";
+import { googleLoginpMutationDocument } from "../../../graphql/mutation/user/googleLogin";
 
 const GoogleSigninSampleApp = () => {
   useEffect(() => {
@@ -45,34 +47,36 @@ const GoogleSigninSampleApp = () => {
     const router = useRouter();
     const mutation = useMutation(async () => {
       const isSignedIn = await GoogleSignin.getTokens();
-      return graphqlRequestClient.request(googleLoginOrSignUpMutationDocument, {
+      return graphqlRequestClient.request(googleLoginpMutationDocument, {
         input: { token: isSignedIn.accessToken },
       });
     }, {});
 
     return (
       <View>
-        <GoogleSigninButton
-          size={GoogleSigninButton.Size.Standard}
-          color={GoogleSigninButton.Color.Dark}
+        <TouchableOpacity
+          className="bg-black flex-row p-2 border rounded-full justify-center items-center"
           onPress={async () => {
             await signIn();
             const res = await mutation.mutateAsync();
-            const data = res?.googleLoginOrSignUp;
-            console.log("getting current user..", data);
+            const data = res?.googleLogin;
 
-            console.log("res", res);
+            const isSignedIn = await GoogleSignin.getTokens();
+            console.log("token", isSignedIn);
 
             // if response is ok, saving accessToken
             if (data?.ok && data?.authToken) {
               await saveAuthAccessToken(data?.authToken?.token);
               queryClient.invalidateQueries({ queryKey: ["me"] });
             } else if (data?.ok && !data?.user) {
-              // if user is not verified, we need to navigate the user to userDetails screen
-              router.push("/userDetails");
+              // if user is not verified, we need to navigate the user to googleSignUp screen
+              router.push("/googleSignUp");
             }
           }}
-        />
+        >
+          <AntDesign name="google" size={24} color="white" />
+          <Text className="text-white font-bold ml-4">LOGIN WITH GOOGLE</Text>
+        </TouchableOpacity>
       </View>
     );
   };

@@ -19,6 +19,7 @@ module.exports = {
         primary: "#2F2E41",
         secondary: "#F39C12",
         darkBlue: "#111A2C",
+        description: "#8F92A1",
         darkGray: "#525C67",
         darkGray2: "#757D85",
         gray: "#898B9A",
