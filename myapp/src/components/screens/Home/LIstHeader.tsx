@@ -16,22 +16,19 @@ function ListHeader() {
       onSuccess: async (data) => {
         if (data?.logout) {
           await clearAuthState();
+          await GoogleSignin.revokeAccess();
+          await GoogleSignin.signOut();
           queryClient.resetQueries({
             queryKey: ["me"],
           });
+
           router?.replace("/login");
         }
       },
     }
   );
 
-  const handleLogout = async () => {
-    const data = await mutation.mutateAsync();
-    // if logout is successful, we clear the auth state
-    if (data?.logout) await clearAuthState();
-    await GoogleSignin.revokeAccess();
-    await GoogleSignin.signOut();
-  };
+  const handleLogout = () => mutation.mutate();
 
   return (
     <View className="px-2">
