@@ -59,7 +59,7 @@ const App = () => {
         style={[
           {
             flexGrow: 1,
-            paddingTop: HEADER_TAGS_HEIGHT_EXPANDED,
+            paddingTop: HEADER_TAGS_HEIGHT_EXPANDED / 2,
           },
         ]}
         // data={data?.posts}

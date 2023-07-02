@@ -63,11 +63,11 @@ const ConnectedCreatePost3 = (props: ConnectedCreatePost3Props) => {
       formData.append("title", formValues.title);
       formData.append("description", formValues.description);
 
-      docs?.map((doc) => {
+      docs?.map((item) => {
         formData.append("files", {
-          uri: doc.uri,
-          name: doc.name,
-          type: doc.type,
+          uri: item.doc.uri,
+          name: item.doc.name,
+          type: item.doc.type,
         } as any);
       });
 

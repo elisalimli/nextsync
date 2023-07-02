@@ -16,8 +16,8 @@ function ListHeader() {
       onSuccess: async (data) => {
         if (data?.logout) {
           await clearAuthState();
-          await GoogleSignin.revokeAccess();
-          await GoogleSignin.signOut();
+          // await GoogleSignin.revokeAccess();
+          // await GoogleSignin.signOut();
           queryClient.resetQueries({
             queryKey: ["me"],
           });

@@ -33,10 +33,8 @@ const GoogleSigninSampleApp = () => {
 
   const configureGoogleSignIn = () => {
     GoogleSignin.configure({
-      androidClientId:
-        "451487467771-0mi190vvagdsjfiahi020g3jh72net4u.apps.googleusercontent.com",
-      iosClientId:
-        "451487467771-4pcnru9mac9q7qv1e8hlhvfnbcablrtf.apps.googleusercontent.com",
+      androidClientId: process.env.GOOGLE_ANDROID_CLIENT_ID,
+      iosClientId: process.env.GOOGLE_IOS_CLIENT_ID,
       webClientId: config.webClientId,
       offlineAccess: false,
     });

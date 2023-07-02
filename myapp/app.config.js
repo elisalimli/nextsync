@@ -33,7 +33,7 @@ module.exports = {
   plugins: ["@react-native-google-signin/google-signin"],
   extra: {
     eas: {
-      projectId: "ce790d53-b891-4b79-bcfb-0217b86caacf",
+      projectId: "62db502c-0762-4b31-841e-f74f676a23d0",
     },
     apiUrl: process.env.GOOGLE_IOS_CLIENT_ID,
     // ENTRY_FILE: "index.ts",

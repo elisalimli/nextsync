@@ -20,6 +20,7 @@ const HomeHeaderActions = ({
   const handleAddPress = () => {
     router.push("/post/create-post-0");
   };
+
   return (
     <View
       className="flex-row justify-between w-full"

@@ -11,7 +11,7 @@ import { verticalScale } from "../utils/responsive";
 export const HEADER_HEIGHT_EXPANDED = verticalScale(200);
 export const TAGS_HEIGHT_EXPANDED = verticalScale(40);
 export const HEADER_TAGS_HEIGHT_EXPANDED = verticalScale(
-  HEADER_HEIGHT_EXPANDED + 40
+  HEADER_HEIGHT_EXPANDED + 120
 );
 export const SEARCH_BAR_PADDING_HORIZONTAL = 16;
 const HEADER_HEIGHT_NARROWED = verticalScale(95);

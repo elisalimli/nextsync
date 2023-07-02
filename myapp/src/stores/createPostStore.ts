@@ -1,6 +1,7 @@
 import { create } from "zustand";
 import { devtools, persist } from "zustand/middleware";
-import { CreatePostFormValues } from "../../app/post/create-post-1";
+import { CreatePostFormValues } from "../components/screens/CreatePost/ConnectedCreatePost1";
+import { ColorValue } from "react-native";
 
 export interface FileUpload {
   name: string;
@@ -9,12 +10,17 @@ export interface FileUpload {
   type: string;
 }
 
+export interface IDoc {
+  id: number;
+  doc: FileUpload;
+}
+
 interface CreatePostState {
-  docs: FileUpload[];
+  docs: IDoc[];
   tagIds: string[];
   formValues: CreatePostFormValues;
   setFormValues: (newFormValues: CreatePostFormValues) => void;
-  setDocs: (docs: FileUpload[]) => void;
+  setDocs: (docs: IDoc[]) => void;
   addTag: (newTagId: string) => void;
   reset: () => void;
 }
@@ -27,7 +33,6 @@ const initialState = {
 
 export const useCreatePostStore = create<CreatePostState>((set) => ({
   ...initialState,
-
   setFormValues: (newFormValues) =>
     set((state) => ({
       formValues: newFormValues,
