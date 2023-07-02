@@ -12,11 +12,14 @@ import { constants } from "../src/constants";
 import { asyncStoragePersister, queryClient } from "../src/graphql/client";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { StatusBar } from "expo-status-bar";
+import { LogBox } from "react-native";
 
 export const unstable_settings = {
   // Ensure that reloading on `/modal` keeps a back button present.
   initialRouteName: "(tabs)",
 };
+
+LogBox.ignoreLogs(["Unauthorized: Token has expired"]); // Ignore expired auth token
 
 export default function RootLayout() {
   const [loaded, error] = useFonts({
