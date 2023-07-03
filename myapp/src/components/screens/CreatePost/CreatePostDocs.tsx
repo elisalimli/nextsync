@@ -6,7 +6,7 @@ import {
   useCreatePostStore,
 } from "../../../stores/createPostStore";
 import { ViewCreatePost2Props } from "./ViewCreatePost2";
-import CreatePostDoc from "./CreatePostDoc";
+import CreatePostDoc from "./CreatePostDoc/CreatePostDoc";
 import Animated, {
   useAnimatedScrollHandler,
   useDerivedValue,
@@ -48,6 +48,7 @@ export default function CreatePostDocs({
         <Text className="text-secondary text-lg">+ Yeni sənəd əlavə et</Text>
       </TouchableOpacity>
       <DraggableFlatList
+        className="h-full"
         data={docs}
         onDragEnd={({ data }) => setDocs(data)}
         keyExtractor={(item: IDoc) => `${item.id}`}
