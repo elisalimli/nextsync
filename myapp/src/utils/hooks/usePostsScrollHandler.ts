@@ -18,9 +18,8 @@ export const useScrollHandler = () => {
     onScroll: (event, ctx) => {
       let { y } = event.contentOffset;
       translationY.value = withTiming(event.contentOffset.y, { duration: 50 });
-      if (y < 0) {
-        y = 0;
-      }
+      if (y < 0) y = 0;
+
       const dy = y - (ctx?.prevY ?? 0);
       translationDiffY.value = withTiming(
         clamp(translationDiffY.value + dy, 0, 50),

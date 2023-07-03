@@ -21,9 +21,8 @@ export interface ViewCreatePost2Props {
 
 const ViewCreatePost2 = ({ docs, pickDocument }: ViewCreatePost2Props) => {
   const router = useRouter();
-  const insets = useSafeAreaInsets();
   const { setDocs } = useCreatePostStore();
-  console.log(docs);
+
   return (
     <CustomSafeAreaView>
       <StatusBar style="dark" />

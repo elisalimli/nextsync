@@ -36,7 +36,7 @@ export const useAnimatedHeaderStyles = ({
     );
     const headerY = interpolate(
       scrollDiffY.value,
-      [0, HEADER_HEIGHT_NARROWED + tagsHeight.value],
+      [0, (HEADER_HEIGHT_NARROWED + tagsHeight.value) * 2],
       [0, -(HEADER_TAGS_HEIGHT_EXPANDED + tagsHeight.value)],
       {
         extrapolateLeft: Extrapolation.CLAMP,

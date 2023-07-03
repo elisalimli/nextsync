@@ -3,3 +3,7 @@
 
 - [x] custom splash screen
 - [x] create post screen
+    - [x] drag to sort
+    - [x] swipe to delete
+
+- [ ] implementing google ads 
