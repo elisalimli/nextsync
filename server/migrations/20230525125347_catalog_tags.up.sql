@@ -18,6 +18,6 @@ CREATE TABLE post_tags (
     "post_id" uuid NOT NULL,
     "tag_id" uuid NOT NULL,
     PRIMARY KEY ("post_id", "tag_id"),
-    FOREIGN KEY ("post_id") REFERENCES posts ("id"),
+    FOREIGN KEY ("post_id") REFERENCES "public"."posts" ("id") ON UPDATE NO ACTION ON DELETE CASCADE,
     FOREIGN KEY ("tag_id") REFERENCES tags ("id")
 );
