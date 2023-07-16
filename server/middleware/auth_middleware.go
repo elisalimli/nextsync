@@ -30,12 +30,6 @@ func AuthMiddleware(repo postgres.UsersRepo) func(http.Handler) http.Handler {
 				next.ServeHTTP(w, r)
 				return
 			}
-			// fmt.Println("sending a request")
-			// user, err := repo.GetUserByID(claims["jti"].(string))
-			// if err != nil {
-			// 	next.ServeHTTP(w, r)
-			// 	return
-			// }
 
 			ctx := context.WithValue(r.Context(), CurrentUserIdKey, claims["jti"])
 

@@ -21,6 +21,7 @@ import (
 	customMiddleware "github.com/elisalimli/nextsync/server/middleware"
 	"github.com/elisalimli/nextsync/server/validator"
 	"github.com/google/uuid"
+	"github.com/uptrace/bun"
 	"golang.org/x/exp/slices"
 )
 
@@ -245,4 +246,88 @@ func (d *Domain) CreatePost(w http.ResponseWriter, r *http.Request) {
 
 	w.WriteHeader(http.StatusCreated)
 	w.Write([]byte("Post created successfully"))
+}
+
+func (d *Domain) GetPosts(ctx context.Context, input models.PostsInput) (*models.PostsResponse, error) {
+	realLimitPlusOne := *input.Limit + 1
+	posts := make([]*models.Post, 0)
+	q := d.PostsRepo.DB.NewSelect().Model(&posts).
+		ColumnExpr("post.id, post.title, post.description, post.html_content, post.user_id, post.created_at, post.updated_at").
+		ColumnExpr(`json_agg(json_build_object(
+			'id', t.id,
+			'name', t.name,
+			'code', t.code,
+			'catalog', json_build_object('id', c.id,'name', c.name,'code', c.code)
+			)) AS tags`).
+		Join("LEFT JOIN post_tags pt ON post.id = pt.post_id").
+		Join("LEFT JOIN tags t ON t.id = pt.tag_id").
+		Join("LEFT JOIN catalogs c ON t.catalog_id = c.id").
+		GroupExpr(`post.id, post.title, post.description`).
+		Order(`post.created_at DESC`).
+		Limit(realLimitPlusOne)
+
+	if input.Cursor != nil {
+		q = q.Where("post.created_at < ?", input.Cursor)
+	}
+
+	fmt.Println("tag ids ", input.TagIds)
+	// filtering by tag ids
+	if len(input.TagIds) > 0 {
+		subq := d.PostsRepo.DB.NewSelect().Model((*models.PostTag)(nil)).
+			ColumnExpr("pt.post_id").
+			Where("pt.tag_id IN (?)", bun.In(input.TagIds)).
+			Group("pt.post_id").
+			Having(fmt.Sprintf("COUNT(DISTINCT pt.tag_id) = %d", len(input.TagIds)))
+		q = q.Where("post.id IN (?)", subq)
+	}
+
+	// searching posts
+	if input.SearchQuery != nil && len(*input.SearchQuery) > 0 {
+		q = q.ColumnExpr(fmt.Sprintf(`ts_rank(search, websearch_to_tsquery ('turkish', '%s')) AS rank`, *input.SearchQuery)).
+			Where(fmt.Sprintf("search @@ websearch_to_tsquery ('turkish', '%s')", *input.SearchQuery)).Order(`rank DESC`)
+	}
+
+	err := q.Scan(ctx)
+
+	if err != nil {
+		fmt.Println("Error occured:", err)
+		return nil, errors.New(ErrSomethingWentWrong)
+	}
+
+	hasMore := len(posts) == realLimitPlusOne
+	fmt.Println("has more ", hasMore, len(posts), realLimitPlusOne)
+	if hasMore {
+		posts = posts[:len(posts)-1]
+	}
+
+	// TODO: lice array has more
+	return &models.PostsResponse{HasMore: hasMore, Posts: posts}, nil
+}
+
+func (d *Domain) GetPost(ctx context.Context, input models.PostInput) (*models.Post, error) {
+	post := models.Post{}
+	q := d.PostsRepo.DB.NewSelect().Model(&post).
+		ColumnExpr("post.id, post.title, post.description, post.html_content, post.user_id, post.created_at, post.updated_at").
+		ColumnExpr(`json_agg(json_build_object(
+			'id', t.id,
+			'name', t.name,
+			'code', t.code,
+			'catalog', json_build_object('id', c.id,'name', c.name,'code', c.code)
+			)) AS tags`).
+		Join("LEFT JOIN post_tags pt ON post.id = pt.post_id").
+		Join("LEFT JOIN tags t ON t.id = pt.tag_id").
+		Join("LEFT JOIN catalogs c ON t.catalog_id = c.id").
+		GroupExpr(`post.id, post.title, post.description`).
+		Where("post.id = ?", input.ID)
+
+	err := q.Scan(ctx)
+
+	if err != nil {
+		fmt.Println("Error occured:", err)
+		return nil, errors.New(ErrSomethingWentWrong)
+	}
+
+	// TODO: lice array has more
+	return &post, nil
+
 }
