@@ -29,7 +29,7 @@ const HomeHeaderActions = ({
       <TouchableOpacity onPress={handleAddPress}>
         <Text className="text-white">Add</Text>
       </TouchableOpacity>
-      <Text className="text-white">NextSync</Text>
+      <Text className="text-white"></Text>
       <TouchableOpacity
         onPress={() => {
           tagsHeight.value = withTiming(TAGS_HEIGHT_EXPANDED);

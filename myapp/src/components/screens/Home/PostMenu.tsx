@@ -1,4 +1,4 @@
-import { Feather } from "@expo/vector-icons";
+import { Entypo, Feather, MaterialCommunityIcons } from "@expo/vector-icons";
 import * as React from "react";
 import { TouchableOpacity } from "react-native";
 import ContextMenu from "react-native-context-menu-view";
@@ -70,7 +70,7 @@ const PostMenu = ({ files }: PostMenuProps) => {
       }}
     >
       <TouchableOpacity>
-        <Feather name="bookmark" size={24} color="black" />
+        <MaterialCommunityIcons name="dots-vertical" size={24} color="black" />
       </TouchableOpacity>
     </ContextMenu>
   );

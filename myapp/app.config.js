@@ -30,7 +30,17 @@ module.exports = {
     bundler: "metro",
     favicon: "./assets/images/favicon.png",
   },
-  plugins: ["@react-native-google-signin/google-signin"],
+  plugins: [
+    "@react-native-google-signin/google-signin",
+    [
+      "expo-build-properties",
+      {
+        ios: {
+          useFrameworks: "static",
+        },
+      },
+    ],
+  ],
   extra: {
     eas: {
       projectId: "62db502c-0762-4b31-841e-f74f676a23d0",
