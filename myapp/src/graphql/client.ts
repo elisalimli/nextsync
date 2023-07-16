@@ -28,7 +28,7 @@ export const queryClient = new QueryClient({
       const token = await getAuthAccessToken();
       if (
         token &&
-        error?.response?.errors[0]?.extensions?.code === "UNAUTHENTICATED"
+        error?.response?.errors[0]?.message?.includes("Unauthorized")
       )
         refreshToken();
     },

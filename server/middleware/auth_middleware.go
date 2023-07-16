@@ -20,7 +20,7 @@ func AuthMiddleware(repo postgres.UsersRepo) func(http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			token, err := parseToken(r)
 			if err != nil {
-				ctx := context.WithValue(r.Context(), CurrentUserIdKey, "TOKEN_EXPIRED")
+				ctx := context.WithValue(r.Context(), CurrentUserIdKey, "UNAUTHENTICATED")
 				next.ServeHTTP(w, r.WithContext(ctx))
 				return
 			}

@@ -1,10 +1,13 @@
 package main
 
 import (
+	"context"
+	"fmt"
 	"log"
 	"net/http"
 	"os"
 
+	gqlgen "github.com/99designs/gqlgen/graphql"
 	"github.com/99designs/gqlgen/graphql/handler"
 	"github.com/99designs/gqlgen/graphql/handler/extension"
 	"github.com/99designs/gqlgen/graphql/handler/lru"
@@ -28,6 +31,16 @@ func init() {
 }
 
 const defaultPort = "4000"
+
+func authDirective(ctx context.Context, obj interface{}, next gqlgen.Resolver) (res interface{}, err error) {
+	currentUserId, _ := ctx.Value(customMiddleware.CurrentUserIdKey).(string)
+	fmt.Println("userId", currentUserId)
+	log.Printf("Inside authDirective - ignore the role check for now")
+	if currentUserId == "UNAUTHENTICATED" {
+		return nil, fmt.Errorf("Unauthorized: Token has expired")
+	}
+	return next(ctx)
+}
 
 func main() {
 
@@ -56,6 +69,7 @@ func main() {
 	d := domain.NewDomain(userRepo, postsRepo)
 
 	c := graphql.Config{Resolvers: &graphql.Resolver{Domain: d}}
+	c.Directives.Auth = authDirective
 
 	srv := handler.New(graphql.NewExecutableSchema(c))
 	srv.AddTransport(

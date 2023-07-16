@@ -11,13 +11,10 @@ import (
 	"net/http"
 	"os"
 
-	"github.com/99designs/gqlgen/graphql"
 	myContext "github.com/elisalimli/nextsync/server/context"
 	"github.com/elisalimli/nextsync/server/domain"
 	"github.com/elisalimli/nextsync/server/graphql/models"
 	customMiddleware "github.com/elisalimli/nextsync/server/middleware"
-
-	"github.com/vektah/gqlparser/v2/gqlerror"
 )
 
 var (
@@ -45,17 +42,6 @@ func (r *queryResolver) Hello(ctx context.Context) (string, error) {
 
 func (r *queryResolver) Me(ctx context.Context) (*models.User, error) {
 	currentUserId, _ := ctx.Value(customMiddleware.CurrentUserIdKey).(string)
-	if currentUserId == "TOKEN_EXPIRED" {
-		graphql.AddError(ctx, &gqlerror.Error{
-			Path:    graphql.GetPath(ctx),
-			Message: "Unauthorized: Token has expired",
-			Extensions: map[string]interface{}{
-				"code": "UNAUTHENTICATED",
-			},
-		})
-
-		return nil, nil
-	}
 	user, err := r.Domain.UsersRepo.GetUserByID(ctx, currentUserId)
 	if err != nil {
 		return nil, nil

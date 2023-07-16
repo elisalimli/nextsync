@@ -1,7 +1,13 @@
 "The `UploadFile, // b.txt` scalar type represents a multipart file upload."
 scalar Time
 
-# directive @auth on FIELD_DEFINITION
+directive @auth on FIELD_DEFINITION
+
+enum Role {
+    ADMIN
+    USER
+}
+
 
 type FieldError {
   message: String!
@@ -169,11 +175,11 @@ input UploadFile {
 
 
 type Query {
-  users: [User!]!
-  posts(input:PostsInput!): PostsResponse!
-  post(input:PostInput!): Post
-  tags: [Tag!]!
-  me: User
+  users: [User!]! 
+  posts(input:PostsInput!): PostsResponse! @auth
+  post(input:PostInput!): Post @auth
+  tags: [Tag!]! @auth
+  me: User @auth
   hello: String! 
 }
 
@@ -182,8 +188,8 @@ type Mutation {
   login(input: LoginInput!): AuthResponse!
   googleLogin(input:GoogleLoginInput!): AuthResponse!
   googleSignUp(input:GoogleSignUpInput!): AuthResponse!
-  logout: Boolean!
-  refreshToken: AuthResponse!
+  logout: Boolean! @auth
+  refreshToken: AuthResponse! 
   sendOtp(input: SendOtpInput!): FormResponse!
   verifyOtp(input: VerifyOtpInput!): AuthResponse!
   

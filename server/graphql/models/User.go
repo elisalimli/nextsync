@@ -40,8 +40,8 @@ func (u *User) HashPassword(password string) error {
 }
 
 func (u *User) GenAccessToken() (*AuthToken, error) {
-	expiredAt := time.Now().Add(time.Minute * 60 * 24 * 30 * 2) // 2 months
-	// expiredAt := time.Now().Add(time.Second * 15) // 15 sec
+	// expiredAt := time.Now().Add(time.Minute * 60 * 24 * 30 * 2) // 2 months
+	expiredAt := time.Now().Add(time.Second * 15) // 15 sec
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.StandardClaims{
 		ExpiresAt: expiredAt.Unix(),
