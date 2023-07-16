@@ -161,6 +161,10 @@ input PostInput {
   id: String!
 }
 
+input DeletePostInput {
+  id: String!
+}
+
 
 "The `UploadFile` type, represents the request for uploading a file with certain payload."
 input UploadFile {
@@ -193,6 +197,7 @@ type Mutation {
   sendOtp(input: SendOtpInput!): FormResponse!
   verifyOtp(input: VerifyOtpInput!): AuthResponse!
   
+  deletePost(input:DeletePostInput!): FormResponse! @auth
   # createMeetup(input: NewMeetup!): Meetup!
   # updateMeetup(id: ID!, input: UpdateMeetup!): Meetup!
   # deleteMeetup(id: ID!): Boolean!

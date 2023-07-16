@@ -3,6 +3,7 @@ package graphql
 import (
 	"context"
 
+	"github.com/elisalimli/nextsync/server/domain"
 	"github.com/elisalimli/nextsync/server/graphql/models"
 	"github.com/elisalimli/nextsync/server/storage"
 )
@@ -21,4 +22,13 @@ func (q *queryResolver) Posts(ctx context.Context, input models.PostsInput) (*mo
 
 func (q *queryResolver) Post(ctx context.Context, input models.PostInput) (*models.Post, error) {
 	return q.Domain.GetPost(ctx, input)
+}
+
+func (q *mutationResolver) DeletePost(ctx context.Context, input models.DeletePostInput) (*models.FormResponse, error) {
+	isValid, errors := domain.Validation(ctx, input)
+	if !isValid {
+		return &models.FormResponse{Ok: false, Errors: errors}, nil
+	}
+
+	return q.Domain.DeletePost(ctx, input)
 }

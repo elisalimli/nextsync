@@ -94,3 +94,11 @@ func (l GoogleLoginInput) Validate() (bool, map[string]string) {
 
 	return v.IsValid(), v.Errors
 }
+
+func (d DeletePostInput) Validate() (bool, map[string]string) {
+	v := validator.New()
+
+	v.Required("id", d.ID, nil)
+
+	return v.IsValid(), v.Errors
+}

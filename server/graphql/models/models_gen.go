@@ -43,6 +43,10 @@ type AuthToken struct {
 	ExpiredAt time.Time `json:"expiredAt"`
 }
 
+type DeletePostInput struct {
+	ID string `json:"id"`
+}
+
 // The `File` type, represents the response of uploading a file.
 type File struct {
 	ID          int    `json:"id"`

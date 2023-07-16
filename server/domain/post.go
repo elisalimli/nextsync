@@ -331,3 +331,15 @@ func (d *Domain) GetPost(ctx context.Context, input models.PostInput) (*models.P
 	return &post, nil
 
 }
+
+func (d *Domain) DeletePost(ctx context.Context, input models.DeletePostInput) (*models.FormResponse, error) {
+	post := models.Post{Id: input.ID}
+	res, err := d.PostsRepo.DB.NewDelete().Model(&post).Where("id = ?", input.ID).Exec(ctx)
+	fmt.Println(res, err)
+
+	if err != nil {
+		return nil, errors.New(ErrSomethingWentWrong)
+	}
+
+	return &models.FormResponse{Ok: true}, nil
+}
