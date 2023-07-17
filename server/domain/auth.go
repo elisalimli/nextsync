@@ -4,7 +4,6 @@ import (
 	"context"
 	"database/sql"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io"
 	"log"
@@ -67,12 +66,12 @@ func (d *Domain) Login(ctx context.Context, input models.LoginInput) (*models.Au
 
 	accessToken, err := user.GenAccessToken()
 	if err != nil {
-		return nil, errors.New(ErrSomethingWentWrong)
+		return nil, &ErrSomethingWentWrong{}
 	}
 
 	refreshToken, err := user.GenRefreshToken()
 	if err != nil {
-		return nil, errors.New(ErrSomethingWentWrong)
+		return nil, &ErrSomethingWentWrong{}
 	}
 	user.SaveRefreshToken(ctx, refreshToken)
 
@@ -105,7 +104,7 @@ func (d *Domain) Register(ctx context.Context, input models.RegisterInput) (*mod
 	err = user.HashPassword(input.Password)
 	if err != nil {
 		log.Printf("error while hashing password: %v", err)
-		return nil, errors.New(ErrSomethingWentWrong)
+		return nil, &ErrSomethingWentWrong{}
 	}
 
 	// TODO: create verification code
@@ -113,7 +112,7 @@ func (d *Domain) Register(ctx context.Context, input models.RegisterInput) (*mod
 	tx, err := d.UsersRepo.DB.BeginTx(ctx, &sql.TxOptions{})
 	if err != nil {
 		log.Printf("error while creating a new transaction: %v", err)
-		return nil, errors.New(ErrSomethingWentWrong)
+		return nil, &ErrSomethingWentWrong{}
 	}
 	defer func() {
 		if r := recover(); r != nil {
@@ -137,13 +136,13 @@ func (d *Domain) Register(ctx context.Context, input models.RegisterInput) (*mod
 
 	// err = d.UsersRepo.RedisClient.Set(ctx, user.PhoneNumber, user.ID, expiredAt).Err()
 	// if err != nil {
-	// 	return nil, errors.New(ErrSomethingWentWrong)
+	// 	return nil, &ErrSomethingWentWrong{}
 	// }
 
 	// token, err := user.GenAccessToken()
 	// if err != nil {
 	// 	log.Printf("error while generating the token: %v", err)
-	// 	return nil, errors.New(ErrSomethingWentWrong)
+	// 	return nil, &ErrSomethingWentWrong{}
 	// }
 
 	return &models.AuthResponse{
@@ -190,12 +189,12 @@ func (d *Domain) RefreshToken(ctx context.Context) (*models.AuthResponse, error)
 
 	newRefreshToken, err := user.GenRefreshToken()
 	if err != nil {
-		return nil, errors.New(ErrSomethingWentWrong)
+		return nil, &ErrSomethingWentWrong{}
 	}
 
 	newAccessToken, err := user.GenAccessToken()
 	if err != nil {
-		return nil, errors.New(ErrSomethingWentWrong)
+		return nil, &ErrSomethingWentWrong{}
 	}
 	user.SaveRefreshToken(ctx, newRefreshToken)
 
@@ -227,7 +226,7 @@ func (d *Domain) VerifyOtp(ctx context.Context, input models.VerifyOtpInput) (*m
 	fmt.Println("code", resp)
 	if err != nil {
 		fmt.Println(err.Error())
-		return nil, errors.New(ErrSomethingWentWrong)
+		return nil, &ErrSomethingWentWrong{}
 
 	} else if *resp.Status == "approved" {
 		fmt.Println("Correct!")
@@ -240,12 +239,12 @@ func (d *Domain) VerifyOtp(ctx context.Context, input models.VerifyOtpInput) (*m
 		fmt.Println("verify token", user)
 		newRefreshToken, err := user.GenRefreshToken()
 		if err != nil {
-			return nil, errors.New(ErrSomethingWentWrong)
+			return nil, &ErrSomethingWentWrong{}
 		}
 
 		newAccessToken, err := user.GenAccessToken()
 		if err != nil {
-			return nil, errors.New(ErrSomethingWentWrong)
+			return nil, &ErrSomethingWentWrong{}
 		}
 		user.SaveRefreshToken(ctx, newRefreshToken)
 		return &models.AuthResponse{Ok: true, AuthToken: newAccessToken, User: &user}, nil
@@ -291,7 +290,7 @@ type GoogleUserRes struct {
 func (d *Domain) GoogleLogin(ctx context.Context, input models.GoogleLoginInput) (*models.AuthResponse, error) {
 	googleBody, err := GoogleMeRequest(input.Token)
 	if err {
-		return NewFieldError(validator.FieldError{Message: GeneralErrorFieldCode, Field: ErrSomethingWentWrong}), nil
+		return NewFieldError(validator.FieldError{Message: (&ErrSomethingWentWrong{}).Error(), Field: GeneralErrorFieldCode}), nil
 	}
 
 	if googleBody.Email != "" {
@@ -300,12 +299,12 @@ func (d *Domain) GoogleLogin(ctx context.Context, input models.GoogleLoginInput)
 		if user != nil {
 			newRefreshToken, err := user.GenRefreshToken()
 			if err != nil {
-				return nil, errors.New(ErrSomethingWentWrong)
+				return nil, &ErrSomethingWentWrong{}
 			}
 
 			newAccessToken, err := user.GenAccessToken()
 			if err != nil {
-				return nil, errors.New(ErrSomethingWentWrong)
+				return nil, &ErrSomethingWentWrong{}
 			}
 			user.SaveRefreshToken(ctx, newRefreshToken)
 			return &models.AuthResponse{Ok: true, AuthToken: newAccessToken, User: user}, nil
@@ -317,8 +316,9 @@ func (d *Domain) GoogleLogin(ctx context.Context, input models.GoogleLoginInput)
 
 func (m *Domain) GoogleSignUp(ctx context.Context, input models.GoogleSignUpInput) (*models.AuthResponse, error) {
 	googleBody, err := GoogleMeRequest(input.Token)
+
 	if err {
-		return NewFieldError(validator.FieldError{Message: GeneralErrorFieldCode, Field: ErrSomethingWentWrong}), nil
+		return NewFieldError(validator.FieldError{Message: (&ErrSomethingWentWrong{}).Error(), Field: GeneralErrorFieldCode}), nil
 	}
 
 	if googleBody.Email != "" {
@@ -338,7 +338,7 @@ func (m *Domain) GoogleSignUp(ctx context.Context, input models.GoogleSignUpInpu
 			_, err := m.UsersRepo.DB.NewInsert().Model(&newUser).Returning("*").Exec(ctx)
 
 			if err != nil {
-				return nil, errors.New(ErrSomethingWentWrong)
+				return nil, &ErrSomethingWentWrong{}
 			}
 
 			// re-defining the new created user
@@ -346,12 +346,12 @@ func (m *Domain) GoogleSignUp(ctx context.Context, input models.GoogleSignUpInpu
 
 			newRefreshToken, err := user.GenRefreshToken()
 			if err != nil {
-				return nil, errors.New(ErrSomethingWentWrong)
+				return nil, &ErrSomethingWentWrong{}
 			}
 
 			newAccessToken, err := user.GenAccessToken()
 			if err != nil {
-				return nil, errors.New(ErrSomethingWentWrong)
+				return nil, &ErrSomethingWentWrong{}
 			}
 			user.SaveRefreshToken(ctx, newRefreshToken)
 			return &models.AuthResponse{Ok: true, AuthToken: newAccessToken, User: user}, nil

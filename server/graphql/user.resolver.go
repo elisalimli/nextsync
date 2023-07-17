@@ -40,7 +40,7 @@ func (r *queryResolver) Hello(ctx context.Context) (string, error) {
 }
 
 func (r *queryResolver) Me(ctx context.Context) (*models.User, error) {
-	currentUserId, _ := ctx.Value(models.CurrentUserIdKey).(string)
+	currentUserId, _ := ctx.Value(myContext.CurrentUserIdKey).(string)
 	user, err := r.Domain.UsersRepo.GetUserByID(ctx, currentUserId)
 	if err != nil {
 		return nil, nil

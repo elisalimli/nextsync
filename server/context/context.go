@@ -7,3 +7,4 @@ type contextKey struct {
 var HttpWriterKey = &contextKey{"httpWriter"}
 var HttpReaderKey = &contextKey{"httpReader"}
 var CookieRefreshTokenKey = &contextKey{"refreshToken"}
+var CurrentUserIdKey = &contextKey{"currentUserId"}

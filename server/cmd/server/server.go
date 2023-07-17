@@ -36,7 +36,7 @@ const defaultPort = "4000"
 func authDirective(ctx context.Context, obj interface{}, next gqlgen.Resolver) (res interface{}, err error) {
 
 	if !models.CheckAuthenticated(ctx) {
-		return nil, fmt.Errorf("Unauthenticated")
+		return nil, fmt.Errorf("unauthenticated")
 	}
 
 	return next(ctx)

@@ -13,8 +13,6 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-const CurrentUserIdKey = "auth_current_user_id"
-
 type User struct {
 	Id             string `bun:"type:uuid,default:uuid_generate_v4(),pk"`
 	Username       string
@@ -106,6 +104,6 @@ func (u *User) ComparePassword(password string) error {
 }
 
 func CheckAuthenticated(ctx context.Context) bool {
-	currentUserId := ctx.Value(CurrentUserIdKey)
+	currentUserId := ctx.Value(myContext.CurrentUserIdKey)
 	return currentUserId != nil
 }

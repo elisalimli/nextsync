@@ -9,12 +9,12 @@ import (
 	"net/http"
 	"os"
 	"strings"
-	"sync"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/s3"
+	myContext "github.com/elisalimli/nextsync/server/context"
 	"github.com/elisalimli/nextsync/server/graphql/models"
 	"github.com/elisalimli/nextsync/server/validator"
 	"github.com/google/uuid"
@@ -33,11 +33,6 @@ var (
 
 var S3session *s3.S3
 
-type partUploadResult struct {
-	completedPart *s3.CompletedPart
-	err           error
-}
-
 func init() {
 
 	S3session = s3.New(session.Must(session.NewSession(&aws.Config{
@@ -46,8 +41,6 @@ func init() {
 	})))
 
 }
-
-var wg = sync.WaitGroup{}
 
 func (d *Domain) uploadFiles(ctx context.Context, files []*multipart.FileHeader, imageUrls *[]models.PostFile, postId string) error {
 	// Create a new AWS session
@@ -62,7 +55,7 @@ func (d *Domain) uploadFiles(ctx context.Context, files []*multipart.FileHeader,
 		// Open the uploaded file
 		file, err := fileHeader.Open()
 		if err != nil {
-			return errors.New("Failed to open file")
+			return errors.New("failed to open file")
 		}
 		defer file.Close()
 
@@ -81,7 +74,7 @@ func (d *Domain) uploadFiles(ctx context.Context, files []*multipart.FileHeader,
 			Body:   file,
 		})
 		if err != nil {
-			return errors.New("Failed to upload file to S3")
+			return errors.New("failed to upload file to S3")
 		}
 
 		// Generate the S3 URL for the uploaded file
@@ -104,12 +97,12 @@ func (d *Domain) CreatePost(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if models.CheckAuthenticated(ctx) {
+	if !models.CheckAuthenticated(ctx) {
 		http.Error(w, "Unauthorized", http.StatusUnauthorized)
 		return
 	}
 
-	currentUserId := ctx.Value(models.CurrentUserIdKey).(string)
+	currentUserId := ctx.Value(myContext.CurrentUserIdKey).(string)
 
 	title := r.FormValue("title")
 	description := r.FormValue("description")
@@ -254,7 +247,7 @@ func (d *Domain) GetPosts(ctx context.Context, input models.PostsInput) (*models
 
 	if err != nil {
 		fmt.Println("Error occured:", err)
-		return nil, errors.New(ErrSomethingWentWrong)
+		return nil, &ErrSomethingWentWrong{}
 	}
 
 	hasMore := len(posts) == realLimitPlusOne
@@ -287,7 +280,7 @@ func (d *Domain) GetPost(ctx context.Context, input models.PostInput) (*models.P
 
 	if err != nil {
 		fmt.Println("Error occured:", err)
-		return nil, errors.New(ErrSomethingWentWrong)
+		return nil, &ErrSomethingWentWrong{}
 	}
 
 	// TODO: lice array has more
@@ -297,11 +290,49 @@ func (d *Domain) GetPost(ctx context.Context, input models.PostInput) (*models.P
 
 func (d *Domain) DeletePost(ctx context.Context, input models.DeletePostInput) (*models.FormResponse, error) {
 	post := models.Post{Id: input.ID}
-	res, err := d.PostsRepo.DB.NewDelete().Model(&post).Where("id = ?", input.ID).Exec(ctx)
-	fmt.Println(res, err)
+	postFiles := []models.PostFile{}
+	d.PostsRepo.DB.NewSelect().Model(&postFiles).Where("post_id = ?", input.ID).Scan(ctx)
+	err := d.PostsRepo.DB.NewSelect().Model(&post).Where("id = ?", post.Id).Scan(ctx)
+	if err != nil {
+		return nil, errors.New("could not found post with the given ID")
+	}
+
+	currentUserId := ctx.Value(myContext.CurrentUserIdKey)
+
+	if post.UserId != currentUserId {
+		return nil, errors.New("unauthorized")
+	}
+
+	// deleting post from db
+	_, err = d.PostsRepo.DB.NewDelete().Model(&post).Where("id = ?", input.ID).Exec(ctx)
 
 	if err != nil {
-		return nil, errors.New(ErrSomethingWentWrong)
+		return nil, &ErrSomethingWentWrong{}
+	}
+
+	// Create a new AWS session
+	sess := session.Must(session.NewSession(&aws.Config{
+		Region:      aws.String(BucketRegion),
+		Credentials: credentials.NewStaticCredentials(AccessKey, SecretKey, ""),
+	}))
+
+	s3Client := s3.New(sess)
+
+	objectsToDelete := []*s3.ObjectIdentifier{}
+
+	for _, file := range postFiles {
+		objectsToDelete = append(objectsToDelete, &s3.ObjectIdentifier{Key: aws.String(file.FileName)})
+	}
+
+	// deleting files from amazon s3 which are associated with the deleted post
+	if len(objectsToDelete) > 0 {
+		_, err = s3Client.DeleteObjects(&s3.DeleteObjectsInput{
+			Bucket: aws.String(BucketName),
+			Delete: &s3.Delete{Objects: objectsToDelete},
+		})
+		if err != nil {
+			return nil, &ErrSomethingWentWrong{}
+		}
 	}
 
 	return &models.FormResponse{Ok: true}, nil

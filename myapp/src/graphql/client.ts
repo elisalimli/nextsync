@@ -17,7 +17,6 @@ export const queryClient = new QueryClient({
 
     mutations: {
       onMutate: async (variables) => {
-        console.log("refreshing token if expired");
         const token = await getAuthAccessToken();
         if (token && isTokenExpired(token)) await refreshToken();
       },
@@ -28,7 +27,7 @@ export const queryClient = new QueryClient({
       const token = await getAuthAccessToken();
       if (
         token &&
-        error?.response?.errors[0]?.message?.includes("Unauthorized")
+        error?.response?.errors[0]?.message?.includes("unauthenticated")
       )
         refreshToken();
     },

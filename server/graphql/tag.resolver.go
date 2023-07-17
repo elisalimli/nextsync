@@ -2,7 +2,6 @@ package graphql
 
 import (
 	"context"
-	"errors"
 	"fmt"
 
 	"github.com/elisalimli/nextsync/server/domain"
@@ -19,7 +18,7 @@ func (r *queryResolver) Tags(ctx context.Context) ([]*models.Tag, error) {
 
 	if err != nil {
 		fmt.Println("Error occured:", err)
-		return nil, errors.New(domain.ErrSomethingWentWrong)
+		return nil, &domain.ErrSomethingWentWrong{}
 	}
 
 	return tags, nil

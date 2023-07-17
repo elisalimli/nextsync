@@ -8,6 +8,7 @@ import (
 
 	"github.com/dgrijalva/jwt-go"
 	"github.com/dgrijalva/jwt-go/request"
+	myContext "github.com/elisalimli/nextsync/server/context"
 	"github.com/elisalimli/nextsync/server/graphql/models"
 	"github.com/elisalimli/nextsync/server/postgres"
 	"github.com/pkg/errors"
@@ -18,7 +19,6 @@ func AuthMiddleware(repo postgres.UsersRepo) func(http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			token, err := parseToken(r)
 			if err != nil {
-				// ctx := context.WithValue(r.Context(), CurrentUserIdKey, "UNAUTHENTICATED")
 				ctx := r.Context()
 				next.ServeHTTP(w, r.WithContext(ctx))
 				return
@@ -30,7 +30,7 @@ func AuthMiddleware(repo postgres.UsersRepo) func(http.Handler) http.Handler {
 				return
 			}
 
-			ctx := context.WithValue(r.Context(), models.CurrentUserIdKey, claims["jti"])
+			ctx := context.WithValue(r.Context(), myContext.CurrentUserIdKey, claims["jti"])
 
 			next.ServeHTTP(w, r.WithContext(ctx))
 		})
@@ -69,11 +69,11 @@ func parseToken(r *http.Request) (*jwt.Token, error) {
 func GetCurrentUserFromCTX(ctx context.Context) (*models.User, error) {
 	errNoUserInContext := errors.New("no user in context")
 
-	if ctx.Value(models.CurrentUserIdKey) == nil {
+	if ctx.Value(myContext.CurrentUserIdKey) == nil {
 		return nil, errNoUserInContext
 	}
 
-	user, ok := ctx.Value(models.CurrentUserIdKey).(*models.User)
+	user, ok := ctx.Value(myContext.CurrentUserIdKey).(*models.User)
 	if !ok || user.Id == "" {
 		return nil, errNoUserInContext
 	}

@@ -9,8 +9,14 @@ import (
 var (
 	GeneralErrorFieldCode = "root.serverError"
 	ErrBadCredentials     = ("email/password combination don't work")
-	ErrSomethingWentWrong = ("something went wrong")
+	// ErrSomethingWentWrong = ("something went wrong")
 )
+
+type ErrSomethingWentWrong struct{}
+
+func (m *ErrSomethingWentWrong) Error() string {
+	return "Something went wrong"
+}
 
 type Domain struct {
 	UsersRepo postgres.UsersRepo
