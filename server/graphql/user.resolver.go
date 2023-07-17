@@ -14,7 +14,6 @@ import (
 	myContext "github.com/elisalimli/nextsync/server/context"
 	"github.com/elisalimli/nextsync/server/domain"
 	"github.com/elisalimli/nextsync/server/graphql/models"
-	customMiddleware "github.com/elisalimli/nextsync/server/middleware"
 )
 
 var (
@@ -41,7 +40,7 @@ func (r *queryResolver) Hello(ctx context.Context) (string, error) {
 }
 
 func (r *queryResolver) Me(ctx context.Context) (*models.User, error) {
-	currentUserId, _ := ctx.Value(customMiddleware.CurrentUserIdKey).(string)
+	currentUserId, _ := ctx.Value(models.CurrentUserIdKey).(string)
 	user, err := r.Domain.UsersRepo.GetUserByID(ctx, currentUserId)
 	if err != nil {
 		return nil, nil

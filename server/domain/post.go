@@ -1,7 +1,6 @@
 package domain
 
 import (
-	"bytes"
 	"context"
 	"encoding/json"
 	"errors"
@@ -11,14 +10,12 @@ import (
 	"os"
 	"strings"
 	"sync"
-	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/s3"
 	"github.com/elisalimli/nextsync/server/graphql/models"
-	customMiddleware "github.com/elisalimli/nextsync/server/middleware"
 	"github.com/elisalimli/nextsync/server/validator"
 	"github.com/google/uuid"
 	"github.com/uptrace/bun"
@@ -51,41 +48,6 @@ func init() {
 }
 
 var wg = sync.WaitGroup{}
-
-func (d *Domain) uploadToS3(resp *s3.CreateMultipartUploadOutput, fileBytes []byte, partNum int, wg *sync.WaitGroup, ch chan partUploadResult) {
-	defer wg.Done()
-	var try int
-	fmt.Printf("Uploading %v \n", len(fileBytes))
-	for try <= RETRIES {
-		uploadRes, err := S3session.UploadPart(&s3.UploadPartInput{
-			Body:          bytes.NewReader(fileBytes),
-			Bucket:        resp.Bucket,
-			Key:           resp.Key,
-			PartNumber:    aws.Int64(int64(partNum)),
-			UploadId:      resp.UploadId,
-			ContentLength: aws.Int64(int64(len(fileBytes))),
-		})
-		if err != nil {
-			fmt.Println(err)
-			if try == RETRIES {
-				ch <- partUploadResult{nil, err}
-				return
-			} else {
-				try++
-				time.Sleep(time.Duration(time.Second * 15))
-			}
-		} else {
-			ch <- partUploadResult{
-				&s3.CompletedPart{
-					ETag:       uploadRes.ETag,
-					PartNumber: aws.Int64(int64(partNum)),
-				}, nil,
-			}
-			return
-		}
-	}
-	ch <- partUploadResult{}
-}
 
 func (d *Domain) uploadFiles(ctx context.Context, files []*multipart.FileHeader, imageUrls *[]models.PostFile, postId string) error {
 	// Create a new AWS session
@@ -131,7 +93,9 @@ func (d *Domain) uploadFiles(ctx context.Context, files []*multipart.FileHeader,
 }
 
 func (d *Domain) CreatePost(w http.ResponseWriter, r *http.Request) {
+
 	ctx := r.Context()
+
 	// Parse the multipart form data
 
 	err := r.ParseMultipartForm(32 << 20) // Max 32MB in-memory cache
@@ -140,13 +104,12 @@ func (d *Domain) CreatePost(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// fmt.Println("create post", input.SecondLanguage)
-	currentUserId, _ := ctx.Value(customMiddleware.CurrentUserIdKey).(string)
-
-	if currentUserId == "TOKEN_EXPIRED" {
+	if models.CheckAuthenticated(ctx) {
 		http.Error(w, "Unauthorized", http.StatusUnauthorized)
 		return
 	}
+
+	currentUserId := ctx.Value(models.CurrentUserIdKey).(string)
 
 	title := r.FormValue("title")
 	description := r.FormValue("description")

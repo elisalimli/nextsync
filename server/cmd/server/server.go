@@ -15,6 +15,7 @@ import (
 	"github.com/99designs/gqlgen/graphql/playground"
 	"github.com/elisalimli/nextsync/server/domain"
 	"github.com/elisalimli/nextsync/server/graphql"
+	"github.com/elisalimli/nextsync/server/graphql/models"
 	"github.com/elisalimli/nextsync/server/initializers"
 	"github.com/elisalimli/nextsync/server/storage"
 
@@ -33,12 +34,11 @@ func init() {
 const defaultPort = "4000"
 
 func authDirective(ctx context.Context, obj interface{}, next gqlgen.Resolver) (res interface{}, err error) {
-	currentUserId, _ := ctx.Value(customMiddleware.CurrentUserIdKey).(string)
-	fmt.Println("userId", currentUserId)
-	log.Printf("Inside authDirective - ignore the role check for now")
-	if currentUserId == "UNAUTHENTICATED" {
-		return nil, fmt.Errorf("Unauthorized: Token has expired")
+
+	if !models.CheckAuthenticated(ctx) {
+		return nil, fmt.Errorf("Unauthenticated")
 	}
+
 	return next(ctx)
 }
 
