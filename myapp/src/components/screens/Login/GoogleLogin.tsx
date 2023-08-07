@@ -35,7 +35,7 @@ const GoogleSigninSampleApp = () => {
     GoogleSignin.configure({
       androidClientId: process.env.GOOGLE_ANDROID_CLIENT_ID,
       iosClientId: process.env.GOOGLE_IOS_CLIENT_ID,
-      webClientId: config.webClientId,
+      webClientId: process.env.GOOGLE_WEB_CLIENT_ID,
       offlineAccess: false,
     });
   };

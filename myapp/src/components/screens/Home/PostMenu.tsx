@@ -64,7 +64,10 @@ const PostMenu = ({ files }: PostMenuProps) => {
   return (
     <ContextMenu
       dropdownMenuMode
-      actions={[{ title: "Save to Downloads" }]}
+      actions={[
+        { title: "Save to Downloads2" },
+        { title: "Delete Post", destructive: true },
+      ]}
       onPress={(e) => {
         if (e.nativeEvent.index === 0) handleSaveFiles();
       }}
