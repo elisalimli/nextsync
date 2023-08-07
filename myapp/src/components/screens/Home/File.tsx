@@ -8,7 +8,7 @@ import * as Progress from "react-native-progress";
 import { File_FragmentFragment } from "../../../gql/graphql";
 import FileSizeDisplay from "./FileSizeDisplay";
 import TruncatedFileName from "./TruncatedFileName";
-import { useFile } from "./PostContext";
+import { usePost } from "../../contexts/PostContext";
 
 interface FileProps {
   file: File_FragmentFragment;
@@ -17,7 +17,7 @@ interface FileProps {
 const File: React.FC<FileProps> = ({
   file: { id, url, fileSize, fileName: displayName, contentType },
 }) => {
-  const { isDownloaded } = useFile();
+  const { isDownloaded } = usePost();
 
   const [jobId, setJobId] = useState<number | null>(null);
   const [fileExists, setFileExists] = useState(false);

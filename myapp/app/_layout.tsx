@@ -13,6 +13,7 @@ import { asyncStoragePersister, queryClient } from "../src/graphql/client";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { StatusBar } from "expo-status-bar";
 import { LogBox } from "react-native";
+import { ModalContext } from "../src/components/contexts/ModalContext";
 
 export const unstable_settings = {
   // Ensure that reloading on `/modal` keeps a back button present.
@@ -55,6 +56,8 @@ export default function RootLayout() {
 }
 
 function RootLayoutNav() {
+  const [modalVisible, setModalVisible] = React.useState({});
+
   return (
     <PersistQueryClientProvider
       client={queryClient}
@@ -71,10 +74,12 @@ function RootLayoutNav() {
 
       {/* > */}
       <AuthProvider>
-        <Stack screenOptions={{ headerShown: false }}>
-          <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-          <Stack.Screen name="modal" options={{ presentation: "modal" }} />
-        </Stack>
+        <ModalContext.Provider value={{ modalVisible, setModalVisible }}>
+          <Stack screenOptions={{ headerShown: false }}>
+            <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+            <Stack.Screen name="modal" options={{ presentation: "modal" }} />
+          </Stack>
+        </ModalContext.Provider>
       </AuthProvider>
       {/* </ThemeProvider> */}
     </PersistQueryClientProvider>

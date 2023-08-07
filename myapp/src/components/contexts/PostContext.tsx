@@ -1,28 +1,23 @@
 import React from "react";
 import { createContext } from "react";
 
-interface AuthContextType {
+interface PostContextType {
   isDownloaded: boolean;
   progress: number;
   title: string;
-  modalVisible: boolean;
   setProgress: (progress: number) => void;
   setIsDownloaded: (isDownloaded: boolean) => void;
   setTitle: (text: string) => void;
-  setModalVisible: (isVisible: boolean) => void;
 }
-export const PostContext = createContext<AuthContextType>({
+export const PostContext = createContext<PostContextType>({
   isDownloaded: false,
   progress: 0,
   title: "",
-  modalVisible: false,
   setProgress: function (progress: number): void {},
   setIsDownloaded: function (isDownloaded: boolean): void {},
   setTitle: function (text: string): void {},
-  setModalVisible: function (isVisible: boolean): void {},
 });
 
-// This hook can be used to access the user info.
-export function useFile() {
+export function usePost() {
   return React.useContext(PostContext);
 }

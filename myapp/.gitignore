@@ -44,6 +44,7 @@ DerivedData
 project.xcworkspace
 
 Info.plist
+
 # Android/IntelliJ
 #
 build/

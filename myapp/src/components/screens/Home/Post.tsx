@@ -2,7 +2,7 @@ import React from "react";
 import { View } from "react-native";
 import { FragmentType, useFragment } from "../../../gql";
 import { Post_Fragment } from "../../../graphql/query/post/posts";
-import { PostContext } from "./PostContext";
+import { PostContext } from "../../contexts/PostContext";
 import PostFiles from "./PostFiles";
 import PostHeader from "./PostHeader";
 import PostTags from "./PostTags";
@@ -11,7 +11,6 @@ import PostAction from "./PostAction";
 const Post = (props: FragmentType<typeof Post_Fragment>) => {
   const post = useFragment(Post_Fragment, props);
   // Post Context variables
-  const [modalVisible, setModalVisible] = React.useState(false);
   const [progress, setProgress] = React.useState(0);
   const [title, setTitle] = React.useState("Downloading files");
   const [isDownloaded, setIsDownloaded] = React.useState(false);
@@ -22,11 +21,9 @@ const Post = (props: FragmentType<typeof Post_Fragment>) => {
         isDownloaded,
         progress,
         title,
-        modalVisible,
         setProgress,
         setIsDownloaded,
         setTitle,
-        setModalVisible,
       }}
     >
       <View>

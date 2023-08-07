@@ -307,6 +307,7 @@ func (d *Domain) DeletePost(ctx context.Context, input models.DeletePostInput) (
 	_, err = d.PostsRepo.DB.NewDelete().Model(&post).Where("id = ?", input.ID).Exec(ctx)
 
 	if err != nil {
+		fmt.Println("error : ", err)
 		return nil, &ErrSomethingWentWrong{}
 	}
 
@@ -330,7 +331,9 @@ func (d *Domain) DeletePost(ctx context.Context, input models.DeletePostInput) (
 			Bucket: aws.String(BucketName),
 			Delete: &s3.Delete{Objects: objectsToDelete},
 		})
+
 		if err != nil {
+			fmt.Println("error : ", err)
 			return nil, &ErrSomethingWentWrong{}
 		}
 	}

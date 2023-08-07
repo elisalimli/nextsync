@@ -2,7 +2,7 @@ import * as React from "react";
 import { Text, View, StyleSheet } from "react-native";
 import { Post_FragmentFragment } from "../../../gql/graphql";
 import File from "./File";
-import { useFile } from "./PostContext";
+import { useFile } from "../../contexts/PostContext";
 import { useFragment } from "../../../gql";
 import { File_Fragment } from "../../../graphql/query/post/posts";
 
