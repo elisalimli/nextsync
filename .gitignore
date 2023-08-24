@@ -1,0 +1,8 @@
+tmp/
+.env
+.env.prod
+*.rdb
+elisalimli.session
+
+
+vendor/

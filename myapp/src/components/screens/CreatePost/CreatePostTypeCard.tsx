@@ -17,12 +17,13 @@ const CreatePostTypeCard = ({
 }: CreatePostTypeCardProps) => {
   const router = useRouter();
   const { addTag } = useCreatePostStore();
+
   const navigation = useNavigation();
+
   return (
     <TouchableOpacity
       onPress={() => {
         if (type === constants.NEWS_TAG_CODE) addTag(newsTagId);
-        // In your function
 
         router.push({
           pathname: "/post/create-post-1",
