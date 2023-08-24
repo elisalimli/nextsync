@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import axios from "axios";
-import { useRouter } from "expo-router";
+import { useNavigation, useRouter } from "expo-router";
 import * as React from "react";
 import { getAuthAccessToken } from "../../../auth/auth";
 import { constants } from "../../../constants";
@@ -23,6 +23,7 @@ const ConnectedCreatePost3 = (props: ConnectedCreatePost3Props) => {
   const { formValues, docs, tagIds, reset } = useCreatePostStore();
   const { reset: resetSearch } = useSearchStore();
   const queryClient = useQueryClient();
+  const navigation = useNavigation();
 
   const { data } = useQuery({
     queryKey: ["tags"],
@@ -97,11 +98,10 @@ const ConnectedCreatePost3 = (props: ConnectedCreatePost3Props) => {
           reset();
           resetSearch();
         }
-        // router.push({ pathname: "/" });
-        router.back();
-        router.back();
-        router.back();
-        router.back();
+
+        // redirecting to home
+        // @ts-ignore
+        navigation.navigate("(tabs)");
       },
     }
   );

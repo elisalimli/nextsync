@@ -4,6 +4,7 @@ import { Text, TouchableOpacity, View } from "react-native";
 import { constants } from "../../../constants";
 import { useCreatePostStore } from "../../../stores/createPostStore";
 import { PostTypeData } from "./ConnectedCreatePost0";
+import { useNavigation } from "expo-router";
 
 type CreatePostTypeCardProps = PostTypeData & { newsTagId: string };
 
@@ -16,11 +17,13 @@ const CreatePostTypeCard = ({
 }: CreatePostTypeCardProps) => {
   const router = useRouter();
   const { addTag } = useCreatePostStore();
-
+  const navigation = useNavigation();
   return (
     <TouchableOpacity
       onPress={() => {
         if (type === constants.NEWS_TAG_CODE) addTag(newsTagId);
+        // In your function
+
         router.push({
           pathname: "/post/create-post-1",
         });

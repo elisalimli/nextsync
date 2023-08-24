@@ -2,18 +2,16 @@ import FontAwesome from "@expo/vector-icons/FontAwesome";
 import { useFonts } from "expo-font";
 import { SplashScreen, Stack } from "expo-router";
 import React, { useEffect } from "react";
-import { AuthProvider } from "../context/auth";
 
 export { ErrorBoundary } from "expo-router";
 
 import { PersistQueryClientProvider } from "@tanstack/react-query-persist-client";
-import RNFS from "react-native-fs";
-import { constants } from "../src/constants";
-import { asyncStoragePersister, queryClient } from "../src/graphql/client";
-import { SafeAreaView } from "react-native-safe-area-context";
 import { StatusBar } from "expo-status-bar";
 import { LogBox } from "react-native";
+import RNFS from "react-native-fs";
 import { ModalContext } from "../src/components/contexts/ModalContext";
+import { constants } from "../src/constants";
+import { asyncStoragePersister, queryClient } from "../src/graphql/client";
 
 export const unstable_settings = {
   // Ensure that reloading on `/modal` keeps a back button present.
@@ -73,14 +71,14 @@ function RootLayoutNav() {
       {/* value={colorScheme === "dark" ? DarkTheme : DefaultTheme} */}
 
       {/* > */}
-      <AuthProvider>
-        <ModalContext.Provider value={{ modalVisible, setModalVisible }}>
-          <Stack screenOptions={{ headerShown: false }}>
-            <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-            <Stack.Screen name="modal" options={{ presentation: "modal" }} />
-          </Stack>
-        </ModalContext.Provider>
-      </AuthProvider>
+      {/* <AuthProvider> */}
+      <ModalContext.Provider value={{ modalVisible, setModalVisible }}>
+        <Stack screenOptions={{ headerShown: false }}>
+          <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+          <Stack.Screen name="modal" options={{ presentation: "modal" }} />
+        </Stack>
+      </ModalContext.Provider>
+      {/* </AuthProvider> */}
       {/* </ThemeProvider> */}
     </PersistQueryClientProvider>
   );
